@@ -1,0 +1,66 @@
+body {
+	background-color: #EEEEEE;
+}
+
+h1.top-title {
+	color: #92B372;
+	text-align: center;
+}
+p.top-title {
+	text-align: center;
+	font-style: italic;
+}
+
+
+/* button style */
+a.button {
+	padding: .5em 1em .5em 1em;
+	border-style: solid;
+	border-width: 1px;
+	border-color: #EEEEEE;
+	display: inline-block;
+	border-radius: 10px;
+	margin: 2px;
+	font-family: sans-serif;
+}
+
+a.button:link, a.button:visited {
+	color: black;
+}
+
+a.button:hover {
+	background-color: white;
+	border-color: #CCCCCC;
+}
+
+a.button:active {
+	border-color: #92B372;
+	background-color: #92B372;
+	color: white;
+}
+
+a.button-disabled {
+	padding: .5em 1em .5em 1em;
+	border-style: solid;
+	border-width: 1px;
+	border-color: #EEEEEE;
+	display: inline-block;
+	border-radius: 10px;
+	margin: 2px;
+	font-family: sans-serif;
+	color: #CCCCCC;
+} 
+
+
+/* field style */
+input.field {
+	margin: 0;
+	padding: 8px;
+	font-family: sans-serif;
+	color: black;
+	background-color: white;
+}
+
+input.invalid {
+	background-color: #FF7F7F;
+}
