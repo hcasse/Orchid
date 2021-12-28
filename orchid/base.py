@@ -1,5 +1,29 @@
 """Orchid base classes and definitions. """
 
+class Observer:
+	"""Observer for subject-observer pattern."""
+
+	def update(self, subject):
+		pass
+
+
+class Subject:
+	"""Observer for subject-observer pattern."""
+
+	def __init__(self):
+		self.observers = []
+
+	def add_observer(self, observer):
+		self.observers.append(observer)
+
+	def remove_observer(self, observer):
+		self.observers.remove(observer)
+
+	def update_observers(self, subject):
+		for observer in self.observers:
+			observer.update(subject)
+
+
 class Model:
 	"""Represents a model of component and is used to manage its
 	resources."""
@@ -19,10 +43,11 @@ class Model:
 		pass
 
 
-class Component:
+class Component(Subject):
 	"""Component to build a user-interface."""
 
 	def __init__(self, model):
+		Subject.__init__(self)
 		self.model = model
 		self.page = None
 

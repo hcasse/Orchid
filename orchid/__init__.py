@@ -11,6 +11,7 @@ from orchid.button import Button
 from orchid.label import Label
 from orchid.field import Field, is_valid_number
 from orchid.group import HGroup, VGroup
+from orchid.updater import *
 
 
 GEN_RE = re.compile("^\s+<\?\s+(\S+)\s+\?>\s+$")

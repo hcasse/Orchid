@@ -24,6 +24,7 @@ class Button(Component):
 
 	def gen(self, out):
 		out.write('<a class="%s"' % self.get_class())
+		out.write(' id="%s"' % self.get_id())
 		out.write(' onclick="button_click(\'%s\');">' % self.get_id())
 		out.write(self.label)
 		out.write('</a>\n')

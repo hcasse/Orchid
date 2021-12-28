@@ -44,12 +44,16 @@ class Field(Component):
 				self.remove_class("invalid")
 			else:
 				self.add_class("invalid")
+			self.update_observers(self)
 
 	def receive(self, m, h):
 		if m["action"] == "change":
-			self.content = m["value"]
-			print("content = %s" % self.content)
-			self.check_validity()
+			content = m["value"]
+			if self.content != content:
+				print("content = %s" % self.content)
+				self.content = content
+				self.update_observers(self)
+				self.check_validity()
 		else:
 			Component.receive(self, m, h)
 
