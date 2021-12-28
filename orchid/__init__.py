@@ -31,7 +31,10 @@ class Manager:
 		del self.pages[page.get_id()]
 
 	def gen_page(self, page, out):
-		template = open(self.template, encoding="utf-8")
+		path = page.get_template()
+		if path == None:
+			path = self.template
+		template = open(path, encoding="utf-8")
 		for l in template:
 			m = GEN_RE.match(l)
 			if m == None:
@@ -119,13 +122,12 @@ class Server(http.server.SimpleHTTPRequestHandler):
 		self.end_headers()
 
 
-def run(page, template=None, port=4444, dirs=[]):
+def run(page, port=4444, dirs=[]):
 	"""Run the UI on the given port."""
 
 	# build the manager
 	my_assets = os.path.join(os.path.dirname(__file__), "../assets")
-	if template == None:
-		template = os.path.join(my_assets, "template.html")
+	template = os.path.join(my_assets, "template.html")
 	dirs = dirs + [my_assets]
 	manager = Manager(page, template, dirs)
 

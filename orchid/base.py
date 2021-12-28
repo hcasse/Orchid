@@ -74,9 +74,10 @@ class Component:
 class Page:
 	"""Implements a page ready to be displayed."""
 
-	def __init__(self, main = None):
+	def __init__(self, main = None, template = None):
 		self.messages = []
 		self.main = None
+		self.template = template
 		if main != None:
 			self.set_main(main)
 		else:
@@ -85,6 +86,9 @@ class Page:
 
 	def get_id(self):
 		return str(id(self))
+
+	def get_template(self):
+		return self.template
 
 	def on_add(self, comp):
 		"""Called each time a component is added."""
