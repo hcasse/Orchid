@@ -12,25 +12,35 @@ ui_http.onreadystatechange = function() {
 			console.info(this.responseText);
 			ans = JSON.parse(this.responseText);
 			for(const a of ans["answers"]) {
-				console.info(a);
-				if(a["type"] == "set") {
-					document.getElementById(a["id"]).style[a["attr"]] = a["val"];
-				}
-				else if(a["type"] == "call") {
+				console.info("DEBUG:" + a);
+				if(a["type"] == "call") {
 					var f = window[a["fun"]];
 					f(a["args"]);
 				}
-				else if(a["type"] == "class") {
-					document.getElementById(a["id"]).className = a["class"];
+				else {
+					component = document.getElementById(a["id"]);
+					if(a["type"] == "set") {
+						component.style[a["attr"]] = a["val"];
+					}
+					else if(a["type"] == "class") {
+						component.className = a["class"];
+					}
+					else if(a["type"] == "add-class") {
+						component.classList.add(a["class"]);
+					}
+					else if(a["type"] == "remove-class") {
+						component.classList.remove(a["class"]);
+					}
+					else if(a['type'] == "set-attr") {
+						component.setAttribute(a["attr"], a["val"]);
+					}
+					else if(a['type'] == "remove-attr") {
+						component.removeAttribute(a["attr"]);						
+					}
+					else {
+						console.error("unknow command: " + a)	
+					}
 				}
-				else if(a["type"] == "add-class") {
-					document.getElementById(a["id"]).classList.add(a["class"]);
-				}
-				else if(a["type"] == "remove-class") {
-					document.getElementById(a["id"]).classList.remove(a["class"]);
-				}
-				else
-					console.log("unknow command: " + a)
 			}
 		}
 	}

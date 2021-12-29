@@ -84,7 +84,7 @@ class Server(http.server.SimpleHTTPRequestHandler):
 			print(s)
 			self.wfile.write(s.encode("utf-8"))
 		except KeyError:
-			self.log_error("malformed message: %s (%s)" % msg)
+			self.log_error("malformed message: %s" % msg)
 
 	def do_GET(self):
 

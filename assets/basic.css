@@ -1,6 +1,38 @@
-body {
+/* page structure */
+
+html {
 	background-color: #EEEEEE;
+	height: 100vh;
+	width: 100vw;
+	position: absolute;
+	top: 0;
+	left: 0;
 }
+
+body {
+	display: flex;
+	flex-flow: column;
+	height: 100%;
+	margin: 0;
+}
+
+#head {
+	flex: 0 1 auto;
+	margin: 8px 8px 0 8px;
+}
+
+#content {
+	flex: 1 1 auto;
+	margin: 8px;
+}
+
+#tail {
+	flex: 0 1 auto;
+	margin: 0 8px 8px 8px;
+}
+
+
+/* general elements */
 
 h1.top-title {
 	color: #92B372;

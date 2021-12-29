@@ -80,8 +80,16 @@ class Component(Subject):
 		self.send({"type": "call", "fun": fun, "args": args})
 
 	def set_style(self, attr, val):
-		"""Send a message to set an attribute."""
+		"""Send a message to set a style."""
 		self.send({"type": "set", "id": self.get_id(), "attr": attr, "val": val})
+
+	def set_attr(self, attr, val = None):
+		"""Send a message to set an attribute."""
+		self.send({"type": "set-attr", "id": self.get_id(), "attr": attr, "val": val})
+
+	def remove_attr(self, attr):
+		"""Send a message to remove an attribute."""
+		self.send({"type": "remove-attr", "id": self.get_id(), "attr": attr})
 
 	def set_class(self, cls):
 		"""Change the class of the component."""
@@ -94,6 +102,25 @@ class Component(Subject):
 	def remove_class(self, cls):
 		"""Add a class of the component."""
 		self.send({"type": "remove-class", "id": self.get_id(), "class": cls})
+
+	def gen_resize(self):
+		"""Called to generate the content of resize. The code is generated
+		in hierarchical order, from root to leaf components."""
+		pass
+
+	def expands_horizontal(self):
+		"""Return true to support horizontal expansion."""
+		return False
+
+	def expands_vertical(self):
+		"""Return true to support vertical expansion."""
+		return False
+
+	def get_weight(self):
+		try:
+			return self.weight
+		except AttributeError:
+			return 1
 
 
 class Page:
