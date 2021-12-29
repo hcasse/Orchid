@@ -13,33 +13,38 @@ ui_http.onreadystatechange = function() {
 			ans = JSON.parse(this.responseText);
 			for(const a of ans["answers"]) {
 				console.info("DEBUG:" + a);
-				if(a["type"] == "call") {
+				switch(a["type"]) {
+				case "call":
 					var f = window[a["fun"]];
 					f(a["args"]);
-				}
-				else {
+					break;
+				case "set":
 					component = document.getElementById(a["id"]);
-					if(a["type"] == "set") {
-						component.style[a["attr"]] = a["val"];
-					}
-					else if(a["type"] == "class") {
-						component.className = a["class"];
-					}
-					else if(a["type"] == "add-class") {
-						component.classList.add(a["class"]);
-					}
-					else if(a["type"] == "remove-class") {
-						component.classList.remove(a["class"]);
-					}
-					else if(a['type'] == "set-attr") {
-						component.setAttribute(a["attr"], a["val"]);
-					}
-					else if(a['type'] == "remove-attr") {
-						component.removeAttribute(a["attr"]);						
-					}
-					else {
-						console.error("unknow command: " + a)	
-					}
+					component.style[a["attr"]] = a["val"];
+					break;
+				case "class":
+					component = document.getElementById(a["id"]);
+					component.className = a["class"];
+					break;
+				case "add-class":
+					component = document.getElementById(a["id"]);
+					component.classList.add(a["class"]);
+					break;
+				case "remove-class":
+					component = document.getElementById(a["id"]);
+					component.classList.remove(a["class"]);
+					break;
+				case "set-attr":
+					component = document.getElementById(a["id"]);
+					component.setAttribute(a["attr"], a["val"]);
+					break;
+				case "remove-attr":
+					component = document.getElementById(a["id"]);
+					component.removeAttribute(a["attr"]);
+					break;
+				default:
+					console.error("unknow command: " + a);
+					break;
 				}
 			}
 		}
