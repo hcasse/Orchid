@@ -24,6 +24,7 @@ body {
 #content {
 	flex: 1 1 auto;
 	margin: 8px;
+	overflow: auto;
 }
 
 #tail {

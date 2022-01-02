@@ -2,6 +2,7 @@
 
 import http.server
 import json
+import mimetypes
 import os.path
 import re
 import socketserver
@@ -12,7 +13,7 @@ from orchid.label import Label
 from orchid.field import Field, is_valid_number
 from orchid.group import HGroup, VGroup
 from orchid.updater import *
-
+from orchid.editor import Editor
 
 GEN_RE = re.compile("^\s+<\?\s+(\S+)\s+\?>\s+$")
 
@@ -48,6 +49,8 @@ class Manager:
 					page.gen_style(out)
 				elif cmd == "script":
 					page.gen_script(out)
+				elif cmd == "resize":
+					page.gen_resize(out)
 				else:
 					error("bad command in %s: %s" % (path, cmd))
 		template.close()
@@ -74,6 +77,7 @@ class Server(http.server.SimpleHTTPRequestHandler):
 		length = int(self.headers['content-length'])
 		data = self.rfile.read(length)
 		msg = json.loads(data)
+		print("DEBUG:", msg)
 		try:
 			page = self.server.manager.get_page(msg["page"])
 			answers = page.receive(msg["messages"], self)
@@ -81,7 +85,7 @@ class Server(http.server.SimpleHTTPRequestHandler):
 			self.send_header("Content-type", "application/json")
 			self.end_headers()
 			s = json.dumps({"status": "ok", "answers": answers})
-			print(s)
+			print("DEBUG: ", s)
 			self.wfile.write(s.encode("utf-8"))
 		except KeyError:
 			self.log_error("malformed message: %s" % msg)
@@ -110,6 +114,11 @@ class Server(http.server.SimpleHTTPRequestHandler):
 				print(rpath)
 				if os.path.exists(rpath):
 					self.send_response(200)
+					(type, _) = mimetypes.guess_type(rpath)
+					if type != None:
+						self.send_header("Content-type", type)
+					else:
+						self.warn("no MIME for %s" % rpath)
 					self.end_headers()
 					file = open(rpath, encoding="utf-8")
 					for l in file:

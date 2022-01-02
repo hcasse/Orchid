@@ -21,10 +21,11 @@ class Button(Component):
 		if on_click != None:
 			self.on_click = on_click
 		self.enabled = enabled
+		self.add_class(self.get_enabled_class())
 
 	def gen(self, out):
-		out.write('<a class="%s"' % self.get_class())
-		out.write(' id="%s"' % self.get_id())
+		out.write('<a')
+		self.gen_attrs(out)
 		out.write(' onclick="button_click(\'%s\');">' % self.get_id())
 		out.write(self.label)
 		out.write('</a>\n')
@@ -41,7 +42,7 @@ class Button(Component):
 		"""Called when a click is performed."""
 		pass
 
-	def get_class(self):
+	def get_enabled_class(self):
 		if self.enabled:
 			return "button"
 		else:
@@ -51,4 +52,4 @@ class Button(Component):
 		"""Enable/disable the button."""
 		if self.enabled != enabled:
 			self.enabled = enabled
-			self.set_class(self.get_class())
+			self.set_class(self.get_enabled_class())

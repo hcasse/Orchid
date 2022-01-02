@@ -8,7 +8,7 @@ ui_http.onreadystatechange = function() {
 			console.error("HTTP error: " + this.status);
 		}
 		else {
-			console.log("answer: " + this.responseText)
+			/*console.log("answer: " + this.responseText)*/
 			console.info(this.responseText);
 			ans = JSON.parse(this.responseText);
 			for(const a of ans["answers"]) {
@@ -69,3 +69,86 @@ function ui_send(obj) {
 	ui_complete();
 }
 
+function ui_size(x) {
+	if(typeof x == 'undefined' || x == "") {
+		return 0;
+	}
+	else
+		return parseFloat(x);
+}
+
+function ui_full_width(e) {
+	s = getComputedStyle(e);
+	return e.offsetWidth
+		+  ui_size(s.marginLeft)
+		+  ui_size(s.marginRight);
+}
+
+function ui_full_height(e) {
+	s = getComputedStyle(e);
+	return e.offsetHeight
+		+  ui_size(s.marginTop)
+		+  ui_size(s.marginBottom);
+}
+
+function ui_content_width(e) {
+	s = getComputedStyle(e);
+	return e.clientWidth
+		 - ui_size(s.paddingLeft)
+		 - ui_size(s.paddingRight)
+}
+
+function ui_content_height(e) {
+	s = getComputedStyle(e);
+	return e.clientHeight
+		 - ui_size(s.paddingTop)
+		 - ui_size(s.paddingBottom)
+}
+
+function ui_set_width(e, w) {
+	s = getComputedStyle(e);
+	w =	(w
+		 - ui_size(s.borderLeftWidth)
+		 - ui_size(s.borderRightWidth)
+		 - ui_size(s.paddingLeft)
+		 - ui_size(s.paddingRight)
+		 - ui_size(s.marginLeft)
+		 - ui_size(s.marginRight)
+	) + "px";
+	/*console.log("setting with of " + e.id + ": " + w);*/
+	e.style.width = w;
+}
+
+function ui_set_height(e, h) {
+	s = getComputedStyle(e);
+	 h = (h
+		 - ui_size(s.borderTopWidth)
+		 - ui_size(s.borderBottomWidth)
+		 - ui_size(s.paddingTop)
+		 - ui_size(s.paddingBottom)
+		 - ui_size(s.marginTop)
+		 - ui_size(s.marginBottom)
+	) + "px";
+	/*console.log("setting height of " + e.id + ": " + h);*/
+	e.style.height = h;
+}
+
+function ui_show_size(e) {
+	s = getComputedStyle(e);
+	console.log("size of " + e.id + " = " + s.width + " x " + s.height);
+	console.log ("margin of " + e.id + " = "
+		+ s.marginLeft + " "
+		+ s.marginTop + " "
+		+ s.marginRight + " "
+		+ s.marginBottom + " ");
+	console.log ("border of " + e.id + " = "
+		+ s.borderLeftWidth + " "
+		+ s.borderTopWidth + " "
+		+ s.borderRightWidth + " "
+		+ s.borderBottomWidth + " ");
+	console.log ("padding of " + e.id + " = "
+		+ s.paddingLeft + " "
+		+ s.paddingTop + " "
+		+ s.paddingRight + " "
+		+ s.paddingBottom + " ");
+}

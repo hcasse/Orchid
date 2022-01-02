@@ -1,5 +1,8 @@
 """Orchid base classes and definitions. """
 
+PAGE_ID = 1
+COMPONENT_ID = 1
+
 class Observer:
 	"""Observer for subject-observer pattern."""
 
@@ -47,12 +50,16 @@ class Component(Subject):
 	"""Component to build a user-interface."""
 
 	def __init__(self, model):
+		global COMPONENT_ID
 		Subject.__init__(self)
 		self.model = model
 		self.page = None
+		self.id = str(COMPONENT_ID)
+		COMPONENT_ID += 1
+		self.classes = []
 
 	def get_id(self):
-		return str(id(self))
+		return self.id
 
 	def get_model(self):
 		return self.model
@@ -62,6 +69,12 @@ class Component(Subject):
 
 	def get_children(self):
 		return []
+
+	def gen_attrs(self, out):
+		"""Generate common attributes"""
+		out.write(' id="%s"' % self.get_id())
+		if self.classes != []:
+			out.write(' class="%s"' % " ".join(self.classes))
 
 	def gen(self, out):
 		"""Called to generate the component itself."""
@@ -97,13 +110,19 @@ class Component(Subject):
 
 	def add_class(self, cls):
 		"""Add a class of the component."""
-		self.send({"type": "add-class", "id": self.get_id(), "class": cls})
+		if cls not in self.classes:
+			self.classes.append(cls)
+			if self.page != None and self.page.online:
+				self.send({"type": "add-class", "id": self.get_id(), "class": cls})
 
 	def remove_class(self, cls):
-		"""Add a class of the component."""
-		self.send({"type": "remove-class", "id": self.get_id(), "class": cls})
+		"""Remove a class of the component."""
+		if cls in self.classes:
+			self.classes.remove(cls)
+			if self.page != None and self.page.online:
+				self.send({"type": "remove-class", "id": self.get_id(), "class": cls})
 
-	def gen_resize(self):
+	def gen_resize(self, out):
 		"""Called to generate the content of resize. The code is generated
 		in hierarchical order, from root to leaf components."""
 		pass
@@ -123,10 +142,28 @@ class Component(Subject):
 			return 1
 
 
+class ExpandableComponent(Component):
+
+	def __init__(self, model):
+		Component.__init__(self, model)
+
+	def gen_resize(self, out):
+		out.write("""
+			function resize_%s(w, h) {
+				/*console.log("resize %s: " + w + " x " + h);*/
+				e = document.getElementById("%s");
+				/*ui_show_size(e);*/
+				ui_set_width(e, w);
+				ui_set_height(e, h);
+			}
+""" % (self.get_id(), self.get_id(), self.get_id()))
+
+
 class Page:
 	"""Implements a page ready to be displayed."""
 
 	def __init__(self, main = None, template = None):
+		global PAGE_ID
 		self.messages = []
 		self.main = None
 		self.template = template
@@ -135,9 +172,12 @@ class Page:
 		else:
 			self.models = {}
 			self.components = {}
+		self.id = str(PAGE_ID)
+		PAGE_ID += 1
+		self.online = False
 
 	def get_id(self):
-		return str(id(self))
+		return self.id
 
 	def get_template(self):
 		return self.template
@@ -188,6 +228,7 @@ class Page:
 	def gen_content(self, out):
 		"""Generate the content."""
 		self.main.gen(out)
+		self.online = True
 
 	def receive(self, messages, handler):
 		"""Called to receive messages and answer. The answer is a
@@ -206,3 +247,19 @@ class Page:
 		self.messages = []
 		return res
 
+	def gen_resize(self, out):
+		"""Called to generatet the resize code."""
+		if self.main == None:
+			out.write("""
+		function ui_resize() {
+		}
+""")
+		else:
+			self.main.gen_resize(out)
+			out.write("""
+		function ui_resize() {
+			p = document.getElementById("content");
+			/*console.log("total: " + ui_content_width(p) + " x " + ui_content_height(p));*/
+			resize_%s(ui_content_width(p), ui_content_height(p));
+		}
+""" % self.main.get_id())
