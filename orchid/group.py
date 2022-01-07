@@ -7,8 +7,14 @@ class Group(Component):
 	def __init__(self, model, *comps):
 		Component.__init__(self, model)
 		self.children = list(comps)
+		self.expandh = False
+		self.expandv = False
 		for c in self.children:
 			c.parent = self
+			if c.expands_horizontal():
+				self.expandh = True
+			if c.expands_vertical():
+				self.expandv = True
 
 	def get_children(self):
 		return self.children
@@ -16,6 +22,12 @@ class Group(Component):
 	def gen_resize(self, out):
 		for child in self.children:
 			child.gen_resize(out)
+
+	def expands_horizontal(self):
+		return self.expandh
+
+	def expands_vertical(self):
+		return self.expandv
 
 
 # HGroup class
@@ -28,6 +40,12 @@ class HGroupModel(Model):
 		out.write("""
 .hgroup-item {
 	display: inline-block;
+}
+
+.hgroup {
+	text-indent: 0;
+	white-space: nowrap;
+	overflow-x: clip;
 }
 """)
 
@@ -77,7 +95,7 @@ class HGroup(Group):
 			
 		for child in self.get_children():
 			if child in expands:
-				out.write('\t\t\tw = tw * %d / %d;\n'
+				out.write('\t\t\tw = Math.floor(tw * %d / %d);\n'
 					 % (child.get_weight(), sum))
 				out.write("\t\t\tresize_%s(w, th);\n" % child.get_id())
 
@@ -94,6 +112,12 @@ class VGroupModel(Model):
 		out.write("""
 .vgroup-item {
 	display: block;
+}
+
+.vgroup {
+	text-indent: 0;
+	white-space: nowrap;
+	overflow-y: clip;
 }
 """)
 

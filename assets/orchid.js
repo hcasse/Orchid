@@ -47,6 +47,8 @@ ui_http.onreadystatechange = function() {
 					break;
 				}
 			}
+			if(ui_messages.length != 0)
+				ui_complete();
 		}
 	}
 }
@@ -57,11 +59,12 @@ function ui_post(obj) {
 
 function ui_complete() {
 	ui_http.open("POST", "ui", true);
+	messages = ui_messages;
+	ui_messages = [];
 	ui_http.send(JSON.stringify({
 		page: ui_page,
-		messages: ui_messages
+		messages: messages
 	}));
-	ui_messages = [];
 }
 
 function ui_send(obj) {

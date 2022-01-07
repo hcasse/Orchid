@@ -14,6 +14,7 @@ from orchid.field import Field, is_valid_number
 from orchid.group import HGroup, VGroup
 from orchid.updater import *
 from orchid.editor import Editor
+from orchid.console import Console
 
 GEN_RE = re.compile("^\s+<\?\s+(\S+)\s+\?>\s+$")
 
@@ -77,18 +78,19 @@ class Server(http.server.SimpleHTTPRequestHandler):
 		length = int(self.headers['content-length'])
 		data = self.rfile.read(length)
 		msg = json.loads(data)
-		print("DEBUG:", msg)
+		print("DEBUG: receive ", msg)
 		try:
 			page = self.server.manager.get_page(msg["page"])
-			answers = page.receive(msg["messages"], self)
-			self.send_response(200)
-			self.send_header("Content-type", "application/json")
-			self.end_headers()
-			s = json.dumps({"status": "ok", "answers": answers})
-			print("DEBUG: ", s)
-			self.wfile.write(s.encode("utf-8"))
 		except KeyError:
 			self.log_error("malformed message: %s" % msg)
+			return
+		answers = page.receive(msg["messages"], self)
+		self.send_response(200)
+		self.send_header("Content-type", "application/json")
+		self.end_headers()
+		s = json.dumps({"status": "ok", "answers": answers})
+		print("DEBUG: answer ", s)
+		self.wfile.write(s.encode("utf-8"))
 
 	def do_GET(self):
 

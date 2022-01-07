@@ -150,13 +150,13 @@ class ExpandableComponent(Component):
 	def gen_resize(self, out):
 		out.write("""
 			function resize_%s(w, h) {
-				/*console.log("resize %s: " + w + " x " + h);*/
 				e = document.getElementById("%s");
+				/*console.log("resize " + e.id + ": " + w + " x " + h);*/
 				/*ui_show_size(e);*/
 				ui_set_width(e, w);
 				ui_set_height(e, h);
 			}
-""" % (self.get_id(), self.get_id(), self.get_id()))
+""" % (self.get_id(), self.get_id()))
 
 
 class Page:
