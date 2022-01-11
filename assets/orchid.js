@@ -80,6 +80,16 @@ function ui_size(x) {
 		return parseFloat(x);
 }
 
+function ui_width(e) {
+	s = getComputedStyle(e);
+	return ui_size(s.width);
+}
+
+function ui_height(e) {
+	s = getComputedStyle(e);
+	return ui_size(s.height);
+}
+
 function ui_full_width(e) {
 	s = getComputedStyle(e);
 	return e.offsetWidth
@@ -136,9 +146,39 @@ function ui_set_height(e, h) {
 	e.style.height = h;
 }
 
+function ui_left_offset(e) {
+	var s = s.style;
+	return ui_size(s.borderLeftWidth)
+		 + ui_size(s.paddingLeft)
+		 + ui_size(s.marginLeft);
+}
+
+function ui_right_offset(e) {
+	var s = s.style;
+	return ui_size(s.borderRightWidth)
+		 + ui_size(s.paddingRight)
+		 + ui_size(s.marginRight);
+}
+
+function ui_top_offset(e) {
+	var s = s.style;
+	return ui_size(s.borderTopWidth)
+		 + ui_size(s.paddingTop)
+		 + ui_size(s.marginTop);
+}
+
+function ui_bottom_offset(e) {
+	var s = s.style;
+	return ui_size(s.borderBottomWidth)
+		 + ui_size(s.paddingBottom)
+		 + ui_size(s.marginBottom);
+}
+
 function ui_show_size(e) {
 	s = getComputedStyle(e);
 	console.log("size of " + e.id + " = " + s.width + " x " + s.height);
+	console.log("offset size of " + e.id + " = " + e.offsetWidth + " x " + e.offsetHeight);
+	console.log("client size of " + e.id + " = " + e.clientWidth + " x " + e.clientHeight);
 	console.log ("margin of " + e.id + " = "
 		+ s.marginLeft + " "
 		+ s.marginTop + " "

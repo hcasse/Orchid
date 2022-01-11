@@ -24,11 +24,14 @@ class Button(Component):
 		self.add_class(self.get_enabled_class())
 
 	def gen(self, out):
+		out.write('<div style="display: inline-block;">')
 		out.write('<a')
 		self.gen_attrs(out)
 		out.write(' onclick="button_click(\'%s\');">' % self.get_id())
 		out.write(self.label)
-		out.write('</a>\n')
+		out.write('</a>')
+		out.write('</div>')
+		out.write('\n')
 
 	def receive(self, m, h):
 		if m["action"] == "click":

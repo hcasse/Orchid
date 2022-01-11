@@ -98,3 +98,11 @@ input.field {
 input.invalid {
 	background-color: #FF7F7F;
 }
+
+
+/* structured styles */
+.header-label {
+	margin: 3px;
+	padding: .5em .5em .5em .5em;
+	font-weight: bold;
+}

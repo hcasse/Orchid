@@ -151,8 +151,8 @@ class ExpandableComponent(Component):
 		out.write("""
 			function resize_%s(w, h) {
 				e = document.getElementById("%s");
-				/*console.log("resize " + e.id + ": " + w + " x " + h);*/
-				/*ui_show_size(e);*/
+				console.log("resize " + e.id + ": " + w + " x " + h);
+				ui_show_size(e);
 				ui_set_width(e, w);
 				ui_set_height(e, h);
 			}

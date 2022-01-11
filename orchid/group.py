@@ -4,7 +4,7 @@ from orchid.base import *
 
 class Group(Component):
 
-	def __init__(self, model, *comps):
+	def __init__(self, model, comps):
 		Component.__init__(self, model)
 		self.children = list(comps)
 		self.expandh = False
@@ -40,6 +40,7 @@ class HGroupModel(Model):
 		out.write("""
 .hgroup-item {
 	display: inline-block;
+	vertical-align: middle;
 }
 
 .hgroup {
@@ -53,8 +54,9 @@ HGROUP_MODEL = HGroupModel()
 
 class HGroup(Group):
 
-	def __init__(self, *comps):
-		Group.__init__(self, HGROUP_MODEL, *comps)
+	def __init__(self, comps = [], model = HGROUP_MODEL, align = None):
+		Group.__init__(self, model, comps)
+		self.align = align
 		self.add_class("hgroup")
 		for child in self.get_children():
 			child.add_class("hgroup-item")
@@ -85,7 +87,8 @@ class HGroup(Group):
 
 		# generate the code
 		out.write("\t\tfunction resize_%s(tw, th) {\n" % self.get_id())
-
+		out.write('\t\t\tvar e = document.getElementById(%s);\n' % self.get_id())
+		#out.write('\t\t\tui_show_size(e);\n')
 		if fixes != []:
 			for child in fixes:
 				out.write('\t\t\te = document.getElementById("%s");\n'
@@ -125,8 +128,9 @@ VGROUP_MODEL = VGroupModel()
 
 class VGroup(Group):
 
-	def __init__(self, *comps):
-		Group.__init__(self, VGROUP_MODEL, *comps)
+	def __init__(self, comps, model = VGROUP_MODEL, align = None):
+		Group.__init__(self, model, comps)
+		self.align = align
 		self.add_class("vgroup")
 		for child in self.get_children():
 			child.add_class("vgroup-item")
@@ -164,6 +168,8 @@ class VGroup(Group):
 					% child.get_id());
 				out.write('\t\t\tth -= ui_full_height(e);\n');
 				#out.write('console.log("%s height = " + ui_full_height(e));\n' % child.get_id())
+				if child.expands_horizontal():
+					out.write("\t\t\tresize_%s(tw, ui_content_height(e));\n" % child.get_id())
 			
 		for child in self.get_children():
 			if child in expands:
@@ -172,3 +178,35 @@ class VGroup(Group):
 				out.write("\t\t\tresize_%s(tw, h);\n" % child.get_id())
 
 		out.write("\t\t}\n")
+
+
+# Spring component
+SPRING_MODEL = Model()
+
+class Spring(ExpandableComponent):
+	"""Invisible component taking as much place as possible.
+	One parameter of hexpand or vexpand has to be defined else the
+	component won't occupy any place."""
+
+	def __init__(self, hexpand = False, vexpand = False, weight = 1):
+		ExpandableComponent.__init__(self, SPRING_MODEL)
+		self.hexpand = hexpand
+		self.vexpand = vexpand
+		self.weight = weight
+
+	def expands_horizontal(self):
+		return self.hexpand
+
+	def expands_vertical(self):
+		return self.vexpand
+
+	def get_weight(self):
+		return self.weight
+
+	def gen(self, out):
+		out.write("<div")
+		self.gen_attrs(out)
+		out.write(' style="display: inline-block;"')
+		out.write("></div>\n")
+
+
