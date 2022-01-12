@@ -47,4 +47,4 @@ class Console(ExpandableComponent):
 
 	def clear(self):
 		"""Clear the content of the console."""
-		self.Call("console_clear", {"id": self.get_id()})
+		self.call("console_clear", {"id": self.get_id()})
