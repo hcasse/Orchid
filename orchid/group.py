@@ -88,12 +88,16 @@ class HGroup(Group):
 		# generate the code
 		out.write("\t\tfunction resize_%s(tw, th) {\n" % self.get_id())
 		out.write('\t\t\tvar e = document.getElementById(%s);\n' % self.get_id())
+		out.write('\t\t\ttw -= ui_left_offset(e) + ui_right_offset(e);\n')
+		out.write('\t\t\tth -= ui_top_offset(e) + ui_bottom_offset(e);\n')
 		#out.write('\t\t\tui_show_size(e);\n')
 		if fixes != []:
 			for child in fixes:
 				out.write('\t\t\te = document.getElementById("%s");\n'
 					% child.get_id());
 				out.write('\t\t\ttw -= ui_full_width(e);\n');
+				if child.expands_vertical():
+					out.write("\t\t\tresize_%s(ui_content_width(e), th);\n" % child.get_id())
 				#out.write('console.log("%s width = " + ui_full_width(e));\n' % child.get_id())
 			
 		for child in self.get_children():
@@ -161,6 +165,9 @@ class VGroup(Group):
 
 		# generate the code
 		out.write("\t\tfunction resize_%s(tw, th) {\n" % self.get_id())
+		out.write('\t\t\tvar e = document.getElementById(%s);\n' % self.get_id())
+		out.write('\t\t\ttw -= ui_left_offset(e) + ui_right_offset(e);\n')
+		out.write('\t\t\tth -= ui_top_offset(e) + ui_bottom_offset(e);\n')
 
 		if fixes != []:
 			for child in fixes:

@@ -9,7 +9,6 @@ class Observer:
 	def update(self, subject):
 		pass
 
-
 class Subject:
 	"""Observer for subject-observer pattern."""
 
@@ -45,6 +44,14 @@ class Model:
 		"""Called to generate the script part."""
 		pass
 
+	def get_style_paths(self):
+		"""Return a list of style path to embed."""
+		return []
+
+	def get_script_paths(self):
+		"""Return a list of script paths to embed."""
+		return []
+
 
 class Component(Subject):
 	"""Component to build a user-interface."""
@@ -52,17 +59,17 @@ class Component(Subject):
 	def __init__(self, model):
 		global COMPONENT_ID
 		Subject.__init__(self)
-		self.model = model
 		self.page = None
+		self.model = model
 		self.id = str(COMPONENT_ID)
 		COMPONENT_ID += 1
 		self.classes = []
 
-	def get_id(self):
-		return self.id
-
 	def get_model(self):
 		return self.model
+
+	def get_id(self):
+		return self.id
 
 	def get_page(self):
 		return page
@@ -141,6 +148,10 @@ class Component(Subject):
 		except AttributeError:
 			return 1
 
+	def get_add_models(self):
+		"""Called to get additional used modles."""
+		return []
+
 
 class ExpandableComponent(Component):
 
@@ -151,12 +162,12 @@ class ExpandableComponent(Component):
 		out.write("""
 			function resize_%s(w, h) {
 				e = document.getElementById("%s");
-				console.log("resize " + e.id + ": " + w + " x " + h);
-				ui_show_size(e);
 				ui_set_width(e, w);
 				ui_set_height(e, h);
 			}
 """ % (self.get_id(), self.get_id()))
+# console.log("resize " + e.id + ": " + w + " x " + h);
+# ui_show_size(e);
 
 
 class Page:
@@ -182,11 +193,9 @@ class Page:
 	def get_template(self):
 		return self.template
 
-	def on_add(self, comp):
-		"""Called each time a component is added."""
-		comp.page = self
-		self.components[comp.get_id()] = comp
-		m = comp.get_model()
+	def add_model(self, model):
+		"""Add a model to the page."""
+		m = model
 		while m != None:
 			try:
 				self.models[m] += 1
@@ -194,6 +203,14 @@ class Page:
 			except KeyError:
 				self.models[m] = 1
 				m = m.get_parent()
+
+	def on_add(self, comp):
+		"""Called each time a component is added."""
+		comp.page = self
+		self.components[comp.get_id()] = comp
+		self.add_model(comp.get_model())
+		for m in comp.get_add_models():
+			self.add_model(m)
 
 	def set_main(self, main):
 		"""Set the main component."""
@@ -224,6 +241,7 @@ class Page:
 		out.write("var ui_page=\"%s\";\n" % self.get_id())
 		for m in self.models:
 			m.gen_script(out)
+		self.gen_resize(out)
 
 	def gen_content(self, out):
 		"""Generate the content."""
@@ -248,7 +266,7 @@ class Page:
 		return res
 
 	def gen_resize(self, out):
-		"""Called to generatet the resize code."""
+		"""Called to generate the resize code."""
 		if self.main == None:
 			out.write("""
 		function ui_resize() {
@@ -263,3 +281,23 @@ class Page:
 			resize_%s(ui_content_width(p), ui_content_height(p));
 		}
 """ % self.main.get_id())
+
+	def gen_script_paths(self, out):
+		"""Called to generate linked scripts."""
+		ss = ["orchid.js"]
+		for m in self.models:
+			for s in m.get_script_paths():
+				if s not in ss:
+					ss.append(s)
+		for s in ss:
+			out.write('<script src="%s"></script>\n' % s)
+
+	def gen_style_paths(self, out):
+		"""Called to generate linked CSS."""
+		ss = ["basic.css"]
+		for m in self.models:
+			for s in m.get_style_paths():
+				if s not in ss:
+					ss.append(s)
+		for s in ss:
+			out.write('<link rel="stylesheet" href="%s"/>\n' % s)

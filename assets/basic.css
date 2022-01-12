@@ -86,6 +86,45 @@ a.button-disabled {
 } 
 
 
+/* button style */
+a.tool-button {
+	padding: 2px 2px 2px 2px;
+	border-style: solid;
+	border-width: 1px;
+	border-color: #EEEEEE;
+	display: inline-block;
+	border-radius: 10px;
+	margin: 2px;
+}
+
+a.tool-button:link, a.tool-button:visited {
+	color: black;
+}
+
+a.tool-button:hover {
+	background-color: white;
+	border-color: #CCCCCC;
+}
+
+a.tool-button:active {
+	border-color: #92B372;
+	background-color: #92B372;
+	color: white;
+}
+
+a.tool-button-disabled {
+	padding: 2px 2px 2px 2px;
+	border-style: solid;
+	border-width: 1px;
+	border-color: #EEEEEE;
+	display: inline-block;
+	border-radius: 10px;
+	margin: 2px;
+	color: #CCCCCC;
+	pointer-events: none;
+}
+
+
 /* field style */
 input.field {
 	margin: 0;
@@ -105,4 +144,17 @@ input.invalid {
 	margin: 3px;
 	padding: .5em .5em .5em .5em;
 	font-weight: bold;
+}
+
+
+/* tool icons */
+.tool-icon {
+	font-size: 1.5em;
+}
+
+
+
+/* header */
+.header {
+	margin-right: 1em;
 }

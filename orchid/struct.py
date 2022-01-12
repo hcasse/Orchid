@@ -15,3 +15,4 @@ class Header(HGroup):
 			comps = [self.label, Spring(hexpand = True)] + tools,
 			model = HEADER_MODEL)
 		self.label.add_class("header-label")
+		self.add_class("header")

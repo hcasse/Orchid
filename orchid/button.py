@@ -1,8 +1,10 @@
 """Button class."""
 
 from orchid.base import *
+import orchid.image as image
 
-class ButtonModel(Model):
+# AbstractButton component
+class AbstractButtonModel(Model):
 
 	def gen_script(self, out):
 		out.write("""
@@ -11,26 +13,31 @@ class ButtonModel(Model):
 		}
 """)
 
-BUTTON_MODEL = ButtonModel()
+ABSTRACT_BUTTON_MODEL = AbstractButtonModel()
 
-class Button(Component):
+class AbstractButton(Component):
 
-	def __init__(self, label, on_click = None, enabled = True):
-		Component.__init__(self, BUTTON_MODEL)
-		self.label = label
+	def __init__(self, model, on_click = None, enabled = True):
+		Component.__init__(self, model)
 		if on_click != None:
 			self.on_click = on_click
 		self.enabled = enabled
 		self.add_class(self.get_enabled_class())
 
+	def gen_display(self, out):
+		""""Called to generate the content of the button."""
+		pass
+
+	def get_enabled_class(self):
+		"""Called to get the display class of the button."""
+		return None
+
 	def gen(self, out):
-		out.write('<div style="display: inline-block;">')
 		out.write('<a')
 		self.gen_attrs(out)
 		out.write(' onclick="button_click(\'%s\');">' % self.get_id())
-		out.write(self.label)
+		self.gen_display(out)
 		out.write('</a>')
-		out.write('</div>')
 		out.write('\n')
 
 	def receive(self, m, h):
@@ -45,14 +52,49 @@ class Button(Component):
 		"""Called when a click is performed."""
 		pass
 
+	def enable(self, enabled = True):
+		"""Enable/disable the button."""
+		if self.enabled != enabled:
+			self.enabled = enabled
+			self.set_class(self.get_enabled_class())
+
+
+# Button model
+BUTTON_MODEL = Model(ABSTRACT_BUTTON_MODEL)
+
+class Button(AbstractButton):
+
+	def __init__(self, label, on_click = None, enabled = True):
+		AbstractButton.__init__(self, BUTTON_MODEL, on_click, enabled)
+		self.label = label
+
+	def gen_display(self, out):
+		out.write(self.label)
+
 	def get_enabled_class(self):
 		if self.enabled:
 			return "button"
 		else:
 			return "button-disabled"
 
-	def enable(self, enabled = True):
-		"""Enable/disable the button."""
-		if self.enabled != enabled:
-			self.enabled = enabled
-			self.set_class(self.get_enabled_class())
+
+# ToolButton component
+TOOL_BUTTON_MODEL = Model(ABSTRACT_BUTTON_MODEL)
+
+class ToolButton(AbstractButton):
+
+	def __init__(self, image, on_click = None, enabled = True):
+		AbstractButton.__init__(self, TOOL_BUTTON_MODEL, on_click, enabled)
+		self.image = image
+
+	def get_add_models(self):
+		return [self.image.get_model()]
+
+	def gen_display(self, out):
+		self.image.gen(out, image.TOOL)
+
+	def get_enabled_class(self):
+		if self.enabled:
+			return "tool-button"
+		else:
+			return "tool-button-disabled"

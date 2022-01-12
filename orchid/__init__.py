@@ -8,7 +8,7 @@ import re
 import socketserver
 
 from orchid.base import *
-from orchid.button import Button
+from orchid.button import Button, ToolButton
 from orchid.label import Label
 from orchid.field import Field, is_valid_number
 from orchid.group import HGroup, VGroup
@@ -17,8 +17,27 @@ from orchid.updater import *
 from orchid.editor import Editor
 from orchid.console import Console
 from orchid.struct import Header
+from orchid.image import Icon, Image
 
 GEN_RE = re.compile("^\s+<\?\s+(\S+)\s+\?>\s+$")
+
+TEXT_MIMES = {
+	"application/javascript",
+	"text/css",
+	"text/csv",
+	"text/html",
+	"text/javascript",
+	"text/plain",
+	"text/xml"
+}
+
+CMD_MAP = {
+	"content": Page.gen_content,
+	"style": Page.gen_style,
+	"script": Page.gen_script,
+	"script-paths": Page.gen_script_paths,
+	"style-paths": Page.gen_style_paths
+}
 
 class Manager:
 
@@ -45,16 +64,9 @@ class Manager:
 			if m == None:
 				out.write(l)
 			else:
-				cmd = m.group(1)
-				if cmd == "content":
-					page.gen_content(out)
-				elif cmd == "style":
-					page.gen_style(out)
-				elif cmd == "script":
-					page.gen_script(out)
-				elif cmd == "resize":
-					page.gen_resize(out)
-				else:
+				try:
+					CMD_MAP[m.group(1)](page, out)
+				except KeyError:
 					error("bad command in %s: %s" % (path, cmd))
 		template.close()
 
@@ -108,6 +120,7 @@ class Server(http.server.SimpleHTTPRequestHandler):
 		# manage other files
 		else:
 			path = os.path.normpath(self.path)
+			print("DEBUG: looking for ", path)
 			if path.startswith("/.."):
 				error("out of sandbox access: assets/%s" % path)
 				self.send_response(404)
@@ -115,19 +128,12 @@ class Server(http.server.SimpleHTTPRequestHandler):
 				return
 			for dir in self.server.manager.get_dirs():
 				rpath = dir + path
-				print(rpath)
+				print("DEBUG: testing ", rpath)
 				if os.path.exists(rpath):
-					self.send_response(200)
-					(type, _) = mimetypes.guess_type(rpath)
-					if type != None:
-						self.send_header("Content-type", type)
-					else:
-						self.warn("no MIME for %s" % rpath)
-					self.end_headers()
-					file = open(rpath, encoding="utf-8")
-					for l in file:
-						self.wfile.write(bytes(l, "utf-8"))
-					file.close()
+					#self.path = rpath
+					print("DEBUG: serving ", self.path)
+					#http.server.SimpleHTTPRequestHandler.do_GET(self)
+					self.answer_file(rpath)
 					return
 
 		# file not found				
@@ -135,12 +141,46 @@ class Server(http.server.SimpleHTTPRequestHandler):
 		self.send_response(404)
 		self.end_headers()
 
+	def answer_file(self, path):
+
+		# build the header
+		self.send_response(200)
+		(type, _) = mimetypes.guess_type(path)
+		print(type, path)
+		if type == None:
+			self.log_error("no MIME for %s" % path)
+		else:
+			self.send_header("Content-type", type)
+		self.end_headers()
+
+		# send text file
+		if type in TEXT_MIMES:
+			file = open(path, encoding="utf-8")
+			for l in file:
+				self.wfile.write(bytes(l, "utf-8"))
+			file.close()
+
+		# send binary file
+		else:
+			file = open(path, "rb")
+			while True:
+				b = file.read(4096)
+				print(b)
+				if b == b'':
+					break
+				else:
+					self.wfile.write(b)
+			file.close()
+
+
 
 def run(page, port=4444, dirs=[]):
 	"""Run the UI on the given port."""
 
 	# build the manager
-	my_assets = os.path.join(os.path.dirname(__file__), "../assets")
+	print(__file__)
+	my_assets = os.path.realpath(os.path.join(os.path.dirname(__file__), "../assets"))
+	print(my_assets)
 	template = os.path.join(my_assets, "template.html")
 	dirs = dirs + [my_assets]
 	manager = Manager(page, template, dirs)
@@ -148,6 +188,7 @@ def run(page, port=4444, dirs=[]):
 	# launch the server
 	server = http.server.HTTPServer(("localhost", port), Server)
 	server.manager = manager
+	print(manager.dirs)
 	try:
 		server.serve_forever()
 	except KeyboardInterrupt:
