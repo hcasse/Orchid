@@ -27,23 +27,28 @@ class Field(Component):
 		return self.content
 
 	def gen(self, out):
+		out.write("<div")
+		self.gen_attrs(out)
+		out.write('>')		
 		if self.label != None:
-			out.write('<label for="%s" class="field">%s</label>' % (self.get_id(), self.label))
-		out.write('<input id="%s" class="field" type="text"' % self.get_id())
+			out.write('<label for="%s-field" class="field">%s</label>' % (self.get_id(), self.label))
+		out.write('<input id="%s-field" class="field" type="text"' % self.get_id())
 		out.write(' value="%s"' % self.content)
 		out.write(' oninput="field_change(\'%s\', this.value)"' % self.get_id())
 		if self.size != None:
 			out.write(' size="%d"' % self.size)
-		out.write('/>\n')
+		out.write('/>')
+		out.write('</div>')
+		
 
 	def check_validity(self):
 		valid = self.is_valid(self.content)
 		if valid != self.valid:
 			self.valid = valid
 			if valid:
-				self.remove_class("invalid")
+				self.send_classes(["field", "valid"], "%s-field" % self.get_id())
 			else:
-				self.add_class("invalid")
+				self.send_classes(["field", "invalid"], "%s-field" % self.get_id())
 			self.update_observers(self)
 
 	def receive(self, m, h):

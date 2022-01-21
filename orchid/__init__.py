@@ -41,14 +41,14 @@ CMD_MAP = {
 
 class Manager:
 
-	def __init__(self, page, template, dirs):
-		self.index = page
+	def __init__(self, app, template, dirs):
+		self.app = app
 		self.template = template
 		self.dirs = dirs
 		self.pages = {}
 
 	def add_page(self, page):
-		print(page)
+		#print(page)
 		self.pages[page.get_id()] = page
 
 	def remove_page(self, page):
@@ -74,7 +74,9 @@ class Manager:
 		return self.pages[id]
 
 	def make_index(self):
-		return self.index()
+		page = self.app.first()
+		page.manager = self
+		return page
 
 	def get_template(self):
 		return self.template
@@ -146,7 +148,7 @@ class Server(http.server.SimpleHTTPRequestHandler):
 		# build the header
 		self.send_response(200)
 		(type, _) = mimetypes.guess_type(path)
-		print(type, path)
+		#print(type, path)
 		if type == None:
 			self.log_error("no MIME for %s" % path)
 		else:
@@ -165,7 +167,7 @@ class Server(http.server.SimpleHTTPRequestHandler):
 			file = open(path, "rb")
 			while True:
 				b = file.read(4096)
-				print(b)
+				#print(b)
 				if b == b'':
 					break
 				else:
@@ -174,16 +176,15 @@ class Server(http.server.SimpleHTTPRequestHandler):
 
 
 
-def run(page, port=4444, dirs=[]):
+def run(app, port=4444, dirs=[]):
 	"""Run the UI on the given port."""
 
 	# build the manager
-	print(__file__)
 	my_assets = os.path.realpath(os.path.join(os.path.dirname(__file__), "../assets"))
 	print(my_assets)
 	template = os.path.join(my_assets, "template.html")
 	dirs = dirs + [my_assets]
-	manager = Manager(page, template, dirs)
+	manager = Manager(app, template, dirs)
 
 	# launch the server
 	server = http.server.HTTPServer(("localhost", port), Server)

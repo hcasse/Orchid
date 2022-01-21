@@ -90,20 +90,23 @@ class HGroup(Group):
 		out.write('\t\t\tvar e = document.getElementById(%s);\n' % self.get_id())
 		out.write('\t\t\ttw -= ui_left_offset(e) + ui_right_offset(e);\n')
 		out.write('\t\t\tth -= ui_top_offset(e) + ui_bottom_offset(e);\n')
-		#out.write('\t\t\tui_show_size(e);\n')
+		out.write('\t\t\tconsole.log("%s hwidth=" + tw);\n' % self.get_id())
 		if fixes != []:
 			for child in fixes:
 				out.write('\t\t\te = document.getElementById("%s");\n'
 					% child.get_id());
+				#out.write('\t\t\tconsole.log("width of %s = " + ui_full_width(e));\n' % child.get_id())
 				out.write('\t\t\ttw -= ui_full_width(e);\n');
 				if child.expands_vertical():
 					out.write("\t\t\tresize_%s(ui_content_width(e), th);\n" % child.get_id())
 				#out.write('console.log("%s width = " + ui_full_width(e));\n' % child.get_id())
 			
+		#out.write('\t\t\tconsole.log("remains " + tw);\n')
 		for child in self.get_children():
 			if child in expands:
 				out.write('\t\t\tw = Math.floor(tw * %d / %d);\n'
 					 % (child.get_weight(), sum))
+				#out.write('\t\t\tconsole.log("width of %s = " + Math.floor(tw * %d / %d));\n' % (child.get_id(), child.get_weight(), sum))
 				out.write("\t\t\tresize_%s(w, th);\n" % child.get_id())
 
 		out.write("\t\t}\n")

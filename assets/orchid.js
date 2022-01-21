@@ -3,7 +3,6 @@ var ui_http = new XMLHttpRequest();
 
 ui_http.onreadystatechange = function() {
 	if(this.readyState == 4) {
-		console.info("ready to process");
 		if(this.status != 200) {
 			console.error("HTTP error: " + this.status);
 		}
@@ -12,7 +11,7 @@ ui_http.onreadystatechange = function() {
 			console.info(this.responseText);
 			ans = JSON.parse(this.responseText);
 			for(const a of ans["answers"]) {
-				console.info("DEBUG:" + a);
+				//console.info("DEBUG:" + a);
 				switch(a["type"]) {
 				case "call":
 					var f = window[a["fun"]];
@@ -22,17 +21,9 @@ ui_http.onreadystatechange = function() {
 					component = document.getElementById(a["id"]);
 					component.style[a["attr"]] = a["val"];
 					break;
-				case "class":
+				case "set-class":
 					component = document.getElementById(a["id"]);
-					component.className = a["class"];
-					break;
-				case "add-class":
-					component = document.getElementById(a["id"]);
-					component.classList.add(a["class"]);
-					break;
-				case "remove-class":
-					component = document.getElementById(a["id"]);
-					component.classList.remove(a["class"]);
+					component.className = a["classes"];
 					break;
 				case "set-attr":
 					component = document.getElementById(a["id"]);
@@ -194,4 +185,8 @@ function ui_show_size(e) {
 		+ s.paddingTop + " "
 		+ s.paddingRight + " "
 		+ s.paddingBottom + " ");
+}
+
+function ui_open(addr) {
+	window.open(addr);
 }

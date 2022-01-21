@@ -138,6 +138,9 @@ input.invalid {
 	background-color: #FF7F7F;
 }
 
+label.field {
+	padding-right: .5em;
+}
 
 /* structured styles */
 .header-label {

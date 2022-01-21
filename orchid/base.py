@@ -111,23 +111,25 @@ class Component(Subject):
 		"""Send a message to remove an attribute."""
 		self.send({"type": "remove-attr", "id": self.get_id(), "attr": attr})
 
-	def set_class(self, cls):
-		"""Change the class of the component."""
-		self.send({"type": "class", "id": self.get_id(), "class": cls})
-
 	def add_class(self, cls):
 		"""Add a class of the component."""
 		if cls not in self.classes:
 			self.classes.append(cls)
 			if self.page != None and self.page.online:
-				self.send({"type": "add-class", "id": self.get_id(), "class": cls})
+				self.send_classes(self.classes)
 
 	def remove_class(self, cls):
 		"""Remove a class of the component."""
 		if cls in self.classes:
 			self.classes.remove(cls)
 			if self.page != None and self.page.online:
-				self.send({"type": "remove-class", "id": self.get_id(), "class": cls})
+				self.send_classes(self.classes)
+
+	def send_classes(self, classes, id = None):
+		"""Set the classes of a component."""
+		if id == None:
+			id = self.id
+		self.send({"type": "set-class", "id": id, "classes": " ".join(classes)})
 
 	def gen_resize(self, out):
 		"""Called to generate the content of resize. The code is generated
@@ -301,3 +303,36 @@ class Page:
 					ss.append(s)
 		for s in ss:
 			out.write('<link rel="stylesheet" href="%s"/>\n' % s)
+
+	def open(self, page):
+		"""Change page to the given page."""
+		self.manager.add_page(page)
+		self.page.messages.append({
+			"type": "call",
+			"fun": "ui_open",
+			"args": "/_/%s" % page.get_id()
+		})
+
+
+class Application:
+	"""Class representing the application and specially provides the initial page."""
+
+	def __init__(self, name,
+		version = None,
+		authors = [],
+		license = None,
+		copyright = None,
+		description = None,
+		website = None
+	):
+		self.name = name
+		self.version = version
+		self.license = license
+		self.copyright = copyright
+		self.description = description
+		self.website = website
+
+	def first(self):
+		"""Function called to get the first page."""
+		return None
+

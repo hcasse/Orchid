@@ -55,8 +55,9 @@ class AbstractButton(Component):
 	def enable(self, enabled = True):
 		"""Enable/disable the button."""
 		if self.enabled != enabled:
+			self.remove_class(self.get_enabled_class())
 			self.enabled = enabled
-			self.set_class(self.get_enabled_class())
+			self.add_class(self.get_enabled_class())
 
 
 # Button model
