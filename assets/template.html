@@ -5,19 +5,17 @@
 		<? title ?>
 	</title>
 	<meta charset="utf-8"/>
-	<link rel="stylesheet" href="basic.css"/>
+	<? style-paths ?>
 	<style>
 		<? style ?>
 	</style>
-	<script src="orchid.js"></script>
+	<? script-paths ?>
 	<script>
 		<? script ?>
-
-		function ui_resize() {
-			<? resize ?>
-		}	</script>
 </head>
-<body>
+<body 
+	<? body-attrs ?>
+>
 	<div id="head">
 	</div>
 	<div id="content" class="page">
@@ -25,7 +23,6 @@
 	</div>
 	<hr>
 	<div id="tail">
-		<p align="right"><i>Powered by Orchid, Copyright (c) 2021, <a href="mailto:hug.casse@gmail.com">Hugues Cassé</a>. </i></p>
 	</div>
 </body>
 </html>

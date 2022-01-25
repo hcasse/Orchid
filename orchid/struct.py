@@ -1,6 +1,6 @@
 """Component for a structured view."""
 
-from orchid.base import Model
+from orchid.base import Model, CONTEXT_HEADERBAR
 from orchid.label import Label
 from orchid.group import HGroup, Spring, HGROUP_MODEL
 
@@ -16,3 +16,6 @@ class Header(HGroup):
 			model = HEADER_MODEL)
 		self.label.add_class("header-label")
 		self.add_class("header")
+
+	def get_context(self):
+		return CONTEXT_HEADERBAR

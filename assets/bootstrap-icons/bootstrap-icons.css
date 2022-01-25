@@ -21,6 +21,13 @@ url("./fonts/bootstrap-icons.woff") format("woff");
   -moz-osx-font-smoothing: grayscale;
 }
 
+.bi-erase::before { content: "\f330"; }
+.bi-forward::before { content: "\f231"; }
+.bi-backward::before { content: "\f22d"; }
+.bi-menu::before { content: "\f227"; }
+
+
+
 .bi-123::before { content: "\f67f"; }
 .bi-alarm-fill::before { content: "\f101"; }
 .bi-alarm::before { content: "\f102"; }

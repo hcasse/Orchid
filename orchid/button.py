@@ -92,7 +92,7 @@ class ToolButton(AbstractButton):
 		return [self.image.get_model()]
 
 	def gen_display(self, out):
-		self.image.gen(out, image.TOOL)
+		self.image.gen(out, self.parent.get_context())
 
 	def get_enabled_class(self):
 		if self.enabled:

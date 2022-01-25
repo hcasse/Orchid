@@ -3,6 +3,18 @@
 PAGE_ID = 1
 COMPONENT_ID = 1
 
+# type of context
+CONTEXT_NONE = 0
+CONTEXT_TOOLBAR = 1
+CONTEXT_HEADERBAR = 2
+CONTEXT_BUTTONBAR = 3
+
+# type of icons
+ICON_ERASE = "erase"
+ICON_FORWARD = "forward"
+ICON_BACKWARD = "backward"
+ICON_MENU = "menu"
+
 class Observer:
 	"""Observer for subject-observer pattern."""
 
@@ -175,7 +187,7 @@ class ExpandableComponent(Component):
 class Page:
 	"""Implements a page ready to be displayed."""
 
-	def __init__(self, main = None, template = None):
+	def __init__(self, main = None, template = None, parent = None):
 		global PAGE_ID
 		self.messages = []
 		self.main = None
@@ -188,6 +200,7 @@ class Page:
 		self.id = str(PAGE_ID)
 		PAGE_ID += 1
 		self.online = False
+		self.parent = parent
 
 	def get_id(self):
 		return self.id
@@ -257,15 +270,32 @@ class Page:
 		# manage messages
 		for m in messages:
 			try:
-				comp = self.components[m["id"]]
-				comp.receive(m, handler)
+				id = m["id"]
+				if id != "0":
+					self.components[id].receive(m, handler)
+				else:
+					self.manage(m, handler)
 			except KeyError:
-				handler.log_error("unknown component in ", m)
+				handler.log_error("unknown component in %s" % m)
 
 		# manage answers
 		res = self.messages
 		self.messages = []
 		return res
+
+	def on_close(self):
+		self.manager.remove_page(self)
+		if self.parent != None:
+			self.parent.on_close()
+
+	def manage(self, msg, handler):
+		"""Manage window messages."""
+		#print("DEBUG: closing!")
+		a = msg["action"]
+		if a == "close":
+			self.on_close()
+		else:
+			handler.log_error("unknown action: %s" % a)
 
 	def gen_resize(self, out):
 		"""Called to generate the resize code."""
@@ -312,6 +342,14 @@ class Page:
 			"fun": "ui_open",
 			"args": "/_/%s" % page.get_id()
 		})
+
+	def gen_body_attrs(self, out):
+		"""Generate body attributes."""
+		out.write("""
+			onresize="ui_resize()"
+			onload="ui_resize()"
+			onbeforeunload="ui_close()"
+""")
 
 
 class Application:

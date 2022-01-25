@@ -190,3 +190,9 @@ function ui_show_size(e) {
 function ui_open(addr) {
 	window.open(addr);
 }
+
+function ui_close() {
+	ui_send({id: "0", action: "close"});
+	now = (new Date()).getTime();
+	while(((new Date()).getTime() - now) < 250);
+}

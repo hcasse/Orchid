@@ -1,11 +1,16 @@
 """Data/Process-oriented user interface."""
 
+from functools import partial
 import http.server
 import json
 import mimetypes
 import os.path
 import re
 import socketserver
+import sys
+import threading
+import time
+import webbrowser
 
 from orchid.base import *
 from orchid.button import Button, ToolButton
@@ -32,11 +37,12 @@ TEXT_MIMES = {
 }
 
 CMD_MAP = {
-	"content": Page.gen_content,
-	"style": Page.gen_style,
-	"script": Page.gen_script,
+	"body-attrs":	Page.gen_body_attrs,
+	"content":		Page.gen_content,
+	"style": 		Page.gen_style,
+	"script": 		Page.gen_script,
 	"script-paths": Page.gen_script_paths,
-	"style-paths": Page.gen_style_paths
+	"style-paths": 	Page.gen_style_paths
 }
 
 class Manager:
@@ -48,10 +54,11 @@ class Manager:
 		self.pages = {}
 
 	def add_page(self, page):
-		#print(page)
 		self.pages[page.get_id()] = page
+		page.manager = self
 
 	def remove_page(self, page):
+		page.manager = None
 		del self.pages[page.get_id()]
 
 	def gen_page(self, page, out):
@@ -75,7 +82,7 @@ class Manager:
 
 	def make_index(self):
 		page = self.app.first()
-		page.manager = self
+		self.add_page(page)
 		return page
 
 	def get_template(self):
@@ -83,6 +90,10 @@ class Manager:
 
 	def get_dirs(self):
 		return self.dirs
+
+	def is_completed(self):
+		print("DEBUG: ", self.pages)
+		return self.pages == {}
 
 
 class Server(http.server.SimpleHTTPRequestHandler):
@@ -94,7 +105,7 @@ class Server(http.server.SimpleHTTPRequestHandler):
 		length = int(self.headers['content-length'])
 		data = self.rfile.read(length)
 		msg = json.loads(data)
-		print("DEBUG: receive ", msg)
+		#print("DEBUG: receive ", msg)
 		try:
 			page = self.server.manager.get_page(msg["page"])
 		except KeyError:
@@ -105,15 +116,18 @@ class Server(http.server.SimpleHTTPRequestHandler):
 		self.send_header("Content-type", "application/json")
 		self.end_headers()
 		s = json.dumps({"status": "ok", "answers": answers})
-		print("DEBUG: answer ", s)
+		#print("DEBUG: answer ", s)
 		self.wfile.write(s.encode("utf-8"))
+		if self.server.manager.is_completed():
+			#print("DEBUG: closing server")
+			self.close_connection = True
+			sys.exit(0)
 
 	def do_GET(self):
 
 		# manage the top-level
 		if self.path == "/":
 			page = self.server.manager.make_index()
-			self.server.manager.add_page(page)
 			self.send_response(200)
 			self.end_headers()
 			self.server.manager.gen_page(page, self)
@@ -175,13 +189,16 @@ class Server(http.server.SimpleHTTPRequestHandler):
 			file.close()
 
 
+def open_browser(port):
+	time.sleep(.5)
+	webbrowser.open("http://localhost:%d" % port)
 
-def run(app, port=4444, dirs=[]):
+
+def run(app, port=4444, dirs=[], browser = True):
 	"""Run the UI on the given port."""
 
 	# build the manager
 	my_assets = os.path.realpath(os.path.join(os.path.dirname(__file__), "../assets"))
-	print(my_assets)
 	template = os.path.join(my_assets, "template.html")
 	dirs = dirs + [my_assets]
 	manager = Manager(app, template, dirs)
@@ -189,7 +206,8 @@ def run(app, port=4444, dirs=[]):
 	# launch the server
 	server = http.server.HTTPServer(("localhost", port), Server)
 	server.manager = manager
-	print(manager.dirs)
+	if browser:
+		threading.Thread(target=partial(open_browser, port)).start()
 	try:
 		server.serve_forever()
 	except KeyboardInterrupt:

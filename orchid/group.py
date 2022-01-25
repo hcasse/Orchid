@@ -29,6 +29,10 @@ class Group(Component):
 	def expands_vertical(self):
 		return self.expandv
 
+	def get_context(self):
+		"""Get the group context (one of CONTEX_* constants)."""
+		return CONTEXT_NONE
+
 
 # HGroup class
 class HGroupModel(Model):
@@ -90,7 +94,7 @@ class HGroup(Group):
 		out.write('\t\t\tvar e = document.getElementById(%s);\n' % self.get_id())
 		out.write('\t\t\ttw -= ui_left_offset(e) + ui_right_offset(e);\n')
 		out.write('\t\t\tth -= ui_top_offset(e) + ui_bottom_offset(e);\n')
-		out.write('\t\t\tconsole.log("%s hwidth=" + tw);\n' % self.get_id())
+		#out.write('\t\t\tconsole.log("%s hwidth=" + tw);\n' % self.get_id())
 		if fixes != []:
 			for child in fixes:
 				out.write('\t\t\te = document.getElementById("%s");\n'

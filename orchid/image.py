@@ -1,9 +1,6 @@
 """Management of images."""
 
-from orchid.base import Model
-
-PICTURE = 0
-TOOL = 1
+from orchid.base import Model, CONTEXT_HEADERBAR, CONTEXT_NONE
 
 class Image:
 	"""Base class to represent an image (according different sources:
@@ -15,7 +12,7 @@ class Image:
 	def get_model(self):
 		return self.model
 
-	def gen(self, out, type = PICTURE):
+	def gen(self, out, type = CONTEXT_NONE):
 		"""Generate the code for the image."""
 		pass
 
@@ -35,8 +32,8 @@ class Icon(Image):
 		Image.__init__(self, ICON_MODEL)
 		self.name = name
 
-	def gen(self, out, type):
+	def gen(self, out, context):
 		out.write('<i class="bi bi-%s' % self.name)
-		if type == TOOL:
-			out.write(' tool-icon')
+		if context == CONTEXT_HEADERBAR:
+			out.write(' headerbar-icon')
 		out.write('"></i>')
