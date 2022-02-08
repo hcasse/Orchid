@@ -196,3 +196,7 @@ function ui_close() {
 	now = (new Date()).getTime();
 	while(((new Date()).getTime() - now) < 250);
 }
+
+function ui_leave() {
+	window.close();
+}

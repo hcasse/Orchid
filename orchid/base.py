@@ -187,11 +187,11 @@ class ExpandableComponent(Component):
 class Page:
 	"""Implements a page ready to be displayed."""
 
-	def __init__(self, main = None, template = None, parent = None):
+	def __init__(self, main = None, parent = None,
+	app = None, title = None):
 		global PAGE_ID
 		self.messages = []
 		self.main = None
-		self.template = template
 		if main != None:
 			self.set_main(main)
 		else:
@@ -201,12 +201,16 @@ class Page:
 		PAGE_ID += 1
 		self.online = False
 		self.parent = parent
+		self.app = app
+		self.title = title
 
 	def get_id(self):
+		"""Get unique identifier of the page."""
 		return self.id
 
-	def get_template(self):
-		return self.template
+	def add_style_path(self, path):
+		"""Add a style path to the generated model."""
+		self.style_paths.append(path)
 
 	def add_model(self, model):
 		"""Add a model to the page."""
@@ -331,6 +335,8 @@ class Page:
 			for s in m.get_style_paths():
 				if s not in ss:
 					ss.append(s)
+		if self.app != None:
+			ss = ss + self.app.style_paths
 		for s in ss:
 			out.write('<link rel="stylesheet" href="%s"/>\n' % s)
 
@@ -351,6 +357,53 @@ class Page:
 			onbeforeunload="ui_close()"
 """)
 
+	def gen_title(self, out):
+		if self.title != None:
+			text = self.title
+		elif self.app != None:
+			text = self.app.name
+		else:
+			text = "No Title"
+		out.write(text)
+
+	def send(self, msg):
+		"""Send a message to the UI."""
+		self.messages.append(msg)
+
+	def call(self, fun, args):
+		"""Send a message to call a function."""
+		self.send({"type": "call", "fun": fun, "args": args})
+
+	def close(self):
+		self.call("ui_leave", [])
+
+	def gen(self, out):
+		out.write("""
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8"/>
+	<title>""")
+		self.gen_title(out)
+		out.write("</title>\n")
+		self.gen_style_paths(out)
+		out.write("\t<style>\n")
+		self.gen_style(out)
+		out.write("\t</style>\n")
+		self.gen_script_paths(out)
+		out.write("\t<script>\n")
+		self.gen_script(out)
+		out.write("\t</script>\n")
+		out.write("</head>\n")
+		out.write('<body ')
+		self.gen_body_attrs(out)
+		out.write(">\n")
+		out.write('<div id="content" class="page">\n')
+		self.gen_content(out)
+		out.write('</div>')
+		out.write('</body>')
+		out.write('</html>')
+
 
 class Application:
 	"""Class representing the application and specially provides the initial page."""
@@ -361,7 +414,8 @@ class Application:
 		license = None,
 		copyright = None,
 		description = None,
-		website = None
+		website = None,
+		style_paths = []
 	):
 		self.name = name
 		self.version = version
@@ -369,6 +423,7 @@ class Application:
 		self.copyright = copyright
 		self.description = description
 		self.website = website
+		self.style_paths = style_paths
 
 	def first(self):
 		"""Function called to get the first page."""

@@ -13,8 +13,9 @@ import time
 import webbrowser
 
 from orchid.base import *
-from orchid.button import Button, ToolButton
+from orchid.button import Button
 from orchid.label import Label
+from orchid.label import Banner
 from orchid.field import Field, is_valid_number
 from orchid.group import HGroup, VGroup
 from orchid.group import Spring
@@ -42,14 +43,14 @@ CMD_MAP = {
 	"style": 		Page.gen_style,
 	"script": 		Page.gen_script,
 	"script-paths": Page.gen_script_paths,
-	"style-paths": 	Page.gen_style_paths
+	"style-paths": 	Page.gen_style_paths,
+	"title":		Page.gen_title
 }
 
 class Manager:
 
-	def __init__(self, app, template, dirs):
+	def __init__(self, app, dirs):
 		self.app = app
-		self.template = template
 		self.dirs = dirs
 		self.pages = {}
 
@@ -62,20 +63,7 @@ class Manager:
 		del self.pages[page.get_id()]
 
 	def gen_page(self, page, out):
-		path = page.get_template()
-		if path == None:
-			path = self.template
-		template = open(path, encoding="utf-8")
-		for l in template:
-			m = GEN_RE.match(l)
-			if m == None:
-				out.write(l)
-			else:
-				try:
-					CMD_MAP[m.group(1)](page, out)
-				except KeyError:
-					error("bad command in %s: %s" % (path, cmd))
-		template.close()
+		page.gen(out)
 
 	def get_page(self, id):
 		return self.pages[id]
@@ -85,14 +73,10 @@ class Manager:
 		self.add_page(page)
 		return page
 
-	def get_template(self):
-		return self.template
-
 	def get_dirs(self):
 		return self.dirs
 
 	def is_completed(self):
-		print("DEBUG: ", self.pages)
 		return self.pages == {}
 
 
@@ -136,18 +120,18 @@ class Server(http.server.SimpleHTTPRequestHandler):
 		# manage other files
 		else:
 			path = os.path.normpath(self.path)
-			print("DEBUG: looking for ", path)
+			#print("DEBUG: looking for ", path)
 			if path.startswith("/.."):
-				error("out of sandbox access: assets/%s" % path)
+				self.log_error("out of sandbox access: assets/%s" % path)
 				self.send_response(404)
 				self.end_headers()
 				return
 			for dir in self.server.manager.get_dirs():
 				rpath = dir + path
-				print("DEBUG: testing ", rpath)
+				#print("DEBUG: testing ", rpath)
 				if os.path.exists(rpath):
 					#self.path = rpath
-					print("DEBUG: serving ", self.path)
+					#print("DEBUG: serving ", self.path)
 					#http.server.SimpleHTTPRequestHandler.do_GET(self)
 					self.answer_file(rpath)
 					return
@@ -199,9 +183,8 @@ def run(app, port=4444, dirs=[], browser = True):
 
 	# build the manager
 	my_assets = os.path.realpath(os.path.join(os.path.dirname(__file__), "../assets"))
-	template = os.path.join(my_assets, "template.html")
 	dirs = dirs + [my_assets]
-	manager = Manager(app, template, dirs)
+	manager = Manager(app, dirs)
 
 	# launch the server
 	server = http.server.HTTPServer(("localhost", port), Server)
