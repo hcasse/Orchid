@@ -15,21 +15,31 @@ FIELD_MODEL = FieldModel()
 
 class Field(Component):
 
-	def __init__(self, label = None, init = "", size = None, is_valid = lambda x: True):
+	def __init__(self,
+		label = None,
+		init = "",
+		size = None,
+		is_valid = lambda x: True,
+		weight = None
+	):
 		Component.__init__(self, FIELD_MODEL)
 		self.content = str(init)
 		self.label = label
 		self.size = size
 		self.valid = True
 		self.is_valid = is_valid
+		if weight == None:
+			if size != None:
+				weight = size
+			else:
+				weight = 1
+		self.weight = weight
+		self.set_style("display", "flex")
 
 	def get_content(self):
 		return self.content
 
 	def gen(self, out):
-		out.write("<div")
-		self.gen_attrs(out)
-		out.write('>')		
 		if self.label != None:
 			out.write('<label for="%s-field" class="field">%s</label>' % (self.get_id(), self.label))
 		out.write('<input id="%s-field" class="field" type="text"' % self.get_id())
@@ -37,9 +47,8 @@ class Field(Component):
 		out.write(' oninput="field_change(\'%s\', this.value)"' % self.get_id())
 		if self.size != None:
 			out.write(' size="%d"' % self.size)
+		self.gen_attrs(out)
 		out.write('/>')
-		out.write('</div>')
-		
 
 	def check_validity(self):
 		valid = self.is_valid(self.content)

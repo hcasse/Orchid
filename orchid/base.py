@@ -76,6 +76,8 @@ class Component(Subject):
 		self.id = str(COMPONENT_ID)
 		COMPONENT_ID += 1
 		self.classes = []
+		self.style = {}
+		self.attrs = {}
 
 	def get_model(self):
 		return self.model
@@ -91,13 +93,29 @@ class Component(Subject):
 
 	def gen_attrs(self, out):
 		"""Generate common attributes"""
+
+		# generate attribute themselves
 		out.write(' id="%s"' % self.get_id())
+
+		# generate style
+		if self.style != {}:
+			print("DEBUG: self.style =", self.style)
+			out.write(' style="')
+			for k in self.style:
+				out.write("%s: %s; " % (k, self.style[k]))
+			out.write('"')
+
+		# generate classes
 		if self.classes != []:
 			out.write(' class="%s"' % " ".join(self.classes))
 
 	def gen(self, out):
 		"""Called to generate the component itself."""
 		pass
+
+	def online(self):
+		"""Test if the current page is online."""
+		return self.page != None and self.page.online
 
 	def receive(self, msg, handler):
 		"""Called to process a message."""
@@ -113,28 +131,35 @@ class Component(Subject):
 
 	def set_style(self, attr, val):
 		"""Send a message to set a style."""
-		self.send({"type": "set", "id": self.get_id(), "attr": attr, "val": val})
+		print("DEBUG: set_style(", attr, val, ")")
+		self.style[attr] = val
+		if self.online():
+			self.send({"type": "set", "id": self.get_id(), "attr": attr, "val": val})
 
 	def set_attr(self, attr, val = None):
 		"""Send a message to set an attribute."""
-		self.send({"type": "set-attr", "id": self.get_id(), "attr": attr, "val": val})
+		self.attrs[attr] = val
+		if self.online():
+			self.send({"type": "set-attr", "id": self.get_id(), "attr": attr, "val": val})
 
 	def remove_attr(self, attr):
 		"""Send a message to remove an attribute."""
-		self.send({"type": "remove-attr", "id": self.get_id(), "attr": attr})
+		del self.attrs[attr]
+		if self.online():
+			self.send({"type": "remove-attr", "id": self.get_id(), "attr": attr})
 
 	def add_class(self, cls):
 		"""Add a class of the component."""
 		if cls not in self.classes:
 			self.classes.append(cls)
-			if self.page != None and self.page.online:
+			if self.online():
 				self.send_classes(self.classes)
 
 	def remove_class(self, cls):
 		"""Remove a class of the component."""
 		if cls in self.classes:
 			self.classes.remove(cls)
-			if self.page != None and self.page.online:
+			if self.online():
 				self.send_classes(self.classes)
 
 	def send_classes(self, classes, id = None):
@@ -142,11 +167,6 @@ class Component(Subject):
 		if id == None:
 			id = self.id
 		self.send({"type": "set-class", "id": id, "classes": " ".join(classes)})
-
-	def gen_resize(self, out):
-		"""Called to generate the content of resize. The code is generated
-		in hierarchical order, from root to leaf components."""
-		pass
 
 	def expands_horizontal(self):
 		"""Return true to support horizontal expansion."""
@@ -160,11 +180,26 @@ class Component(Subject):
 		try:
 			return self.weight
 		except AttributeError:
-			return 1
+			return 0
 
 	def get_add_models(self):
 		"""Called to get additional used modles."""
 		return []
+
+	def set_enabled(self, enabled = True):
+		"""Enable/disable a component."""
+		if enabled:
+			self.enable()
+		else:
+			self.disable()
+
+	def enable(self):
+		"""Enable the component."""
+		pass
+
+	def disable(self):
+		"""Disable the component."""
+		pass
 
 
 class ExpandableComponent(Component):
@@ -260,7 +295,6 @@ class Page:
 		out.write("var ui_page=\"%s\";\n" % self.get_id())
 		for m in self.models:
 			m.gen_script(out)
-		self.gen_resize(out)
 
 	def gen_content(self, out):
 		"""Generate the content."""
@@ -300,23 +334,6 @@ class Page:
 			self.on_close()
 		else:
 			handler.log_error("unknown action: %s" % a)
-
-	def gen_resize(self, out):
-		"""Called to generate the resize code."""
-		if self.main == None:
-			out.write("""
-		function ui_resize() {
-		}
-""")
-		else:
-			self.main.gen_resize(out)
-			out.write("""
-		function ui_resize() {
-			p = document.getElementById("content");
-			/*console.log("total: " + ui_content_width(p) + " x " + ui_content_height(p));*/
-			resize_%s(ui_content_width(p), ui_content_height(p));
-		}
-""" % self.main.get_id())
 
 	def gen_script_paths(self, out):
 		"""Called to generate linked scripts."""
@@ -395,12 +412,10 @@ class Page:
 		self.gen_script(out)
 		out.write("\t</script>\n")
 		out.write("</head>\n")
-		out.write('<body ')
+		out.write('<body id="content"')
 		self.gen_body_attrs(out)
 		out.write(">\n")
-		out.write('<div id="content" class="page">\n')
 		self.gen_content(out)
-		out.write('</div>')
 		out.write('</body>')
 		out.write('</html>')
 

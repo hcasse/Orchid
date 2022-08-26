@@ -1,3 +1,5 @@
+// Communication management
+
 var ui_messages = [];
 var ui_http = new XMLHttpRequest();
 
@@ -63,6 +65,26 @@ function ui_send(obj) {
 	ui_complete();
 }
 
+
+
+// Main actions
+
+function ui_open(addr) {
+	window.open(addr);
+}
+
+function ui_close() {
+	ui_send({id: "0", action: "close"});
+	now = (new Date()).getTime();
+	while(((new Date()).getTime() - now) < 250);
+}
+
+function ui_leave() {
+	window.close();
+}
+
+
+// Size management (deprecated)
 function ui_size(x) {
 	if(typeof x == 'undefined' || x == "") {
 		return 0;
@@ -187,16 +209,12 @@ function ui_show_size(e) {
 		+ s.paddingBottom + " ");
 }
 
-function ui_open(addr) {
-	window.open(addr);
+function ui_inner_width() {
+	let n = document.getElementById("content")
+	return window.innerWidth - ui_left_offset(n) - ui_right_offset(n);
 }
 
-function ui_close() {
-	ui_send({id: "0", action: "close"});
-	now = (new Date()).getTime();
-	while(((new Date()).getTime() - now) < 250);
-}
-
-function ui_leave() {
-	window.close();
+function ui_inner_height() {
+	let n = document.getElementById("content")
+	return window.innerHeight -  - ui_top_offset(n) - ui_bottom_offset(n);
 }

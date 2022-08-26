@@ -19,10 +19,6 @@ class Group(Component):
 	def get_children(self):
 		return self.children
 
-	def gen_resize(self, out):
-		for child in self.children:
-			child.gen_resize(out)
-
 	def expands_horizontal(self):
 		return self.expandh
 
@@ -30,12 +26,13 @@ class Group(Component):
 		return self.expandv
 
 	def get_context(self):
-		"""Get the group context (one of CONTEX_* constants)."""
+		"""Get the group context (one of CONTEXT_* constants)."""
 		return CONTEXT_NONE
 
 
 # HGroup class
 class HGroupModel(Model):
+	"""Represents a group of component horizontally arranged."""
 
 	def __init__(self):
 		Model.__init__(self)
@@ -43,14 +40,13 @@ class HGroupModel(Model):
 	def gen_style(self, out):
 		out.write("""
 .hgroup-item {
-	display: inline-block;
-	vertical-align: middle;
 }
 
 .hgroup {
-	text-indent: 0;
-	white-space: nowrap;
-	overflow-x: clip;
+	display: flex;
+	vertical-align: middle;
+	flex-wrap: nowrap;
+	column-gap: 4px;
 }
 """)
 
@@ -70,54 +66,17 @@ class HGroup(Group):
 		self.gen_attrs(out)
 		out.write('>\n')
 		for c in self.children:
+			w = c.get_weight()
+			if w != 0:
+				print("DEBUG: flex:", w)
+				c.set_style("flex", str(w))
 			c.gen(out)
 		out.write('</div>\n')	
-
-	def gen_resize(self, out):
-
-		# prepare generation
-		sum = 0
-		fixes = []
-		expands = []
-		for child in self.get_children():
-			if child.expands_horizontal():
-				expands.append(child)
-				sum += child.get_weight()
-			else:
-				fixes.append(child)
-
-		# generate child code
-		Group.gen_resize(self, out)
-
-		# generate the code
-		out.write("\t\tfunction resize_%s(tw, th) {\n" % self.get_id())
-		out.write('\t\t\tvar e = document.getElementById(%s);\n' % self.get_id())
-		out.write('\t\t\ttw -= ui_left_offset(e) + ui_right_offset(e);\n')
-		out.write('\t\t\tth -= ui_top_offset(e) + ui_bottom_offset(e);\n')
-		#out.write('\t\t\tconsole.log("%s hwidth=" + tw);\n' % self.get_id())
-		if fixes != []:
-			for child in fixes:
-				out.write('\t\t\te = document.getElementById("%s");\n'
-					% child.get_id());
-				#out.write('\t\t\tconsole.log("width of %s = " + ui_full_width(e));\n' % child.get_id())
-				out.write('\t\t\ttw -= ui_full_width(e);\n');
-				if child.expands_vertical():
-					out.write("\t\t\tresize_%s(ui_content_width(e), th);\n" % child.get_id())
-				#out.write('console.log("%s width = " + ui_full_width(e));\n' % child.get_id())
-			
-		#out.write('\t\t\tconsole.log("remains " + tw);\n')
-		for child in self.get_children():
-			if child in expands:
-				out.write('\t\t\tw = Math.floor(tw * %d / %d);\n'
-					 % (child.get_weight(), sum))
-				#out.write('\t\t\tconsole.log("width of %s = " + Math.floor(tw * %d / %d));\n' % (child.get_id(), child.get_weight(), sum))
-				out.write("\t\t\tresize_%s(w, th);\n" % child.get_id())
-
-		out.write("\t\t}\n")
 
 
 # VGroup class
 class VGroupModel(Model):
+	"""Represents a group of component vertically arranged."""
 
 	def __init__(self):
 		Model.__init__(self)
@@ -125,15 +84,18 @@ class VGroupModel(Model):
 	def gen_style(self, out):
 		out.write("""
 .vgroup-item {
-	display: block;
+	align-self: center;
 }
 
 .vgroup {
-	text-indent: 0;
-	white-space: nowrap;
-	overflow-y: clip;
+	display: flex;
+	flex-wrap: nowrap;
+	flex-direction: column;
+	row-gap: 4px;
 }
 """)
+# 	white-space: nowrap;
+
 
 VGROUP_MODEL = VGroupModel()
 
@@ -151,47 +113,11 @@ class VGroup(Group):
 		self.gen_attrs(out)
 		out.write('>\n')
 		for c in self.children:
+			w = c.get_weight()
+			if w != 0:
+				c.set_style("flex", str(w))
 			c.gen(out)
 		out.write('</div>\n')
-
-	def gen_resize(self, out):
-
-		# prepare generation
-		sum = 0
-		fixes = []
-		expands = []
-		for child in self.get_children():
-			if child.expands_vertical():
-				expands.append(child)
-				sum += child.get_weight()
-			else:
-				fixes.append(child)
-
-		# generate child code
-		Group.gen_resize(self, out)
-
-		# generate the code
-		out.write("\t\tfunction resize_%s(tw, th) {\n" % self.get_id())
-		out.write('\t\t\tvar e = document.getElementById(%s);\n' % self.get_id())
-		out.write('\t\t\ttw -= ui_left_offset(e) + ui_right_offset(e);\n')
-		out.write('\t\t\tth -= ui_top_offset(e) + ui_bottom_offset(e);\n')
-
-		if fixes != []:
-			for child in fixes:
-				out.write('\t\t\te = document.getElementById("%s");\n'
-					% child.get_id());
-				out.write('\t\t\tth -= ui_full_height(e);\n');
-				#out.write('console.log("%s height = " + ui_full_height(e));\n' % child.get_id())
-				if child.expands_horizontal():
-					out.write("\t\t\tresize_%s(tw, ui_content_height(e));\n" % child.get_id())
-			
-		for child in self.get_children():
-			if child in expands:
-				out.write('\t\t\th = th * %d / %d;\n'
-					 % (child.get_weight(), sum))
-				out.write("\t\t\tresize_%s(tw, h);\n" % child.get_id())
-
-		out.write("\t\t}\n")
 
 
 # Spring component
@@ -220,7 +146,7 @@ class Spring(ExpandableComponent):
 	def gen(self, out):
 		out.write("<div")
 		self.gen_attrs(out)
-		out.write(' style="display: inline-block;"')
 		out.write("></div>\n")
+		self.set_style("display", "inline-block")
 
 
