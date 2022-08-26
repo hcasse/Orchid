@@ -99,7 +99,6 @@ class Component(Subject):
 
 		# generate style
 		if self.style != {}:
-			print("DEBUG: self.style =", self.style)
 			out.write(' style="')
 			for k in self.style:
 				out.write("%s: %s; " % (k, self.style[k]))
@@ -131,7 +130,6 @@ class Component(Subject):
 
 	def set_style(self, attr, val):
 		"""Send a message to set a style."""
-		print("DEBUG: set_style(", attr, val, ")")
 		self.style[attr] = val
 		if self.online():
 			self.send({"type": "set", "id": self.get_id(), "attr": attr, "val": val})
@@ -369,8 +367,6 @@ class Page:
 	def gen_body_attrs(self, out):
 		"""Generate body attributes."""
 		out.write("""
-			onresize="ui_resize()"
-			onload="ui_resize()"
 			onbeforeunload="ui_close()"
 """)
 

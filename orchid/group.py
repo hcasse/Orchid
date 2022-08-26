@@ -68,7 +68,6 @@ class HGroup(Group):
 		for c in self.children:
 			w = c.get_weight()
 			if w != 0:
-				print("DEBUG: flex:", w)
 				c.set_style("flex", str(w))
 			c.gen(out)
 		out.write('</div>\n')	
