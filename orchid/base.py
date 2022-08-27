@@ -142,9 +142,12 @@ class Component(Subject):
 
 	def remove_attr(self, attr):
 		"""Send a message to remove an attribute."""
-		del self.attrs[attr]
-		if self.online():
-			self.send({"type": "remove-attr", "id": self.get_id(), "attr": attr})
+		try:
+			del self.attrs[attr]
+			if self.online():
+				self.send({"type": "remove-attr", "id": self.get_id(), "attr": attr})
+		except KeyError:
+			pass
 
 	def add_class(self, cls):
 		"""Add a class of the component."""
@@ -225,17 +228,17 @@ class Page:
 		global PAGE_ID
 		self.messages = []
 		self.main = None
-		if main != None:
-			self.set_main(main)
-		else:
-			self.models = {}
-			self.components = {}
 		self.id = str(PAGE_ID)
 		PAGE_ID += 1
 		self.online = False
 		self.parent = parent
 		self.app = app
 		self.title = title
+		if main != None:
+			self.set_main(main)
+		else:
+			self.models = {}
+			self.components = {}
 
 	def get_id(self):
 		"""Get unique identifier of the page."""
@@ -275,6 +278,7 @@ class Page:
 			self.on_add(c)
 			for cc in c.get_children():
 				todo.append(cc)
+		main.set_style("flex", "1")
 
 	def on_remove(self, comp):
 		"""Called each time a component is removed."""

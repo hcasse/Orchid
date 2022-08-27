@@ -15,6 +15,7 @@ class Group(Component):
 				self.expandh = True
 			if c.expands_vertical():
 				self.expandv = True
+		self.weight = 1;
 
 	def get_children(self):
 		return self.children
@@ -47,6 +48,7 @@ class HGroupModel(Model):
 	vertical-align: middle;
 	flex-wrap: nowrap;
 	column-gap: 4px;
+	align-self: stretch;
 }
 """)
 
@@ -91,6 +93,7 @@ class VGroupModel(Model):
 	flex-wrap: nowrap;
 	flex-direction: column;
 	row-gap: 4px;
+	align-self: stretch;
 }
 """)
 # 	white-space: nowrap;

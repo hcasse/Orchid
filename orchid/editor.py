@@ -15,14 +15,6 @@ class EditorModel(Model):
 
 """)
 
-#	function editor_input(editor, event) {
-#		console.log("editor " + editor.id
-#			+ ": type=" + event.inputType
-#			+ ", data=" + event.data
-#			+ ", transfer=" + event.dataTransfer
-#			+ ", ranges=" + event.getTargetRanges());
-#	}
-
 EDITOR_MODEL = EditorModel()
 
 class Editor(ExpandableComponent):
@@ -30,25 +22,34 @@ class Editor(ExpandableComponent):
 	def __init__(self, init = "", enabled = True, readonly = False):
 		ExpandableComponent.__init__(self, EDITOR_MODEL)
 		self.value = init
-		self.enabled = enabled
-		self.readonly = readonly
 		self.add_class("editor")
 		self.content_getters = []
+		if enabled:
+			self.enable()
+		else:
+			self.disable()
+		self.readonly = readonly
+		if readonly:
+			self.set_attr("readonly", "true")
+		self.weight = 1
+		self.set_style("align-self", "stretch")
+		self.add_class("editor")
 
 	def gen(self, out):
 		#out.write('<textarea oninput="editor_input(this, event)"')
 		out.write('<textarea')
 		self.gen_attrs(out)
-		if not self.enabled:
-			out.write(' disabled')
-		if self.readonly:
-			out.write(' readonly')
 		out.write(">\n")
 		out.write(self.value)
 		out.write('\n</textarea>')
 
-	def enable(enabled = True):
-		pass
+	def enable(self):
+		self.remove_attr("disabled")
+		self.enabled = True
+
+	def disable(self):
+		self.set_attr("disabled", "true")
+		self.enabled = False
 
 	def expands_horizontal(self):
 		return True
