@@ -56,3 +56,13 @@ Finally, the last line runs the **Orchid** server on the application.
 ```
 	$ pydoc3.8 -b orchid
 ```
+
+
+## Customizing the display
+
+All components comes with own class. Defining a new lookup consists in replacing `basic.css` with a new file where the component classes are changed.
+
+Table of component/class mapping:
+
+
+

@@ -18,9 +18,10 @@ class MyApp(Application):
 
 	def __init__(self):
 		Application.__init__(self, "MyApp")
+		self.fst = MyPage(self)
 
 	def first(self):
-		return MyPage(self)
+		return self.fst
 
 run(MyApp())
 

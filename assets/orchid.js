@@ -35,6 +35,9 @@ ui_http.onreadystatechange = function() {
 					component = document.getElementById(a["id"]);
 					component.removeAttribute(a["attr"]);
 					break;
+				case "quit":
+					window.close();
+					break;
 				default:
 					console.error("unknow command: " + a);
 					break;
@@ -75,146 +78,11 @@ function ui_open(addr) {
 
 function ui_close() {
 	ui_send({id: "0", action: "close"});
-	now = (new Date()).getTime();
-	while(((new Date()).getTime() - now) < 250);
+	//now = (new Date()).getTime();
+	//while(((new Date()).getTime() - now) < 250);
 }
 
-function ui_leave() {
+/*function ui_leave() {
 	window.close();
-}
+}*/
 
-
-// Size management (deprecated)
-function ui_size(x) {
-	if(typeof x == 'undefined' || x == "") {
-		return 0;
-	}
-	else
-		return parseFloat(x);
-}
-
-function ui_width(e) {
-	s = getComputedStyle(e);
-	return ui_size(s.width);
-}
-
-function ui_height(e) {
-	s = getComputedStyle(e);
-	return ui_size(s.height);
-}
-
-function ui_full_width(e) {
-	s = getComputedStyle(e);
-	return e.offsetWidth
-		+  ui_size(s.marginLeft)
-		+  ui_size(s.marginRight);
-}
-
-function ui_full_height(e) {
-	s = getComputedStyle(e);
-	return e.offsetHeight
-		+  ui_size(s.marginTop)
-		+  ui_size(s.marginBottom);
-}
-
-function ui_content_width(e) {
-	s = getComputedStyle(e);
-	return e.clientWidth
-		 - ui_size(s.paddingLeft)
-		 - ui_size(s.paddingRight)
-}
-
-function ui_content_height(e) {
-	s = getComputedStyle(e);
-	return e.clientHeight
-		 - ui_size(s.paddingTop)
-		 - ui_size(s.paddingBottom)
-}
-
-function ui_set_width(e, w) {
-	s = getComputedStyle(e);
-	w =	(w
-		 - ui_size(s.borderLeftWidth)
-		 - ui_size(s.borderRightWidth)
-		 - ui_size(s.paddingLeft)
-		 - ui_size(s.paddingRight)
-		 - ui_size(s.marginLeft)
-		 - ui_size(s.marginRight)
-	) + "px";
-	/*console.log("setting with of " + e.id + ": " + w);*/
-	e.style.width = w;
-}
-
-function ui_set_height(e, h) {
-	s = getComputedStyle(e);
-	 h = (h
-		 - ui_size(s.borderTopWidth)
-		 - ui_size(s.borderBottomWidth)
-		 - ui_size(s.paddingTop)
-		 - ui_size(s.paddingBottom)
-		 - ui_size(s.marginTop)
-		 - ui_size(s.marginBottom)
-	) + "px";
-	/*console.log("setting height of " + e.id + ": " + h);*/
-	e.style.height = h;
-}
-
-function ui_left_offset(e) {
-	var s = getComputedStyle(e);
-	return ui_size(s.borderLeftWidth)
-		 + ui_size(s.paddingLeft)
-		 + ui_size(s.marginLeft);
-}
-
-function ui_right_offset(e) {
-	var s = getComputedStyle(e);
-	return ui_size(s.borderRightWidth)
-		 + ui_size(s.paddingRight)
-		 + ui_size(s.marginRight);
-}
-
-function ui_top_offset(e) {
-	var s = getComputedStyle(e);
-	return ui_size(s.borderTopWidth)
-		 + ui_size(s.paddingTop)
-		 + ui_size(s.marginTop);
-}
-
-function ui_bottom_offset(e) {
-	var s = getComputedStyle(e);
-	return ui_size(s.borderBottomWidth)
-		 + ui_size(s.paddingBottom)
-		 + ui_size(s.marginBottom);
-}
-
-function ui_show_size(e) {
-	var s = getComputedStyle(e);
-	console.log("size of " + e.id + " = " + s.width + " x " + s.height);
-	console.log("offset size of " + e.id + " = " + e.offsetWidth + " x " + e.offsetHeight);
-	console.log("client size of " + e.id + " = " + e.clientWidth + " x " + e.clientHeight);
-	console.log ("margin of " + e.id + " = "
-		+ s.marginLeft + " "
-		+ s.marginTop + " "
-		+ s.marginRight + " "
-		+ s.marginBottom + " ");
-	console.log ("border of " + e.id + " = "
-		+ s.borderLeftWidth + " "
-		+ s.borderTopWidth + " "
-		+ s.borderRightWidth + " "
-		+ s.borderBottomWidth + " ");
-	console.log ("padding of " + e.id + " = "
-		+ s.paddingLeft + " "
-		+ s.paddingTop + " "
-		+ s.paddingRight + " "
-		+ s.paddingBottom + " ");
-}
-
-function ui_inner_width() {
-	let n = document.getElementById("content")
-	return window.innerWidth - ui_left_offset(n) - ui_right_offset(n);
-}
-
-function ui_inner_height() {
-	let n = document.getElementById("content")
-	return window.innerHeight -  - ui_top_offset(n) - ui_bottom_offset(n);
-}

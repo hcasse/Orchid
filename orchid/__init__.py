@@ -80,6 +80,11 @@ class Manager:
 		return self.pages == {}
 
 
+def check_quit(manager):
+	time.sleep(.25)
+	if manager.is_completed():
+		os._exit(0)
+
 class Server(http.server.SimpleHTTPRequestHandler):
 
 	def write(self, text):
@@ -103,9 +108,7 @@ class Server(http.server.SimpleHTTPRequestHandler):
 		#print("DEBUG: answer ", s)
 		self.wfile.write(s.encode("utf-8"))
 		if self.server.manager.is_completed():
-			#print("DEBUG: closing server")
-			self.close_connection = True
-			sys.exit(0)
+			threading.Thread(target=partial(check_quit, self.server.manager)).start()
 
 	def do_GET(self):
 

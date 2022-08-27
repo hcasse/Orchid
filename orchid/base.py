@@ -371,7 +371,7 @@ class Page:
 	def gen_body_attrs(self, out):
 		"""Generate body attributes."""
 		out.write("""
-			onbeforeunload="ui_close()"
+			onbeforeunload="ui_close();"
 """)
 
 	def gen_title(self, out):
@@ -392,7 +392,7 @@ class Page:
 		self.send({"type": "call", "fun": fun, "args": args})
 
 	def close(self):
-		self.call("ui_leave", [])
+		self.send({"type": "quit"})
 
 	def gen(self, out):
 		out.write("""
