@@ -309,14 +309,14 @@ class Page:
 
 		# manage messages
 		for m in messages:
-			try:
-				id = m["id"]
-				if id != "0":
+			id = m["id"]
+			if id == "0":
+				self.manage(m, handler)
+			else:
+				try:
 					self.components[id].receive(m, handler)
-				else:
-					self.manage(m, handler)
-			except KeyError:
-				handler.log_error("unknown component in %s" % m)
+				except KeyError:
+					handler.log_error("unknown component in %s" % m)
 
 		# manage answers
 		res = self.messages
@@ -330,7 +330,6 @@ class Page:
 
 	def manage(self, msg, handler):
 		"""Manage window messages."""
-		#print("DEBUG: closing!")
 		a = msg["action"]
 		if a == "close":
 			self.on_close()
@@ -418,6 +417,7 @@ class Page:
 		self.gen_content(out)
 		out.write('</body>')
 		out.write('</html>')
+
 
 
 class Application:

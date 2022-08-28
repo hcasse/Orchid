@@ -9,42 +9,53 @@ ui_http.onreadystatechange = function() {
 			console.error("HTTP error: " + this.status);
 		}
 		else {
-			/*console.log("answer: " + this.responseText)*/
-			console.info(this.responseText);
-			ans = JSON.parse(this.responseText);
-			for(const a of ans["answers"]) {
-				//console.info("DEBUG:" + a);
-				switch(a["type"]) {
-				case "call":
-					var f = window[a["fun"]];
-					f(a["args"]);
-					break;
-				case "set":
-					component = document.getElementById(a["id"]);
-					component.style[a["attr"]] = a["val"];
-					break;
-				case "set-class":
-					component = document.getElementById(a["id"]);
-					component.className = a["classes"];
-					break;
-				case "set-attr":
-					component = document.getElementById(a["id"]);
-					component.setAttribute(a["attr"], a["val"]);
-					break;
-				case "remove-attr":
-					component = document.getElementById(a["id"]);
-					component.removeAttribute(a["attr"]);
-					break;
-				case "quit":
-					window.close();
-					break;
-				default:
-					console.error("unknow command: " + a);
-					break;
+			inner = this.getResponseHeader("OrchidInner");
+
+			// usual command
+			if(inner == null) {
+				//console.log("answer: " + this.responseText)
+				ans = JSON.parse(this.responseText);
+				for(const a of ans["answers"]) {
+					//console.info("DEBUG:" + a);
+					switch(a["type"]) {
+					case "call":
+						var f = window[a["fun"]];
+						f(a["args"]);
+						break;
+					case "set":
+						component = document.getElementById(a["id"]);
+						component.style[a["attr"]] = a["val"];
+						break;
+					case "set-class":
+						component = document.getElementById(a["id"]);
+						component.className = a["classes"];
+						break;
+					case "set-attr":
+						component = document.getElementById(a["id"]);
+						component.setAttribute(a["attr"], a["val"]);
+						break;
+					case "remove-attr":
+						component = document.getElementById(a["id"]);
+						component.removeAttribute(a["attr"]);
+						break;
+					case "quit":
+						window.close();
+						break;
+					default:
+						console.error("unknow command: " + a);
+						break;
+					}
 				}
+				if(ui_messages.length != 0)
+					ui_complete();					
 			}
-			if(ui_messages.length != 0)
-				ui_complete();
+
+			// Inner command
+			else {
+				console.log("inner");
+				n = document.getElementById(parseInt(inner));
+				n.innerHTML = this.responseXML;
+			}
 		}
 	}
 }
@@ -78,11 +89,7 @@ function ui_open(addr) {
 
 function ui_close() {
 	ui_send({id: "0", action: "close"});
-	//now = (new Date()).getTime();
-	//while(((new Date()).getTime() - now) < 250);
+	now = (new Date()).getTime();
+	while(((new Date()).getTime() - now) < 250);
 }
-
-/*function ui_leave() {
-	window.close();
-}*/
 
