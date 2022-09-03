@@ -3,59 +3,65 @@
 var ui_messages = [];
 var ui_http = new XMLHttpRequest();
 
+function download() {
+	if(this.readyState == 4) {
+		if(this.status == 200) {
+			node = document.getElementById(this.id);
+			node.innerHTML = this.responseText;
+		}
+		else
+			console.log("failed downloading.");
+	}
+}
+
 ui_http.onreadystatechange = function() {
 	if(this.readyState == 4) {
 		if(this.status != 200) {
 			console.error("HTTP error: " + this.status);
 		}
 		else {
-			inner = this.getResponseHeader("OrchidInner");
-
-			// usual command
-			if(inner == null) {
-				//console.log("answer: " + this.responseText)
-				ans = JSON.parse(this.responseText);
-				for(const a of ans["answers"]) {
-					//console.info("DEBUG:" + a);
-					switch(a["type"]) {
-					case "call":
-						var f = window[a["fun"]];
-						f(a["args"]);
-						break;
-					case "set":
-						component = document.getElementById(a["id"]);
-						component.style[a["attr"]] = a["val"];
-						break;
-					case "set-class":
-						component = document.getElementById(a["id"]);
-						component.className = a["classes"];
-						break;
-					case "set-attr":
-						component = document.getElementById(a["id"]);
-						component.setAttribute(a["attr"], a["val"]);
-						break;
-					case "remove-attr":
-						component = document.getElementById(a["id"]);
-						component.removeAttribute(a["attr"]);
-						break;
-					case "quit":
-						window.close();
-						break;
-					default:
-						console.error("unknow command: " + a);
-						break;
-					}
+			//console.log("answer: " + this.responseText)
+			ans = JSON.parse(this.responseText);
+			for(const a of ans["answers"]) {
+				//console.info("DEBUG:" + a);
+				switch(a["type"]) {
+				case "call":
+					var f = window[a["fun"]];
+					f(a["args"]);
+					break;
+				case "set":
+					component = document.getElementById(a["id"]);
+					component.style[a["attr"]] = a["val"];
+					break;
+				case "set-class":
+					component = document.getElementById(a["id"]);
+					component.className = a["classes"];
+					break;
+				case "set-attr":
+					component = document.getElementById(a["id"]);
+					component.setAttribute(a["attr"], a["val"]);
+					break;
+				case "remove-attr":
+					component = document.getElementById(a["id"]);
+					component.removeAttribute(a["attr"]);
+					break;
+				case "quit":
+					window.close();
+					break;
+				case "download":
+					req = new XMLHttpRequest();
+					req.id = a["id"]
+					req.onreadystatechange = download
+					req.open("GET", a["path"], true);
+					req.send();
+					break;
+				default:
+					console.error("unknow command: " + a);
+					break;
 				}
-				if(ui_messages.length != 0)
-					ui_complete();					
 			}
-
-			// Inner command
-			else {
-				console.log("inner");
-				n = document.getElementById(parseInt(inner));
-				n.innerHTML = this.responseXML;
-			}
+			if(ui_messages.length != 0)
+				ui_complete();					
 		}
 	}
 }

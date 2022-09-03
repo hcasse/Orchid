@@ -86,7 +86,7 @@ class Component(Subject):
 		return self.id
 
 	def get_page(self):
-		return page
+		return self.page
 
 	def get_children(self):
 		return []
@@ -418,6 +418,15 @@ class Page:
 		out.write('</body>')
 		out.write('</html>')
 
+	def publish_text(self, url, text, mime = None):
+		"""Publish an URL returning the given text
+		(for big GET operation)."""
+		self.manager.add_text(url, text, mime)
+
+	def publish_file(self, url, path, mime = None):
+		"""Publish an URL returning the content of the file
+		corresponding to the path."""
+		self.manager.add_file(url, path, mime)
 
 
 class Application:

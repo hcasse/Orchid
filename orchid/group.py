@@ -42,6 +42,9 @@ class HGroupModel(Model):
 		out.write("""
 .hgroup-item {
 }
+.hgroup-expand {
+	align-self: stretch;
+}
 
 .hgroup {
 	display: flex;
@@ -49,6 +52,7 @@ class HGroupModel(Model):
 	flex-wrap: nowrap;
 	column-gap: 4px;
 	align-self: stretch;
+	overflow: hidden;
 }
 """)
 
@@ -62,15 +66,19 @@ class HGroup(Group):
 		self.add_class("hgroup")
 		for child in self.get_children():
 			child.add_class("hgroup-item")
+			w = child.get_weight()
+			if w == 0 and child.expands_horizontal():
+				w = 1
+			if w != 0:
+				child.set_style("flex", str(w))
+			if child.expands_vertical():
+				child.add_class("hgroup-expand")
 
 	def gen(self, out):
 		out.write('<div ')
 		self.gen_attrs(out)
 		out.write('>\n')
 		for c in self.children:
-			w = c.get_weight()
-			if w != 0:
-				c.set_style("flex", str(w))
 			c.gen(out)
 		out.write('</div>\n')	
 
@@ -87,6 +95,9 @@ class VGroupModel(Model):
 .vgroup-item {
 	align-self: center;
 }
+.vgroup-expand {
+	align-self: stretch;
+}
 
 .vgroup {
 	display: flex;
@@ -94,6 +105,7 @@ class VGroupModel(Model):
 	flex-direction: column;
 	row-gap: 4px;
 	align-self: stretch;
+	overflow: hidden;
 }
 """)
 # 	white-space: nowrap;
@@ -109,15 +121,19 @@ class VGroup(Group):
 		self.add_class("vgroup")
 		for child in self.get_children():
 			child.add_class("vgroup-item")
+			w = child.get_weight()
+			if w == 0 and child.expands_vertical():
+				w = 1
+			if w != 0:
+				child.set_style("flex", str(w))
+			if child.expands_horizontal():
+				child.add_class("vgroup-expand")
 
 	def gen(self, out):
 		out.write('<div ')
 		self.gen_attrs(out)
 		out.write('>\n')
 		for c in self.children:
-			w = c.get_weight()
-			if w != 0:
-				c.set_style("flex", str(w))
 			c.gen(out)
 		out.write('</div>\n')
 

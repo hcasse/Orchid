@@ -2,30 +2,24 @@
 
 from orchid.base import *
 
-class ExplorerViewModel(Model):
+class InteractiveViewModel(Model):
 
 	def __init__(self, parent = None):
-		Model.__init__(parent)
+		Model.__init__(self, parent)
 
-	def gen_script(self, out):
-		out.write("""
-function download(id) {
-}
-""")
-
-EXPLORER_VIEW_MODEL = ExplorerViewModel()
+INTERACTIVE_VIEW_MODEL = InteractiveViewModel()
 
 
-class ExplorerView(Component):
+class InteractiveView(Component):
 	"""View structured data with move/zoom actions."""
 
 	def __init__(self,
 		init = None,
 		path = None,
 		mime = None,
-		model = EXPLORER_VIEW_MODEL
+		model = INTERACTIVE_VIEW_MODEL
 	):
-		Component.__init__(model)
+		Component.__init__(self, model)
 		if init != None:
 			self.set_text(init, mime)
 		elif path != None:
@@ -34,35 +28,50 @@ class ExplorerView(Component):
 			self.text = None
 			self.path = None
 			self.mime = mime
-		self.add_class("explorer-view")
-		self.pref = "/explorer-view/" + self.get_id()
+		self.add_class("interactive-view")
+		self.url = "/interactive-view/" + self.get_id()
 
-	def download(self):
+	def show(self, path = None, text = None, mime = None):
+		"""Set the content of a view. If neither path,
+		nor text is given, the view is cleared."""
+
+		# set the state
+		self.mime = mime
+		if path != None:
+			self.path = path
+			self.text = None
+		elif text != None:
+			self.text = text
+			self.path = None
+			if self.mime == None:
+				self.mime = "text/plain"
+		else:
+			self.path = None
+			self.text = ""
+			self.mime = None
+
+		# show the content
+		self.publish()
 		self.send({
 			"type": "download",
 			"id": self.get_id(),
-			"path": self.pref
+			"path": self.url
 		})
 
-	def set_path(self, path, mime = None):
-		"""Set the content of a view from a file."""
-		self.path = path
-		self.text = None
-		if mime != None:
-			self.mime = mime
-		self.download()
-
-	def set_text(self, text, mime = None):
-		"""Set the content of a view from a text."""
-		self.text = text
-		self.path = None
-		if mime != None:
-			self.mime = mime
-		elif self.mime == None:
-			self.mime = "text/plain"
-		self.download()
+	def publish(self):
+		if self.text != None:
+			self.get_page().publish_text(self.url, self.text)
+		elif self.path != None:
+			self.get_page().publish_file(self.url, self.path)
 
 	def gen(self, out):
 		out.write("<div")
 		self.gen_attrs(out)
-		out.write("/>\n")
+		out.write("></div>\n")
+		self.publish()
+
+	def expands_horizontal(self):
+		return True
+
+	def expands_vertical(self):
+		return True

@@ -16,10 +16,14 @@ from orchid.base import Page
 class Provider:
 	"""Interface of objects providing content."""
 
+	def __init__(self, mime = None):
+		self.mime = mime
+
 	def add_headers(self, handler):
 		"""Get MIME type for the content.
 		None if there is no content."""
-		return None
+		if self.mime != None:
+			handler.send_header("Content-type", self.mime)
 
 	def gen(self, out):
 		"""Generate the content on the given output."""
@@ -29,15 +33,10 @@ class Provider:
 class FileProvider(Provider):
 
 	def __init__(self, path, mime = None):
-		self.path = path
 		if mime == None:
-			self.mime = mimetypes.guess_type(path)[0]
-		else:
-			self.mime = mime
-
-	def add_headers(self, handler):
-		if self.mime != None:
-			handler.send_header("Content-type", self.mime)
+			mime = mimetypes.guess_type(path)[0]
+		Provider.__init__(self, mime)
+		self.path = path
 
 	def gen(self, out):
 
@@ -66,11 +65,9 @@ class FileProvider(Provider):
 class PageProvider(Provider):
 
 	def __init__(self, page):
+		Provider.__init__(self, "text/html")
 		self.page = page
 	
-	def add_headers(self, handler):
-		handler.send_header("Content-type", "text/html")
-
 	def gen(self, out):
 		self.out = out
 		self.page.gen(self)
@@ -81,18 +78,12 @@ class PageProvider(Provider):
 
 class TextProvider(Provider):
 
-	def __init__(self, text, mime = None):
+	def __init__(self, text, mime = "text/plain"):
+		Provider.__init__(self, mime)
 		self.text = text
-		if mime == None:
-			self.mime = "text/plain"
-		else:
-			self.mime = mime
-
-	def add_headers(self, handler):
-		handler.send_header("Content-type", self.mime)
 
 	def gen(self, out):
-		out.write(self.text.encodre('utf-8'))
+		out.write(self.text.encode('utf-8'))
 
 	
 
@@ -124,32 +115,40 @@ class Manager:
 		self.app = app
 		self.dirs = dirs
 		self.pages = {}
-		self.urls = {}
 		self.first = self.app.first()
-		self.add_page(self.first)
-		self.urls["/"] = PageProvider(self.first)
+		self.paths = {}
+		self.paths["/"] = self.add_page(self.first)
 
-	def add_prefix(self, pref, prov):
-		self.urls[pref] = prov
+	def add_path(self, path, prov):
+		self.paths[path] = prov
 
-	def remove_prefix(self, pref):
-		del self.urls[pref]
+	def remove_path(self, path):
+		del self.paths[path]
 
-	def add_file(self, prefix, path, mime = None):
-		self.urls[prefix] = FileProvider(path, mime)
+	def add_file(self, upath, rpath, mime = None):
+		prov = FileProvider(rpath, mime)
+		self.paths[upath] = prov
+		return prov
+
+	def add_text(self, path, text, mime = "text/plain"):
+		prov = TextProvider(text, mime)
+		self.paths[path] = prov
+		return prov
+
+	def page_path(self, page):
+		return "/page/" + page.get_id()
 
 	def add_page(self, page):
 		self.pages[page.get_id()] = page
 		page.manager = self
-		self.urls["/page/" + page.get_id()] = PageProvider(page)
+		prov = PageProvider(page)
+		self.paths[self.page_path(page)] = prov
+		return prov
 
 	def remove_page(self, page):
 		page.manager = None
 		del self.pages[page.get_id()]
-		del self.urls["/page/" + page.get_id()]
-
-	def gen_page(self, page, out):
-		page.gen(out)
+		del self.paths[self.page_path(page)]
 
 	def get_page(self, id):
 		return self.pages[id]
@@ -163,12 +162,14 @@ class Manager:
 	def get(self, path):
 		path = os.path.normpath(path)
 		try:
-			return self.urls[path]
+			return self.paths[path]
 		except KeyError:
 			for dir in self.dirs:
 				rpath = dir + path
 				if os.path.exists(rpath):
-					return FileProvider(rpath)
+					prov = FileProvider(rpath)
+					self.paths[path] = prov
+					return prov
 			return None
 
 def check_quit(manager):
@@ -204,7 +205,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
 	def do_GET(self):
 		prov = self.server.manager.get(self.path)
 		if prov == None:
-			self.log_error("bad path: %s" % path)
+			self.log_error("bad path: %s" % self.path)
 			self.send_response(404)
 			self.end_headers()
 		else:
