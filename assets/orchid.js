@@ -46,6 +46,7 @@ ui_http.onreadystatechange = function() {
 					component.removeAttribute(a["attr"]);
 					break;
 				case "quit":
+					document.getElementsByTagName("body")[0].innerHTML = "<p>closed.</p>";
 					window.close();
 					break;
 				case "download":

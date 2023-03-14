@@ -3,6 +3,9 @@
 from orchid.base import *
 
 class Group(Component):
+	"""Groups allows to display several components together. The place
+	associated to each group component depends on its weight
+	(obtained by calling Component.get_weight())."""
 
 	def __init__(self, model, comps):
 		Component.__init__(self, model)

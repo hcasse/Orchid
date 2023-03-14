@@ -234,6 +234,7 @@ class Page:
 		self.parent = parent
 		self.app = app
 		self.title = title
+		self.session = None
 		if main != None:
 			self.set_main(main)
 		else:
@@ -243,6 +244,10 @@ class Page:
 	def get_id(self):
 		"""Get unique identifier of the page."""
 		return self.id
+
+	def get_session(self):
+		"""Get the current session."""
+		return self.session
 
 	def add_style_path(self, path):
 		"""Add a style path to the generated model."""
@@ -306,6 +311,10 @@ class Page:
 	def receive(self, messages, handler):
 		"""Called to receive messages and answer. The answer is a
 		possibly list of back messages."""
+
+		# manage session
+		if self.session != None:
+			self.session.update()
 
 		# manage messages
 		for m in messages:

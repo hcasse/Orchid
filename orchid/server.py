@@ -13,24 +13,61 @@ import time
 import webbrowser
 from orchid.base import Page
 
+class Session:
+	"""Represent a sessuib to a specific client. It allows to
+	detect when a connection is completed and its resources have to
+	be released. It may be used by application page to store
+	sesison information. Accessible by Page.get_session() function."""
+
+	def __init__(self, man):
+		self.man = man
+		self.pages = []
+		self.creation = time.time()
+		self.last = self.creation
+		self.timeout = man.config['session_timeout']
+		man.sessions.append(self)
+
+	def get_creation_time(self):
+		return self.creation
+
+	def get_last_access(self):
+		return self.last
+
+	def add_page(self, page):
+		self.pages.append(page)
+		page.session = self
+
+	def update(self):
+		self.last = time.time()
+
+	def check(self):
+		t = time.time()
+		if t - self.last > self.timeout:
+			for page in self.pages:
+				self.man.remove_page(page)
+				self.man.sessions.remove(self)
+		
+
 class Provider:
-	"""Interface of objects providing content."""
+	"""Interface of objects providing content. Each provider is
+	associated with one or zero paths on the server."""
 
 	def __init__(self, mime = None):
 		self.mime = mime
 
 	def add_headers(self, handler):
-		"""Get MIME type for the content.
-		None if there is no content."""
+		"""Called to let the provider to add headers on the given
+		HTTPHandler."""
 		if self.mime != None:
 			handler.send_header("Content-type", self.mime)
 
 	def gen(self, out):
-		"""Generate the content on the given output."""
+		"""Called to  generate the content to the given output."""
 		pass
 
 
 class FileProvider(Provider):
+	"""Provider provding a file from the file system."""
 
 	def __init__(self, path, mime = None):
 		if mime == None:
@@ -63,6 +100,7 @@ class FileProvider(Provider):
 
 
 class PageProvider(Provider):
+	"""Provider generating an HTML page."""
 
 	def __init__(self, page):
 		Provider.__init__(self, "text/html")
@@ -76,7 +114,29 @@ class PageProvider(Provider):
 		self.out.write(text.encode('utf-8'))
 
 
+class AppProvider(Provider):
+	"""Provided for an application generating a new session and its
+	index page."""
+
+	def __init__(self, app, man):
+		Provider.__init__(self, "text/html")
+		self.app = app
+		self.man = man
+
+	def gen(self, out):
+		self.out = out
+		session = Session(self.man)
+		page = self.app.first()
+		session.add_page(page)
+		self.man.record_page(page, PageProvider(page))
+		page.gen(self)
+
+	def write(self, text):
+		self.out.write(text.encode('utf-8'))
+	
+
 class TextProvider(Provider):
+	"""Provider providing plain text message."""
 
 	def __init__(self, text, mime = "text/plain"):
 		Provider.__init__(self, mime)
@@ -110,14 +170,17 @@ CMD_MAP = {
 }
 
 class Manager:
+	"""Orchid server manager."""
 
-	def __init__(self, app, dirs):
+	def __init__(self, app, config):
 		self.app = app
-		self.dirs = dirs
+		self.config = config
+		self.dirs = config['dirs']
 		self.pages = {}
-		self.first = self.app.first()
 		self.paths = {}
-		self.paths["/"] = self.add_page(self.first)
+		self.paths["/"] = self.add_app(app)
+		self.sessions = []
+		self.check_time = self.config['session_check_time']
 
 	def add_path(self, path, prov):
 		self.paths[path] = prov
@@ -138,11 +201,19 @@ class Manager:
 	def page_path(self, page):
 		return "/page/" + page.get_id()
 
-	def add_page(self, page):
+	def record_page(self, page, prov):
 		self.pages[page.get_id()] = page
 		page.manager = self
-		prov = PageProvider(page)
 		self.paths[self.page_path(page)] = prov
+
+	def add_page(self, page):
+		prov = PageProvider(page)
+		self.record_page(page, prov)
+		return prov
+
+	def add_app(self, app):
+		prov = AppProvider(app, self)
+		self.paths["/app/%s" % app.name] = prov
 		return prov
 
 	def remove_page(self, page):
@@ -157,7 +228,10 @@ class Manager:
 		return self.dirs
 
 	def is_completed(self):
-		return self.pages == {}
+		if self.config['server']:
+			return False
+		else:
+			return self.pages == {}
 
 	def get(self, path):
 		path = os.path.normpath(path)
@@ -171,6 +245,12 @@ class Manager:
 					self.paths[path] = prov
 					return prov
 			return None
+
+	def check_connections(self):
+		while True:
+			time.sleep(self.check_time)
+			for session in self.sessions:
+				sessions.check()
 
 def check_quit(manager):
 	time.sleep(.25)
@@ -219,25 +299,60 @@ def open_browser(port):
 	time.sleep(.5)
 	webbrowser.open("http://localhost:%d" % port)
 
+DEFAULT_CONFIG = {
+	'host': 'localhost',
+	'port': 4444,
+	'dirs': [],
+	'browser': True,
+	'server': False,
+	'session_timeout': 120 * 60,
+	'session_check_time': 10 * 60
+}
 
-def run(app, port=4444, dirs=[], browser = True):
-	"""Run the UI on the given port."""
+def run(app, **args):
+	"""Run the UI with the following configuration items:
+	* host -- name of the host,
+	* port -- port to use,
+	* dirs -- list of directories to get files,
+	* browser -- if true, open the index page in a browser,
+	* server -- if true, run as a server (no stop on last page close),
+	* session_timeout -- time-out (in s) of a session,
+	* session_check_time -- time (in s) to check for end of a session.
+
+	Any other application parameter can also be passed this way.
+"""
+
+	# build the configuration
+	config = dict(DEFAULT_CONFIG)
+	for k in args:
+		config[k] = args[k]
 
 	# build the manager
 	my_assets = os.path.realpath(os.path.join(os.path.dirname(__file__), "../assets"))
-	dirs = dirs + [my_assets]
-	manager = Manager(app, dirs)
+	config = dict(config)
+	config["dirs"] = config["dirs"] + [my_assets]
+	manager = Manager(app, config)
+
+	# build the server
+	server = http.server.HTTPServer((config['host'], config['port']), Handler)
+	server.manager = manager
+	print("Server on %s:%d" % (config['host'], config['port']))
+
+	# launch browser if required
+	if config['browser']:
+		threading.Thread(target=partial(open_browser, config['port'])).start()
+
+	# launch supervisor
+	if config['server']:
+		manager.super = threading.Thread(
+			target=manager.check_connections,
+			name = "supervisor",
+			daemon = True)
+		manager.super.start()
 
 	# launch the server
-	server = http.server.HTTPServer(("localhost", port), Handler)
-	server.manager = manager
-	if browser:
-		threading.Thread(target=partial(open_browser, port)).start()
 	try:
 		server.serve_forever()
 	except KeyboardInterrupt:
 		pass
 	server.server_close()
-
-
-
