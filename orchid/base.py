@@ -249,6 +249,11 @@ class Page:
 		"""Get the current session."""
 		return self.session
 
+	def get_config(self):
+		"""Get the global configuration as passed to the run()
+		server command."""
+		return self.manager.config
+
 	def add_style_path(self, path):
 		"""Add a style path to the generated model."""
 		self.style_paths.append(path)
@@ -462,3 +467,6 @@ class Application:
 		"""Function called to get the first page."""
 		return None
 
+	def configure(self, config):
+		"""Function called to configure the application."""
+		self.config = config

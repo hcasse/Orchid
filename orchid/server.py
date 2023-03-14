@@ -332,6 +332,7 @@ def run(app, **args):
 	config = dict(config)
 	config["dirs"] = config["dirs"] + [my_assets]
 	manager = Manager(app, config)
+	app.configure(config)
 
 	# build the server
 	server = http.server.HTTPServer((config['host'], config['port']), Handler)
