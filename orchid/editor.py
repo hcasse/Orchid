@@ -31,7 +31,7 @@ class Editor(ExpandableComponent):
 		self.readonly = readonly
 		if readonly:
 			self.set_attr("readonly", "true")
-		self.weight = 1
+		self.weight = (1, 1)
 		self.set_style("align-self", "stretch")
 		self.add_class("editor")
 

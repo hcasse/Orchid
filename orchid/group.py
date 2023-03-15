@@ -12,17 +12,16 @@ class Group(Component):
 		self.children = list(comps)
 		self.expandh = False
 		self.expandv = False
-		self.weight = 0
+		hw, vw = (0 ,0)
 		for c in self.children:
 			c.parent = self
 			if c.expands_horizontal():
 				self.expandh = True
-				self.weight = 1;
-				print("DEBUG: expands horizontal")
+				hw = 1;
 			if c.expands_vertical():
 				self.expandv = True
-				self.weight = 1;
-				print("DEBUG: expands vertical")
+				vw = 1;
+		self.weight = (hw, vw)
 
 	def get_children(self):
 		return self.children
@@ -73,7 +72,7 @@ class HGroup(Group):
 		self.add_class("hgroup")
 		for child in self.get_children():
 			child.add_class("hgroup-item")
-			w = child.get_weight()
+			w  = child.get_weight()[0]
 			if w == 0 and child.expands_horizontal():
 				w = 1
 			if w != 0:
@@ -128,7 +127,7 @@ class VGroup(Group):
 		self.add_class("vgroup")
 		for child in self.get_children():
 			child.add_class("vgroup-item")
-			w = child.get_weight()
+			w = child.get_weight()[1]
 			if w == 0 and child.expands_vertical():
 				w = 1
 			if w != 0:
@@ -156,17 +155,16 @@ class Spring(ExpandableComponent):
 	def __init__(self, hexpand = False, vexpand = False, weight = 1):
 		ExpandableComponent.__init__(self, SPRING_MODEL)
 		self.hexpand = hexpand
+		hw = weight if hexpand else 0
 		self.vexpand = vexpand
-		self.weight = weight
+		vw = weight if vexpand else 0
+		self.weight = (hw, vw)
 
 	def expands_horizontal(self):
 		return self.hexpand
 
 	def expands_vertical(self):
 		return self.vexpand
-
-	def get_weight(self):
-		return self.weight
 
 	def gen(self, out):
 		out.write("<div")

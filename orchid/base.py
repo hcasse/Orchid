@@ -90,15 +90,23 @@ class Component(Subject):
 		self.classes = []
 		self.style = {}
 		self.attrs = {}
+		self.context = CONTEXT_NONE
 
 	def get_model(self):
+		"""Get the model of the component."""
 		return self.model
 
 	def get_id(self):
+		"""Get the unique identifier of the component in the page."""
 		return self.id
 
 	def get_page(self):
+		"""Get the page containing the component."""
 		return self.page
+
+	def get_context(self):
+		"""Get the context of the page. One of CONTEXT_XXX constant."""
+		return self.context
 
 	def get_children(self):
 		return []
@@ -196,9 +204,12 @@ class Component(Subject):
 
 	def get_weight(self):
 		try:
-			return self.weight
+			if isinstance(self.weight, tuple):
+				return self.weight
+			else:
+				return (self.weight, self.weight)
 		except AttributeError:
-			return 0
+			return (0, 0)
 
 	def get_add_models(self):
 		"""Called to get additional used modles."""
@@ -482,7 +493,6 @@ class Session:
 		else:
 			self.number = Session.COUNT
 			Session.COUNT += 1
-		print("DEBUG: create session", self.number)
 
 	def get_number(self):
 		"""Get the session number."""
@@ -521,7 +531,6 @@ class Session:
 	def release(self):
 		"""Called to relase the resources of the session
 		(basically pages)."""
-		print("DEBUG: release session ", self.number)
 		if self.number == Session.COUNT - 1:
 			Session.COUNT -= 1
 		else:

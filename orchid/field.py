@@ -30,9 +30,9 @@ class Field(Component):
 		self.is_valid = is_valid
 		if weight == None:
 			if size != None:
-				weight = size
+				weight = (size, 0)
 			else:
-				weight = 1
+				weight = (1, 0)
 		self.weight = weight
 		self.set_style("display", "flex")
 
