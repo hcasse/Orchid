@@ -1,5 +1,7 @@
 """Orchid base classes and definitions. """
 
+import time
+
 PAGE_ID = 1
 COMPONENT_ID = 1
 
@@ -42,27 +44,37 @@ class Model:
 	"""Represents a model of component and is used to manage its
 	resources."""
 
-	def __init__(self, parent = None):
+	def __init__(self,
+		parent = None,
+		style = "",
+		script = "",
+		style_paths = [],
+		script_paths = []
+	):
 		self.parent = parent
+		self.style = style
+		self.script = script
+		self.style_paths = style_paths
+		self.script_paths = script_paths
 
 	def get_parent(self):
 		return self.parent
 
 	def gen_style(self, out):
 		"""Called to generate the style part."""
-		pass
+		out.write(self.style)
 
 	def gen_script(self, out):
 		"""Called to generate the script part."""
-		pass
+		out.write(self.script)
 
 	def get_style_paths(self):
 		"""Return a list of style path to embed."""
-		return []
+		return self.style_paths
 
 	def get_script_paths(self):
 		"""Return a list of script paths to embed."""
-		return []
+		return self.script_paths
 
 
 class Component(Subject):
@@ -133,6 +145,11 @@ class Component(Subject):
 		self.style[attr] = val
 		if self.online():
 			self.send({"type": "set", "id": self.get_id(), "attr": attr, "val": val})
+
+	def set_content(self, content):
+		"""Change the content of an element."""
+		if self.online():
+			self.send({"type": "set-content", "id": self.get_id(), "content": content})
 
 	def set_attr(self, attr, val = None):
 		"""Send a message to set an attribute."""
@@ -443,6 +460,61 @@ class Page:
 		self.manager.add_file(url, path, mime)
 
 
+class Session:
+	"""Represent a sessuib to a specific client. It allows to
+	detect when a connection is completed and its resources have to
+	be released. It may be used by application page to store
+	sesison information. Accessible by Page.get_session() function."""
+
+	def __init__(self, app, man):
+		self.app = app
+		self.man = man
+		self.pages = []
+		self.creation = time.time()
+		self.last = self.creation
+		self.timeout = man.config['session_timeout']
+		man.sessions.append(self)
+
+	def get_creation_time(self):
+		"""Get the creation of session (in s from the OS)."""
+		return self.creation
+
+	def get_last_access(self):
+		"""Get the last access date (in s from the OS)."""
+		return self.last
+
+	def add_page(self, page):
+		"""Record a page to belong to the session."""
+		self.pages.append(page)
+		page.session = self
+
+	def update(self):
+		"""Called each time there is an access to a page of the session."""
+		self.last = time.time()
+
+	def check(self):
+		"""Called to check if the session is expired."""
+		t = time.time()
+		if t - self.last > self.timeout:
+			self.release()
+
+	def release(self):
+		"""Called to relase the resources of the session
+		(basically pages)."""
+		print("DEBUG: release session ", self)
+		for page in self.pages:
+			self.man.remove_page(page)
+		self.man.sessions.remove(self)
+
+	def get_application(self):
+		"""Get the application owning the session."""
+		return self.app
+
+	def get_index(self):
+		"""Get the index page for this session."""
+		return self.app.first()
+
+
 class Application:
 	"""Class representing the application and specially provides the initial page."""
 
@@ -470,3 +542,9 @@ class Application:
 	def configure(self, config):
 		"""Function called to configure the application."""
 		self.config = config
+
+	def new_session(self, man):
+		"""Called to create a new session for the application.
+		Default return the base class Session. This function can be
+		overloaded to customize the session object."""
+		return Session(self, man)

@@ -13,41 +13,6 @@ import time
 import webbrowser
 from orchid.base import Page
 
-class Session:
-	"""Represent a sessuib to a specific client. It allows to
-	detect when a connection is completed and its resources have to
-	be released. It may be used by application page to store
-	sesison information. Accessible by Page.get_session() function."""
-
-	def __init__(self, man):
-		self.man = man
-		self.pages = []
-		self.creation = time.time()
-		self.last = self.creation
-		self.timeout = man.config['session_timeout']
-		man.sessions.append(self)
-
-	def get_creation_time(self):
-		return self.creation
-
-	def get_last_access(self):
-		return self.last
-
-	def add_page(self, page):
-		self.pages.append(page)
-		page.session = self
-
-	def update(self):
-		self.last = time.time()
-
-	def check(self):
-		t = time.time()
-		if t - self.last > self.timeout:
-			for page in self.pages:
-				self.man.remove_page(page)
-				self.man.sessions.remove(self)
-		
-
 class Provider:
 	"""Interface of objects providing content. Each provider is
 	associated with one or zero paths on the server."""
@@ -125,8 +90,8 @@ class AppProvider(Provider):
 
 	def gen(self, out):
 		self.out = out
-		session = Session(self.man)
-		page = self.app.first()
+		session = self.app.new_session(self.man)
+		page = session.get_index()
 		session.add_page(page)
 		self.man.record_page(page, PageProvider(page))
 		page.gen(self)
@@ -295,9 +260,9 @@ class Handler(http.server.SimpleHTTPRequestHandler):
 			prov.gen(self.wfile)
 
 
-def open_browser(port):
+def open_browser(host, port):
 	time.sleep(.5)
-	webbrowser.open("http://localhost:%d" % port)
+	webbrowser.open("http://%s:%d" % (host, port))
 
 DEFAULT_CONFIG = {
 	'host': 'localhost',
@@ -341,7 +306,9 @@ def run(app, **args):
 
 	# launch browser if required
 	if config['browser']:
-		threading.Thread(target=partial(open_browser, config['port'])).start()
+		threading.Thread(target=
+			partial(open_browser, config['host'], config['port'])) \
+			.start()
 
 	# launch supervisor
 	if config['server']:

@@ -7,17 +7,22 @@ LABEL_MODEL = Model()
 class Label(Component):
 	"""Display a single HTML text."""
 
-	def __init__(self, label):
+	def __init__(self, text):
 		Component.__init__(self, LABEL_MODEL)
-		self.label = label
+		self.text = text
 		self.add_class("label")
 
 	def gen(self, out):
 		out.write('<div')
 		self.gen_attrs(out)
 		out.write('>')
-		out.write(self.label)
+		out.write(self.text)
 		out.write('</div>\n')
+
+	def set_text(self, text):
+		self.text = text
+		self.set_content(text)
+
 
 BANNER_MODEL = Model()
 

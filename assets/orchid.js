@@ -45,6 +45,10 @@ ui_http.onreadystatechange = function() {
 					component = document.getElementById(a["id"]);
 					component.removeAttribute(a["attr"]);
 					break;
+				case 'set-content':
+					component = document.getElementById(a["id"]);
+					component.innerHTML = a["content"];
+					break;
 				case "quit":
 					window.close();
 					document.getElementsByTagName("body")[0].innerHTML = "<p>closed.</p>";

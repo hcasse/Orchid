@@ -12,13 +12,17 @@ class Group(Component):
 		self.children = list(comps)
 		self.expandh = False
 		self.expandv = False
+		self.weight = 0
 		for c in self.children:
 			c.parent = self
 			if c.expands_horizontal():
 				self.expandh = True
+				self.weight = 1;
+				print("DEBUG: expands horizontal")
 			if c.expands_vertical():
 				self.expandv = True
-		self.weight = 1;
+				self.weight = 1;
+				print("DEBUG: expands vertical")
 
 	def get_children(self):
 		return self.children

@@ -10,6 +10,9 @@ class ButtonModel(Model):
 BUTTON_MODEL = ButtonModel()
 
 class Button(Component):
+	"""Represents a simple button that can represented by a label
+	or by an image. on_click function is called when the button is
+	clicked."""
 
 	def __init__(self,
 		label = None,
@@ -24,6 +27,12 @@ class Button(Component):
 			self.on_click = on_click
 		self.enabled = True
 		self.set_enabled(enabled)
+
+	def get_add_models(self):
+		if self.image != None:
+			return [self.image.model]
+		else:
+			return []
 
 	def gen(self, out):
 		out.write('<button')
