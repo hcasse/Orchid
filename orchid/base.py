@@ -355,7 +355,7 @@ class Page:
 		return res
 
 	def on_close(self):
-		self.manager.remove_page(self)
+		self.session.remove_page(self)
 		if self.parent != None:
 			self.parent.on_close()
 
@@ -466,6 +466,9 @@ class Session:
 	be released. It may be used by application page to store
 	sesison information. Accessible by Page.get_session() function."""
 
+	COUNT = 0
+	FREE = []
+
 	def __init__(self, app, man):
 		self.app = app
 		self.man = man
@@ -474,6 +477,16 @@ class Session:
 		self.last = self.creation
 		self.timeout = man.config['session_timeout']
 		man.sessions.append(self)
+		if Session.FREE != []:
+			self.number = Session.FREE.pop()
+		else:
+			self.number = Session.COUNT
+			Session.COUNT += 1
+		print("DEBUG: create session", self.number)
+
+	def get_number(self):
+		"""Get the session number."""
+		return self.number
 
 	def get_creation_time(self):
 		"""Get the creation of session (in s from the OS)."""
@@ -488,6 +501,13 @@ class Session:
 		self.pages.append(page)
 		page.session = self
 
+	def remove_page(self, page):
+		"""Remove a page from the session. If there is no more page in the session, it is cleaned."""
+		self.man.remove_page(page)
+		self.pages.remove(page)
+		if self.pages == []:
+			self.release()
+
 	def update(self):
 		"""Called each time there is an access to a page of the session."""
 		self.last = time.time()
@@ -501,7 +521,11 @@ class Session:
 	def release(self):
 		"""Called to relase the resources of the session
 		(basically pages)."""
-		print("DEBUG: release session ", self)
+		print("DEBUG: release session ", self.number)
+		if self.number == Session.COUNT - 1:
+			Session.COUNT -= 1
+		else:
+			Session.FREE.append(self.number)
 		for page in self.pages:
 			self.man.remove_page(page)
 		self.man.sessions.remove(self)

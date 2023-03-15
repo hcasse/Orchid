@@ -13,6 +13,7 @@ class MySession(Session):
 		self.label = Label("0")
 		return Page(
 			VGroup([
+				Label("Session %d" % self.get_number()),
 				self.label,
 				Button("Increment", on_click=self.on_click)
 			]),
