@@ -59,7 +59,8 @@ class Editor(ExpandableComponent):
 
 	def get_content(self, f):
 		"""Asynchronously look up for the content of the editor.
-		Function f is called once the content is obtained."""
+		Function f is called once the content is obtained by
+		f(editor, content)."""
 		self.content_getters.append(f)
 		self.call("editor_content", {"id": self.get_id()})
 

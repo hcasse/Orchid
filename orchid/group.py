@@ -175,3 +175,98 @@ class Spring(ExpandableComponent):
 		self.set_style("display", "inline-block")
 
 
+# LayeredPane
+# LAYERED_PANE_MODEL = Model(
+	# style = """
+# .layered-parent {
+	# position: relative;
+# }
+
+# .layered-child {
+	# position: absolute;
+	# left: 0;
+	# top: 0;
+	# width: 100%;
+	# height: 100%;
+# }
+
+# .layered-top {
+	# z-index: 1;
+# }
+# """
+# )
+
+LAYERED_PANE_MODEL = Model(
+	style = """
+.layered-parent {
+}
+
+.layered-child {
+	width: 100%;
+	height: 100%;
+	box-sizing: border-box;
+}
+
+.layered-inactive {
+	display: none;
+}
+
+.layered-active {
+	display: block;
+}
+"""
+)
+
+class LayeredPane(Group):
+
+	def __init__(self, comps, model = LAYERED_PANE_MODEL):
+		Group.__init__(self, model, comps)
+		self.hexpand = None
+		self.vexpand = None
+		self.add_class("layered-parent")
+		#for c in self.children:
+		#	c.add_class("layered-child")
+		#if self.children != None:
+		#	self.children[0].add_class("layered-top")
+		#else:
+		#	self.current = -1
+		if self.children == []:
+			self.current = -1
+		else:
+			self.current = 0
+			self.children[0].add_class("layered-child")
+			self.children[0].add_class("layered-top")
+			for c in self.children[1:]:
+				c.add_class("layered-child")
+				c.add_class("layered-inactive")
+
+	def set_layer(self, num):
+		if self.current >= 0:
+			self.children[self.current].add_class("layered-inactive")
+			self.children[self.current].remove_class("layered-active")
+		self.children[num].add_class("layered-active")
+		self.children[num].remove_class("layered-inactive")
+		self.current = num
+
+	def expands_horizontal(self):
+		if self.hexpand == None:
+			self.hexpand = \
+				any([c.expands_horizontal for c in self.children])
+		return self.hexpand
+
+	def expands_vertical(self):
+		if self.vexpand == None:
+			self.vexpand = \
+				any([c.expands_vertical for c in self.children])
+		return self.vexpand
+	
+	def gen(self, out):
+		out.write('<div ')
+		self.gen_attrs(out)
+		out.write('>\n')
+		for c in self.children:
+			c.gen(out)
+		out.write('</div>\n')
+
+	
+

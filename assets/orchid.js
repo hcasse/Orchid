@@ -52,6 +52,7 @@ ui_http.onreadystatechange = function() {
 				case "set-class":
 					component = document.getElementById(a["id"]);
 					component.className = a["classes"];
+					console.log("set-class " + a["classes"] + " to " + a["id"]);
 					break;
 				case "set-attr":
 					component = document.getElementById(a["id"]);

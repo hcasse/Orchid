@@ -198,3 +198,24 @@ label.field {
 	overflow: auto;
 	box-sizing: content-box;
 }
+
+
+/* standard text decoration */
+.text-success {
+	color: green;
+	font-weight: bold;
+}
+
+.text-failed {
+	color: red;
+	font-weight: bold;
+}
+
+.text-info {
+	color: blue;
+	font-weight: bold;
+}
+
+.text-header {
+	font-weight: bold;	
+}
