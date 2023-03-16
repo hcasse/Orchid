@@ -10,7 +10,7 @@ from orchid.group import Spring
 from orchid.updater import *
 from orchid.editor import Editor
 from orchid.console import Console
-from orchid.struct import Header
+from orchid.struct import Header, ToolBar
 from orchid.image import Icon, Image
 from orchid.server import run
 from orchid.view import InteractiveView

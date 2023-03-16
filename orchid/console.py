@@ -19,7 +19,7 @@ class ConsoleModel(Model):
 	}
 """)
 
-CONSOLE_MODEL = ConsoleModel()
+CONSOLE_MODEL = Model()
 
 class Console(ExpandableComponent):
 
@@ -27,13 +27,14 @@ class Console(ExpandableComponent):
 		ExpandableComponent.__init__(self, CONSOLE_MODEL)
 		self.init = init
 		self.max = max
+		self.add_class("console")
 
 	def gen(self, out):
-		out.write('<textarea readonly')
+		out.write('<div')
 		self.gen_attrs(out)
 		out.write(">\n")
 		out.write(self.init)
-		out.write('\n</textarea>\n')
+		out.write('\n</div>\n')
 
 	def expands_horizontal(self):
 		return True
@@ -42,9 +43,11 @@ class Console(ExpandableComponent):
 		return True
 
 	def append(self, line):
-		"""Append the given line to the console."""
-		self.call("console_append", {"id": self.get_id(), "line": line})
+		"""Append the given line to the console. The line may use any text
+		formatting HTML tag."""
+		self.append_content("<p>%s</p>" %line)
+		self.show_last()
 
 	def clear(self):
 		"""Clear the content of the console."""
-		self.call("console_clear", {"id": self.get_id()})
+		self.clear_content()

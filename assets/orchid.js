@@ -2,6 +2,7 @@
 
 var ui_messages = [];
 var ui_http = new XMLHttpRequest();
+var converter = document.createElement('div')
 
 function download() {
 	if(this.readyState == 4) {
@@ -12,6 +13,21 @@ function download() {
 		else
 			console.log("failed downloading.");
 	}
+}
+
+function show_last(id) {
+	const cont = document.getElementById(id);
+	const elt = cont.lastChild
+	if(elt == null)
+		return;
+	const etop = elt.offsetTop;
+	const ebot = etop + elt.clientHeight;
+	const ctop = cont.scrollTop;
+	const cbot = ctop + cont.clientHeight;
+	if(etop < ctop)
+		cont.scrollTop -= ctop - etop;
+	else if(ebot > cbot)
+		cont.scrollTop += ebot - cbot;
 }
 
 ui_http.onreadystatechange = function() {
@@ -59,6 +75,22 @@ ui_http.onreadystatechange = function() {
 					req.onreadystatechange = download
 					req.open("GET", a["path"], true);
 					req.send();
+					break;
+				case "append":
+					converter.innerHTML = a["content"]
+					component = document.getElementById(a["id"]);
+					for(const child of converter.children)
+						component.append(child);
+					while(converter.firstChild)
+						converter.removeChild(converter.firstChild);
+					break;
+				case "clear":
+					component = document.getElementById(a["id"]);
+					while(component.firstChild)
+						component.removeChild(component.firstChild);
+					break;
+				case "show-last":
+					show_last(a["id"]);
 					break;
 				default:
 					console.error("unknow command: " + a);

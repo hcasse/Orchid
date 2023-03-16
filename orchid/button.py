@@ -1,7 +1,7 @@
 """Button class."""
 
 from orchid.base import *
-import orchid.image as image
+import orchid.image
 
 # AbstractButton component
 class ButtonModel(Model):
@@ -23,6 +23,9 @@ class Button(Component):
 		Component.__init__(self, BUTTON_MODEL)
 		self.label = label
 		self.image = image
+		if image == None and isinstance(label, orchid.image.Image):
+			self.label = None
+			self.image = label
 		if on_click != None:
 			self.on_click = on_click
 		self.enabled = True
@@ -65,4 +68,4 @@ class Button(Component):
 	def disable(self):
 		if self.enabled:
 			self.enabled = False
-			self.set_attr("disabled", True)
+			self.set_attr("disabled", None)

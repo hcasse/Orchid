@@ -59,6 +59,7 @@ class HGroupModel(Model):
 	column-gap: 4px;
 	align-self: stretch;
 	overflow: hidden;
+	align-items: center;
 }
 """)
 
@@ -112,6 +113,7 @@ class VGroupModel(Model):
 	row-gap: 4px;
 	align-self: stretch;
 	overflow: hidden;
+	align-items: center;
 }
 """)
 # 	white-space: nowrap;

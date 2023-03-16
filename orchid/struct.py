@@ -1,6 +1,6 @@
 """Component for a structured view."""
 
-from orchid.base import Model, CONTEXT_HEADERBAR
+from orchid.base import Model, CONTEXT_HEADERBAR, CONTEXT_TOOLBAR
 from orchid.label import Label
 from orchid.group import HGroup, Spring, HGROUP_MODEL
 
@@ -19,3 +19,13 @@ class Header(HGroup):
 
 	def get_context(self):
 		return CONTEXT_HEADERBAR
+
+
+class ToolBar(HGroup):
+
+	def __init__(self, tools = []):
+		HGroup.__init__(self, tools)
+		self.add_class("toolbar")
+
+	def get_context(self):
+		return CONTEXT_TOOLBAR

@@ -160,14 +160,35 @@ label.field {
 
 /* tool icons */
 .headerbar-icon {
+	font-size: 1em;
+}
+
+.toolbar-icon {
 	font-size: 1.5em;
 }
 
 
 
-/* header */
+/* Structure */
 .header {
 }
+
+.toolbar {
+	
+}
+
+.console {
+	background: white;
+	padding: 8px;
+	border: darkgray solid 1px;
+	overflow-x: auto;
+}
+
+.console p {
+	margin-top: 4px;
+	margin-bottom: 0px;
+}
+
 
 /* InteractiveView */
 .interactive-view {

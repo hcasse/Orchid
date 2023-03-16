@@ -90,7 +90,6 @@ class Component(Subject):
 		self.classes = []
 		self.style = {}
 		self.attrs = {}
-		self.context = CONTEXT_NONE
 
 	def get_model(self):
 		"""Get the model of the component."""
@@ -106,7 +105,7 @@ class Component(Subject):
 
 	def get_context(self):
 		"""Get the context of the page. One of CONTEXT_XXX constant."""
-		return self.context
+		return CONTEXT_NONE
 
 	def get_children(self):
 		return []
@@ -127,6 +126,14 @@ class Component(Subject):
 		# generate classes
 		if self.classes != []:
 			out.write(' class="%s"' % " ".join(self.classes))
+
+		# generate attributes
+		for att in self.attrs:
+			val = self.attrs[att]
+			if val == None:
+				out.write(" %s" % att)
+			else:
+				out.write(" %s=\"%s\"" % (att, val))
 
 	def gen(self, out):
 		"""Called to generate the component itself."""
@@ -163,8 +170,34 @@ class Component(Subject):
 		"""Send a message to set an attribute."""
 		self.attrs[attr] = val
 		if self.online():
-			self.send({"type": "set-attr", "id": self.get_id(), "attr": attr, "val": val})
+			self.send({
+				"type": "set-attr",
+				"id": self.get_id(),
+				"attr": attr,
+				"val": val if val != None else ""})
 
+	def append_content(self, content):
+		"""Apped content to the current element."""
+		if self.online():
+			self.send({
+				"type": "append",
+				"id": self.get_id(),
+				"content": content})
+
+	def clear_content(self):
+		"""Clear the content of the component."""
+		if self.online():
+			self.send({
+				"type": "clear",
+				"id": self.get_id()})
+
+	def show_last(self):
+		"""If the current element is a container, show its last item."""
+		if self.online():
+			self.send({
+				"type": "show-last",
+				"id": self.get_id()})
+	
 	def remove_attr(self, attr):
 		"""Send a message to remove an attribute."""
 		try:

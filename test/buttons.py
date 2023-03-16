@@ -5,6 +5,7 @@ from orchid import *
 class MyPage(Page):
 
 	def __init__(self, app):
+		self.star = Button(Icon("star-empty"), enabled = False)
 		Page.__init__(
 			self,
 			VGroup([
@@ -16,6 +17,7 @@ class MyPage(Page):
 					Button(image = Icon("skip-forward"), on_click=self.click),
 					Button(image = Icon("stop"), on_click=self.click),
 					Button(image = Icon("record"), on_click=self.click),
+					self.star
 				])
 			]),
 			app = app
@@ -33,5 +35,5 @@ class MyApp(Application):
 	def first(self):
 		return MyPage(self)
 
-run(MyApp(), server=True)
+run(MyApp())
 
