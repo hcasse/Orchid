@@ -22,6 +22,7 @@ body {
 	width: 100vw;
 	height: 100vh;
 	overflow: hidden;
+	font-family: sans-serif;
 }
 
 #head {
@@ -197,6 +198,35 @@ label.field {
 	border-width: 1px;
 	overflow: auto;
 	box-sizing: content-box;
+}
+
+
+/* Table */
+.table {
+	background: white;
+	border: 1px solid black;
+	border-collapse: collapse;
+}
+
+.table-header th {
+	padding: 4px;
+	border-right: 2px solid lightgray;
+	border-bottom: 2px solid lightgray;
+	background: #EEEEEE;
+	font-weight: normal;
+}
+
+.table td {
+	padding: 2px 4px 2px 4px;
+	border-right: 1px solid #EEEEEE;
+}
+
+.table tr:nth-child(odd) td {
+	background-color: lightcyan;
+}
+
+.table tr:last-child td {
+	border-bottom: 1px solid #EEEEEE;	
 }
 
 

@@ -191,9 +191,10 @@ class Icon(Image):
 		CONTEXT_TOOLBAR: " toolbar-icon",
 	}
 
-	def __init__(self, name):
+	def __init__(self, name, color = None):
 		Image.__init__(self, ICON_MODEL)
 		self.name = name
+		self.color = color
 
 	def gen(self, out, context):
 		if self.name.startswith("!"):
@@ -208,4 +209,7 @@ class Icon(Image):
 			out.write(Icon.CONTEXT[context])
 		except KeyError:
 			pass
+		out.write('"')
+		if self.color != None:
+			out.write(' style="color: %s"' % self.color)
 		out.write('"></i>')

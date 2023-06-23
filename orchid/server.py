@@ -231,7 +231,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
 		length = int(self.headers['content-length'])
 		data = self.rfile.read(length)
 		msg = json.loads(data)
-		#print("DEBUG: receive ", msg)
+		print("DEBUG: receive ", msg)
 		try:
 			page = self.server.manager.get_page(msg["page"])
 		except KeyError:
@@ -242,7 +242,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
 		self.send_header("Content-type", "application/json")
 		self.end_headers()
 		s = json.dumps({"status": "ok", "answers": answers})
-		#print("DEBUG: answer ", s)
+		print("DEBUG: answer ", s)
 		self.wfile.write(s.encode("utf-8"))
 		if self.server.manager.is_completed():
 			threading.Thread(target=partial(check_quit, self.server.manager)).start()
@@ -253,11 +253,13 @@ class Handler(http.server.SimpleHTTPRequestHandler):
 			self.log_error("bad path: %s" % self.path)
 			self.send_response(404)
 			self.end_headers()
+			print("DEBUG: request processed!")
 		else:
 			self.send_response(200)
 			prov.add_headers(self)
 			self.end_headers()
 			prov.gen(self.wfile)
+			print("DEBUG: request processed!")
 
 
 def open_browser(host, port):
