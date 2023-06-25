@@ -2,6 +2,7 @@
 
 from orchid import *
 import orchid.table as table
+import orchid.group as group
 
 my_table = [
 	[ "Spain", "Madrid", 47325360, 505990 ],
@@ -13,11 +14,34 @@ my_table = [
 class MyPage(Page):
 
 	def __init__(self, app):
+		self.table = table.View(my_table)
 		Page.__init__(
 			self,
-			table.View(my_table),
+			VGroup([
+				self.table,
+				HGroup([
+					Button("clear", on_click=self.clear),
+					Button("append", on_click=self.append),
+					Button("insert", on_click=self.insert),
+					Button("remove", on_click=self.remove)
+				])
+			]),
 			app = app
 		)
+		self.pos = 0
+
+	def clear(self):
+		self.table.get_table_model().set(self.pos//4, self.pos%4, str(self.pos))
+		self.pos = self.pos + 1
+
+	def append(self):
+		self.table.get_table_model().append_row(["?", "?", "?", "?"])
+
+	def insert(self):
+		self.table.get_table_model().insert_row(2, ["?", "?", "?", "?"])		
+	def remove(self):
+		self.table.get_table_model().remove_row(2)
+
 
 class MyApp(Application):
 

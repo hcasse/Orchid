@@ -30,14 +30,17 @@ class Subject:
 		self.observers = []
 
 	def add_observer(self, observer):
+		"""Add an observer to the subject."""
 		self.observers.append(observer)
 
 	def remove_observer(self, observer):
+		"""Remove an observer from the subject."""
 		self.observers.remove(observer)
 
-	def update_observers(self, subject):
+	def update_observers(self):
+		"""Call the update function of the observers."""
 		for observer in self.observers:
-			observer.update(subject)
+			observer.update(self)
 
 
 class Model:
@@ -96,7 +99,7 @@ class Component(Subject):
 		return self.model
 
 	def get_id(self):
-		"""Get the unique identifier of the component in the page."""
+		"""Get the unique identifier (string) of the component in the page."""
 		return self.id
 
 	def get_page(self):

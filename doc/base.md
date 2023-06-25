@@ -12,7 +12,7 @@ Notice that these classes are just documented for features that relevant for the
 
 ## User Interface Work
 
-Basically a page is translated into an HTML page by calling the `gen`() function on page that is propagated to `gen`() function of component. This means that any component can generate any HTML content to manage itself. The parameter of these functions is called *out* and is basically an object supporting a function `write`(*text*) to write *text* to the resulting HTML.
+Basically a page is translated into an HTML page by calling the `gen`() function on page that is propagated to `gen`() function of components. This means that any component can generate any HTML content to manage itself. The parameter of these functions is called *out* and is basically an object supporting a function `write`(*text*) to write *text* to the resulting HTML.
 
 After this initial generation phase, exchanges between the application and the HTTP client start (on behave of the client as it is enforced by HTTP protocol). From the client, these messages are used to trigger functions in the page or in the components (function `receive`(*message*, *handler*)). *message* is a dictionnary containing at least the key `id`, the identifier of the component it targets and a key `action` identifying the action the component has to undertake. Notice that other keys may also be passed.
 
@@ -104,6 +104,21 @@ The generated HTML code of a component can be customied with functions like:
   * `remove_attr`(*attr*) -- to remove an HTML attribute,
   * `add_class`(*class*) -- to add a CSS class,
   * `remove_class`(*class*) -- to remove a CSS class.
+  * `call`(*function*, *arguments*) -- call the Javascript *function* in the target HTML page with the given arguments. Notice that the called function takes only one argument: the dictionary passed as *arguments*.
+
+**Example:** call
+In the component,
+
+	def on_event(self):
+		self.call("my_function", {"msg": "hello", "times": 4})
+
+In the page,
+
+	function my_function(args) {
+		for(var i = 0; i < args.times; i++)
+			console.log(args.msg);
+	}
+
 
 These configurations are passed automatically to the HTTP client once the page has been generated but can be inserted in the generated HTML page with `gen_attrs`(*out*), typically after the element tag:
 
@@ -116,7 +131,7 @@ def gen(self, out):
 	out.write("</div>")
 ```
 
-As present before, messages from the HTTP client are handled with the function:
+As presented before, messages from the HTTP client are handled with the function:
 
 	`receive`(*self*, *msg*, *handler*)
 
