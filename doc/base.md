@@ -154,3 +154,27 @@ Components provide also global information:
   * `get_page`(),
   * `get_children`(),
   * `online`() -- returns true if the page is online.
+
+
+## Javascript
+
+Communication with server-side application is performed using standard HTTP requests. The answers are centered in a specific function that implements several commands that may be used by Python components to update the state of the displayed HTML page.
+
+The command are available in the Component methods:
+* `add_class` -- add a class to the component HTML element,
+* `call` -- call a custom function,
+* `disable` -- disable the component,
+* `enable` -- enable the component,
+* `send` -- send directly a message to the HTML page,
+* `set_attr` -- set an element attribute,
+* `set_style` -- set a style attribute.
+
+On the client-side, the following Javascript functions are available:
+* `ui_post`(*message*) -- add a message to the list of messages to send to the server,
+* `ui_complete`() -- send the posted message to the server,
+* `ui_send`(*message*) -- `ui_post` then `ui_complete`.
+
+The send message is a Javascript map containing at least the field `id` with the identifier of the target component.
+
+
+

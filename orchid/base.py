@@ -392,9 +392,11 @@ class Page:
 				self.manage(m, handler)
 			else:
 				try:
-					self.components[id].receive(m, handler)
+					comp = self.components[id]
 				except KeyError:
 					handler.log_error("unknown component in %s" % m)
+					return
+				comp.receive(m, handler)
 
 		# manage answers
 		res = self.messages

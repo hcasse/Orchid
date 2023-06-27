@@ -29,6 +29,8 @@ class MyPage(Page):
 			app = app
 		)
 		self.pos = 0
+		self.table.get_table_model().check = self.check
+		self.table.get_table_model().is_editable = self.is_editable
 
 	def clear(self):
 		self.table.get_table_model().set(self.pos//4, self.pos%4, str(self.pos))
@@ -42,6 +44,16 @@ class MyPage(Page):
 	def remove(self):
 		self.table.get_table_model().remove_row(2)
 
+	def check(self, row, col, val):
+		try:
+			int(val)
+			return True
+		except ValueError:
+			return False
+
+	def is_editable(self, row, col):
+		print("DEBUG:", col >= 2)
+		return col >= 2
 
 class MyApp(Application):
 

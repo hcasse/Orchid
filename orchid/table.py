@@ -11,68 +11,19 @@ ACTION_APPEND = 4	# TD count
 ACTION_INSERT = 5	# TD count
 
 TABLE_MODEL = orc.Model(
-	script="""
-function table_change(args) {
-	const table = document.getElementById(args.id);
-	var tr, td, cnt;
-	var vali = 0;
-	const actions = args.actions;
-	const values = args.values;
-	console.log("DEBUG: actions = " + actions);
-	console.log("DEBUG: actions = " + values);
-	for(var i = 0; i < actions.length; i++) {
-		switch(actions[i]) {
-		case 0:
-			tr = table.children[0].children[actions[++i]];
-			console.log("DEBUG: ACTION_TR " + actions[i-1]);
-			break;
-		case 1:
-			td = tr.children[actions[++i]];
-			console.log("DEBUG: ACTION_TD " + actions[i-1]);
-			break;
-		case 2:
-			cnt = actions[++i];
-			for(var j = 0; j < cnt; j++) {
-				td.innerHTML = values[vali++];
-				console.log("DEBUG: ACTION_SET '" + values[vali- 1] + "' to " + td);
-				td = td.nextElementSibling;
-				if(td == null) {
-					tr = tr.nextElementSibling;
-					if(tr == null)
-						td = null;
-					else
-						td = tr.children[0];
-				}
-			}
-			break;
-		case 3:
-			const ntr = tr.nextElementSibling;
-			tr.remove();
-			tr = ntr;
-			if(tr != null)
-				td = null;
-			else
-				td = tr.children[0];
-			break;
-		case 4:
-			cnt = actions[++i];
-			tr = document.createElement("tr")
-			table.children[0].append(tr);
-			for(var j = 0; j < cnt; j++)
-				tr.append(document.createElement("td"));
-			td = tr.children[0];
-			break;
-		case 5:
-			cnt = actions[++i];
-			old = tr;
-			tr = document.createElement("tr")
-			table.children[0].insertBefore(tr, old);
-			for(var j = 0; j < cnt; j++)
-				tr.append(document.createElement("td"));
-			td = tr.children[0];
-			break;
-		}
-	}
+	script_paths = [ "table.js" ],
+	style="""
+#table-edit {
+	border: none;
+	padding: 0;
+	margin: 0;
+	box-sizing: bodrer-box;
+	width: 0;
+	min-width: 100%;
+}
+
+.table-error {
+	background-color: peachpuff;
 }
 """
 )
@@ -127,6 +78,14 @@ class Model(Subject):
 	def remove_row(self, row):
 		"""Remove the given row."""
 		pass
+
+	def check(self, row, col, val):
+		"""Check if the given value can be stored at the given position."""
+		return True
+
+	def is_editable(self, row, col):
+		"""Test if the cell at given row and column is editable."""
+		return True
 
 
 class ListModel(Model):
@@ -200,7 +159,7 @@ class View(orc.Component):
 		self.set_style("display", "block")
 
 	def gen(self, out):
-		out.write("<table ")
+		out.write('<table onclick="table_on_click(\'%s\', event);"' % self.get_id())
 		self.gen_attrs(out)
 		out.write(">")
 		coln = self.table.get_column_count()
@@ -280,3 +239,21 @@ class View(orc.Component):
 			],
 			"values": []
 		})
+
+	def receive(self, msg, handler):
+		action = msg["action"]
+		if action == "check":
+			if self.table.check(msg["row"], msg["col"], msg["value"]):
+				self.table.set(msg["row"], msg["col"], msg["value"])
+			else:
+				self.update_cell(msg["row"], msg["col"])
+		elif action == "is_editable":
+			if self.table.is_editable(msg["row"], msg["col"]):
+				self.call("table_do_edit", {})
+		elif action == "test":
+			if self.table.check(msg["row"], msg["col"], msg["value"]):
+				self.call("table_set_ok", {})
+			else:
+				self.call("table_set_error", {})
+		else:
+			orc.Component.receive(self, msg, handler)
