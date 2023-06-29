@@ -10,6 +10,8 @@ CONTEXT_NONE = 0
 CONTEXT_TOOLBAR = 1
 CONTEXT_HEADERBAR = 2
 CONTEXT_BUTTONBAR = 3
+CONTEXT_MENU = 4
+CONTEXT_MAIN = 5
 
 # type of icons
 ICON_ERASE = "erase"
@@ -180,7 +182,7 @@ class Component(Subject):
 				"val": val if val != None else ""})
 
 	def append_content(self, content):
-		"""Apped content to the current element."""
+		"""Append content to the current element."""
 		if self.online():
 			self.send({
 				"type": "append",
@@ -248,7 +250,8 @@ class Component(Subject):
 			return (0, 0)
 
 	def get_add_models(self):
-		"""Called to get additional used modles."""
+		"""Called to get additional used modles.
+		Deprecated: use finalize instead."""
 		return []
 
 	def set_enabled(self, enabled = True):
@@ -266,6 +269,10 @@ class Component(Subject):
 		"""Disable the component."""
 		pass
 
+	def finalize(self, page):
+		"""Called to let component declare additional resources when
+		added to a page."""
+		pass
 
 class ExpandableComponent(Component):
 
@@ -299,6 +306,7 @@ class Page:
 		self.app = app
 		self.title = title
 		self.session = None
+		self.popups = []
 		if main != None:
 			self.set_main(main)
 		else:
@@ -338,21 +346,38 @@ class Page:
 		comp.page = self
 		self.components[comp.get_id()] = comp
 		self.add_model(comp.get_model())
+		# Deprecated: use finalize instead.
 		for m in comp.get_add_models():
 			self.add_model(m)
+		comp.finalize(self)
 
-	def set_main(self, main):
-		"""Set the main component."""
-		self.main = main
-		self.components = {}
-		self.models = {}
-		todo = [main]
+	def collect_rec(self, comp):
+		"""Collect information about all components and sub-components
+		of comp."""
+		todo = [comp]
 		while todo != []:
 			c = todo.pop()
 			self.on_add(c)
 			for cc in c.get_children():
 				todo.append(cc)
+
+	def add_popup(self, popup):
+		"""Called to add a popup."""
+		self.popups.append(popup)
+		self.collect_rec(popup)
+
+	def set_main(self, main):
+		"""Set the main component."""
+		self.main = main
+		main.parent = self
+		self.components = {}
+		self.models = {}
+		todo = [main]
+		self.collect_rec(main)
 		main.set_style("flex", "1")
+
+	def get_context(self):
+		return CONTEXT_MAIN
 
 	def on_remove(self, comp):
 		"""Called each time a component is removed."""
@@ -495,6 +520,10 @@ class Page:
 		self.gen_body_attrs(out)
 		out.write(">\n")
 		self.gen_content(out)
+		out.write("<popups id='ui-popups' class='modal' onclick='popup_onclick(event);'>")
+		for popup in self.popups:
+			popup.gen(out)
+		out.write("</popups>")
 		out.write('</body>')
 		out.write('</html>')
 

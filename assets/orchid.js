@@ -137,3 +137,26 @@ function ui_close() {
 	while(((new Date()).getTime() - now) < 250);
 }
 
+
+// Popup management
+
+var ui_popups = null;
+var ui_popup = null;
+
+function popup_show(args) {
+	ui_popups = window.document.getElementById("ui-popups");
+	ui_popup = window.document.getElementById(args.id);
+	//let comp = window.document.getElementById(comp);
+	ui_popups.style.display = "block";
+	ui_popup.style.display = "block";
+}
+
+function popup_hide() {
+	ui_popups.style.display = "none";
+	ui_popup.style.display = "none";	
+}
+
+function popup_onclick(event) {
+	if(event.target == ui_popups)
+		popup_hide();
+}
