@@ -13,14 +13,17 @@ class MyPage(Page):
 			])
 		)
 
-		Page.__init__(self, self.menu, app = app)
+		Page.__init__(self,
+			VGroup([
+				self.menu,
+				Editor()
+			]),
+			app = app)
 
 	def menu1(self):
-		self.menu.hide_menu()
 		print("DEBUG: menu1!")
 
 	def menu2(self):
-		self.menu.hide_menu()
 		print("DEBUG: menu2!")
 
 

@@ -19,7 +19,9 @@ class Menu(VGroup):
 
 	def __init__(self, items):
 		VGroup.__init__(self, items, model=MENU_MODEL)
-		self.add_class("modal-content")
+		self.add_class("dropdown-content")
+		self.add_class("menu")
+		self.set_style('display', 'none')
 
 	def display(self, comp, pos = BELOW):
 		"""Display the popup menu at the given position relatively to
@@ -29,28 +31,52 @@ class Menu(VGroup):
 	def get_context(self):
 		return CONTEXT_MENU
 
+	def show(self):
+		"""Show the menu."""
+		self.get_page().show_popup(self, "flex")
+
+	def hide(self):
+		"""Hide the menu."""
+		self.get_page().hide_popup()
+
+	def isShown(self):
+		"""Test if the menu is shown or not."""
+		return self.get_page().current_popup == self
+
 
 class MenuButton(Button):
 	"""Button that is able to display a menu."""
 
-	def __init__(self, menu, label = None, image = None, enabled = True):
+	def __init__(self, menu, label = None, image = None, enabled = True, pos = DIR_SOUTH_WEST):
 		if image == None:
 			image = orchid.image.Icon(orchid.image.ICON_MENU)
 		Button.__init__(self,
 			label=label,
 			image=image,
 			enabled=enabled,
-			on_click=self.show_menu)
+			on_click=self.on_click)
 		self.menu = menu
+		self.pos = pos
 
 	def finalize(self, page):
-		page.add_popup(self.menu)
+		page.collect_rec(self.menu)
+
+	def gen(self, out):
+		out.write("<div class='dropdown'>")
+		Button.gen(self, out)
+		self.menu.gen(out)
+		out.write("</div>")
+
+	def on_click(self):
+		if self.menu.isShown():
+			self.hide_menu()
+		else:
+			self.show_menu()
 
 	def show_menu(self):
 		"""Show the current menu."""
-		self.call("popup_show", {"id": self.menu.get_id()})
+		self.menu.show()
 
 	def hide_menu(self):
 		"""Hide the menu."""
-		self.call("popup_hide", {})
-
+		self.menu.hide()

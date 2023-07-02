@@ -119,11 +119,10 @@ function ui_complete() {
 }
 
 function ui_send(obj) {
+	console.log("DEBUG: send " + obj.id + " " + obj.action);
 	ui_post(obj);
 	ui_complete();
 }
-
-
 
 // Main actions
 
@@ -137,6 +136,14 @@ function ui_close() {
 	while(((new Date()).getTime() - now) < 250);
 }
 
+function ui_onclick(id) {
+	ui_post({id: id, action: "click"});
+}
+
+function ui_ontopclick() {
+	ui_send({id: "0", action: "click"});
+}
+
 
 // Popup management
 
@@ -144,16 +151,36 @@ var ui_popups = null;
 var ui_popup = null;
 
 function popup_show(args) {
+
+	// activate the popup
 	ui_popups = window.document.getElementById("ui-popups");
 	ui_popup = window.document.getElementById(args.id);
-	//let comp = window.document.getElementById(comp);
+	let comp = window.document.getElementById(args.comp);
 	ui_popups.style.display = "block";
-	ui_popup.style.display = "block";
+	ui_popup.style.display = args.display;
+
+	// set the position
+	let pr = ui_popup.getBoundingClientRect();
+	let cr = comp.getBoundingClientRect();
+	console.log("DEBUG: " + window.scrollX + ", " + window.scrollY);
+	console.log("DEBUG: " + cr.left + "," + cr.top + "-" + cr.width + "x" + cr.height + " (" + cr.right + "," + cr.bottom + ")");
+	switch(args.pos) {
+	case 5:
+		ui_popup.style.top = cr.bottom + "px";
+		ui_popup.style.left = (cr.right - pr.width) + "px";
+		break;
+	}
+
+	// fix position according to screen
+	/*let sr = ui_pops.getBoundingClientRect();
+	let cr = comp.getBoundingClientRect();
+	if(cr.left < sr.left)
+		cr.left = sr.left + "px";*/
 }
 
 function popup_hide() {
 	ui_popups.style.display = "none";
-	ui_popup.style.display = "none";	
+	ui_popup.style.display = "none";
 }
 
 function popup_onclick(event) {

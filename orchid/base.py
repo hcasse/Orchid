@@ -295,7 +295,7 @@ class Page:
 	"""Implements a page ready to be displayed."""
 
 	def __init__(self, main = None, parent = None,
-	app = None, title = None):
+	app = None, title = None, style = "default.css"):
 		global PAGE_ID
 		self.messages = []
 		self.main = None
@@ -312,6 +312,9 @@ class Page:
 		else:
 			self.models = {}
 			self.components = {}
+		self.style = style
+		self.current_popup = None
+		self.new_popup = None
 
 	def get_id(self):
 		"""Get unique identifier of the page."""
@@ -426,6 +429,8 @@ class Page:
 		# manage answers
 		res = self.messages
 		self.messages = []
+		self.current_popup = self.new_popup
+		self.new_popup = None
 		return res
 
 	def on_close(self):
@@ -438,6 +443,8 @@ class Page:
 		a = msg["action"]
 		if a == "close":
 			self.on_close()
+		elif a == "click":
+			self.hide_popup()
 		else:
 			handler.log_error("unknown action: %s" % a)
 
@@ -453,7 +460,7 @@ class Page:
 
 	def gen_style_paths(self, out):
 		"""Called to generate linked CSS."""
-		ss = ["basic.css"]
+		ss = ["basic.css", self.style]
 		for m in self.models:
 			for s in m.get_style_paths():
 				if s not in ss:
@@ -516,7 +523,7 @@ class Page:
 		self.gen_script(out)
 		out.write("\t</script>\n")
 		out.write("</head>\n")
-		out.write('<body id="content"')
+		out.write('<body id="content" onclick="ui_ontopclick()" ')
 		self.gen_body_attrs(out)
 		out.write(">\n")
 		self.gen_content(out)
@@ -537,6 +544,19 @@ class Page:
 		corresponding to the path."""
 		self.manager.add_file(url, path, mime)
 
+	def show_popup(self, popup, display="block"):
+		"""Called to show the given popup."""
+		if self.current_popup != None:
+			self.hide_popup()
+		self.new_popup = popup
+		popup.set_style("display", display)
+
+	def hide_popup(self):
+		"""Close the current popup."""
+		if self.current_popup != None:
+			self.current_popup.set_style("display", "none")
+			self.current_popup = None
+	
 
 class Session:
 	"""Represent a sessuib to a specific client. It allows to

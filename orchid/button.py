@@ -40,7 +40,7 @@ class Button(Component):
 	def gen(self, out):
 		out.write('<button')
 		self.gen_attrs(out)
-		out.write(' onclick="ui_send({id: \'%s\', action: \'click\'});">' % self.get_id())
+		out.write(' onclick="ui_onclick(\'%s\');">' % self.get_id())
 		if self.image != None:
 			self.image.gen(out, self.parent.get_context())
 		if self.label != None:

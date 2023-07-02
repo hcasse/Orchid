@@ -20,5 +20,15 @@ SUCCESS = "success"
 FAILED = "failed"
 INFO = "info"
 
+DIR_NORTH = 0
+DIR_NORTH_EAST = 1
+DIR_EAST = 2
+DIR_SOUTH_EAST = 3
+DIR_SOUTH = 4
+DIR_SOUTH_WEST = 5
+DIR_WEST = 6
+DIR_NORTH_EAST = 7
+DIR_CENTER = 8
+
 def text(type, text):
 	return '<span class="text-%s">%s</span>' % (type, text)
