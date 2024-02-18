@@ -1,3 +1,20 @@
+#
+#	This file is part of Orchid.
+#
+#    Orchid is free software: you can redistribute it and/or modify
+#	it under the terms of the GNU Lesser General Public License as
+#	published by the Free Software Foundation, either version 3 of the
+#	License, or (at your option) any later version.
+#
+#	Orchid is distributed in the hope that it will be useful, but
+#	WITHOUT ANY WARRANTY; without even the implied warranty of
+#	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+#	GNU Lesser General Public License for more details.
+#
+#	You should have received a copy of the GNU Lesser General Public
+#	License along with Orchid. If not, see <https://www.gnu.org/licenses/>.
+#
+
 """Orchid base classes and definitions. """
 
 import time
@@ -189,12 +206,30 @@ class Component(Subject):
 				"id": self.get_id(),
 				"content": content})
 
+	def insert_content(self, content, pos):
+		"""Insert the given content into the current element at the
+		given position."""
+		if self.online():
+			self.send({
+				"type": "insert",
+				"id": self.get_id(),
+				"pos": pos,
+				"content": content})
+
 	def clear_content(self):
 		"""Clear the content of the component."""
 		if self.online():
 			self.send({
 				"type": "clear",
 				"id": self.get_id()})
+
+	def remove_child(self, index):
+		"""Remove a child at given index from the current component."""
+		if self.online():
+			self.send({
+				"type": "remove",
+				"id": self.get_id(),
+				"child": index});
 
 	def show_last(self):
 		"""If the current element is a container, show its last item."""
@@ -549,7 +584,8 @@ class Page:
 		if self.current_popup != None:
 			self.hide_popup()
 		self.new_popup = popup
-		popup.set_style("display", display)
+		#popup.set_style("display", display)
+		popup.call("popup_check", {"id": popup.get_id(), "display": display})
 
 	def hide_popup(self):
 		"""Close the current popup."""

@@ -1,3 +1,12 @@
+
+/* color constants */
+
+:root {
+	--sequence-separation-fill: lightcyan;
+	--select: purple;
+}
+
+
 /* page structure */
 
 html {
@@ -92,7 +101,11 @@ a.button-disabled {
 	font-family: sans-serif;
 	color: #CCCCCC;
 	pointer-events: none;
-} 
+}
+
+.select {
+	background: var(--select);
+}
 
 
 /* button style */
@@ -230,6 +243,23 @@ label.field {
 }
 
 
+/* List */
+.list {
+	background: white;
+	border: 1px solid black;
+	border-collapse: collapse;
+	padding: 4px 0 4px 0;
+}
+
+.list div {
+	padding: 0 4px 0 4px;
+}
+
+.list div:nth-child(even) {
+	background-color: var(--sequence-separation-fill);
+}
+
+
 /* standard text decoration */
 .text-success {
 	color: green;
@@ -269,8 +299,8 @@ label.field {
 }
 
 .dropdown {
-	position: relative;
 	display: inline-block;
+	/*position: relative;*/
 }
 
 .dropdown-content {

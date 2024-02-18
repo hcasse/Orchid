@@ -20,6 +20,12 @@ SUCCESS = "success"
 FAILED = "failed"
 INFO = "info"
 
+def text(type, text):
+	"""Generate a text colored according to the type. Type may be one
+	of SUCCESS, FAILED or INFO."""
+	return '<span class="text-%s">%s</span>' % (type, text)
+
+
 DIR_NORTH = 0
 DIR_NORTH_EAST = 1
 DIR_EAST = 2
@@ -30,5 +36,22 @@ DIR_WEST = 6
 DIR_NORTH_EAST = 7
 DIR_CENTER = 8
 
-def text(type, text):
-	return '<span class="text-%s">%s</span>' % (type, text)
+class Buffer:
+	"""Text buffer supporting write function."""
+
+	def __init__(self, text = ""):
+		self.text = text
+
+	def write(self, text):
+		self.text = self.text + text
+
+	def __str__(self):
+		return self.text
+
+def buffer(fun):
+	"""Call function with a buffer to generate a text content and return
+	the produced text."""
+	buf = Buffer()
+	fun(buf)
+	return str(buf)
+

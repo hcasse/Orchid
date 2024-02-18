@@ -81,7 +81,7 @@ The configuration arguments supported by the constructor are:
   * `script_paths` -- paths to Javascript file to insert in HTML,
 
 
-## Working with session
+## Working with sessions
 
 The application presented in [Quickstart](quickstart.md) works very well but is not adapted to work as server where several user may their own session at the same time. In this case, one has to use a `Session`object. Each time a new client connects to the **Orchid** server a session and an index page is created.
 

@@ -90,6 +90,20 @@ ui_http.onreadystatechange = function() {
 					while(component.firstChild)
 						component.removeChild(component.firstChild);
 					break;
+				case "insert":
+					converter.innerHTML = a["content"];
+					component = document.getElementById(a["id"]);
+					to = component.childNodes.item(a["pos"]);
+					for(const child of converter.children)
+						component.insertBefore(child, to);
+					while(converter.firstChild)
+						converter.removeChild(converter.firstChild);
+					break;
+				case "remove":
+					component = document.getElementById(a["id"]);
+					child = component.childNodes.item(a["child"]);
+					component.removeChild(child);
+					break;
 				case "show-last":
 					show_last(a["id"]);
 					break;
@@ -186,4 +200,26 @@ function popup_hide() {
 function popup_onclick(event) {
 	if(event.target == ui_popups)
 		popup_hide();
+}
+
+function popup_check(args) {
+	const bw = document.body.clientWidth;
+	const bh = document.body.clientHeight;
+	console.log("DEBUG: " + bw + "x" + bh);
+	const popup = window.document.getElementById(args.id);
+	popup.style.display = args.display;
+	const px = popup.clientLeft;
+	const py = popup.clientTop;
+	const pw = popup.clientWidth;
+	const ph = popup.clientHeight
+	console.log("DEBUG: " + px + "," + py + " " + pw + "x" + ph);
+	const pb = popup.getBoundingClientRect();
+	console.log("DEBUG: " + pb.left + "," + pb.top + " " + pb.width + "x" + pb.height);
+	const dx = pb.left + pw - bw;
+	if(dx > 0)
+		popup.style.left = (pb.left - dx) + "px";
+}
+
+function popup_onresize(popup) {
+	console.log("DEBUG: onresize " + popup);
 }

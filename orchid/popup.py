@@ -22,6 +22,7 @@ class Menu(VGroup):
 		self.add_class("dropdown-content")
 		self.add_class("menu")
 		self.set_style('display', 'none')
+		#self.set_attr("onshow", "popup_onresize(this);")
 
 	def display(self, comp, pos = BELOW):
 		"""Display the popup menu at the given position relatively to

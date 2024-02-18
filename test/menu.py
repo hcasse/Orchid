@@ -15,7 +15,10 @@ class MyPage(Page):
 
 		Page.__init__(self,
 			VGroup([
-				self.menu,
+				HGroup([
+					self.menu,
+					Spring(hexpand=True)
+				]),
 				Editor()
 			]),
 			app = app)

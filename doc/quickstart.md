@@ -55,7 +55,7 @@ Finally, the last line runs the **Orchid** server on the application.
 
 ## Customizing the display
 
-All components comes with own class. Defining a new lookup consists in replacing `basic.css` with a new file where the component classes are changed.
+All components comes with their own HTML class. Defining a new lookup consists in replacing `basic.css` with a new file where the component classes are changed.
 
 Table of component/class mapping:
 
