@@ -48,6 +48,16 @@ class Subject:
 	def __init__(self):
 		self.observers = []
 
+	def get_observers(self):
+		"""Get the list of observers."""
+		return self.observers
+
+	def filter_observers(self, cls):
+		"""Filter observers with the given class."""
+		for obs in self.observers:
+			if isinstance(obs, cls):
+				yield obs
+
 	def add_observer(self, observer):
 		"""Add an observer to the subject."""
 		self.observers.append(observer)

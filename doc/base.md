@@ -12,9 +12,13 @@ Notice that these classes are just documented for features that relevant for the
 
 ## User Interface Work
 
-Basically a page is translated into an HTML page by calling the `gen`() function on page that is propagated to `gen`() function of components. This means that any component can generate any HTML content to manage itself. The parameter of these functions is called *out* and is basically an object supporting a function `write`(*text*) to write *text* to the resulting HTML.
+The content of the UI is madeof an HTML page that is send to the HTML browser. This content provides a display and a way to interact with components of the UI. Basically, events are captured in the browser and send back to the UI server. The receiver is a `Page` that, depending on the message, forwards it to the server side component.
 
-After this initial generation phase, exchanges between the application and the HTTP client start (on behave of the client as it is enforced by HTTP protocol). From the client, these messages are used to trigger functions in the page or in the components (function `receive`(*message*, *handler*)). *message* is a dictionnary containing at least the key `id`, the identifier of the component it targets and a key `action` identifying the action the component has to undertake. Notice that other keys may also be passed.
+So when a page is generated, first the components are declared to the page that contains them by called `finalize`(page) method.This is used to declare the component to the page and to declare the used resources (called a component _model_). Such a model is made of script code, script URL to download, CSS content and CSS URL. The page ensures that these resources are downloaded once.
+
+Then the generation phase starts. Basically a page is translated into an HTML page by calling the `gen`() function on page that is propagated to `gen`() function of components. This means that any component can generate any HTML content to manage itself. The parameter of these functions is called *out* and is basically an object supporting a function `write`(*text*) to write *text* to the resulting HTML.
+
+After these generation phase, exchanges between the application and the HTTP client start (on behave of the client as it is enforced by HTTP protocol). From the client, these messages are used to trigger functions in the page or in the components (function `receive`(*message*, *handler*)). *message* is a dictionnary containing at least the key `id`, the identifier of the component it targets and a key `action` identifying the action the component has to undertake. Notice that other keys may also be passed.
 
 To trigger such a message on the client side, **Orchid** provides a simple API based on function `ui_send`(*map*) with *map* corresponding to the *message* processed by `receive`() function. For example,
 ```html

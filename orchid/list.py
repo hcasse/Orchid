@@ -15,11 +15,10 @@
 #	License along with Orchid. If not, see <https://www.gnu.org/licenses/>.
 #
 
-"""List components."""
+"""Module providing support for list component."""
 
 from orchid import buffer
 from orchid.base import *
-from orchid.label import Label
 
 SELECT_NONE = 0
 SELECT_SINGLE = 1
@@ -29,15 +28,39 @@ MODEL = Model(
 	script_paths = [ "list.js" ],
 )
 
-class Model:
+class Observer:
+	"""Observer of a list model."""
+
+	def on_set(self, i, x):
+		"""Called when a value of the list is changed."""
+		pass
+
+	def on_append(self, x):
+		"""Called when an item is appended."""
+		pass
+
+	def on_remove(self, i):
+		"""Called when an item is removed."""
+		pass
+
+	def on_insert(self, i, x):
+		"""Called when item is inserted at position i."""
+		pass
+
+
+class Model(Subject):
 	"""Model used to display a list."""
 
 	def __init__(self):
-		self.views = []
+		Subject.__init__(self)
 
 	def size(self):
 		"""Get the size of the list."""
 		return 0
+
+	def index(self, x):
+		"""Get the index of a value."""
+		raise ValueError()
 
 	def get(self, index):
 		"""Get the value at the given index."""
@@ -45,22 +68,25 @@ class Model:
 
 	def append(self, x):
 		"""Append a value."""
-		for view in self.views:
-			view.append_item(x)
+		print("DEBUG: append")
+		for obs in self.filter_observers(Observer):
+			print("DEBUG: -" , obs)
+			obs.on_append(x)
 
 	def insert(self, i, x):
 		""""Insert an element at given position."""
-		for view in self.views:
-			view.insert_item(i, x)
+		for obs in self.filter_observers(Observer):
+			obs.on_insert(i, x)
 
 	def remove(self, x):
 		"""Remove the given element."""
-		for view in self.views:
-			view.remove_item(x)
+		for obs in self.filter_observers(Observer):
+			obs.on_remove(x)
 
-	def index(self, x):
-		"""Get the index of a value."""
-		raise ValueError()
+	def set(self, i, x):
+		"""Change the value of an element."""
+		for obs in self.filter_observers(Observer):
+			obs.on_set(i, x)		
 
 
 class ListModel(Model):
@@ -87,13 +113,16 @@ class ListModel(Model):
 	def remove(self, x):
 		Model.remove(self, x)
 		self.list.remove(x)
-		print("DEBUG: list=", self.list)
 
 	def index(self, x):
 		return self.list.index(x)
 
+	def set(self, i, x):
+		self.list[i] = x
+		Model.set(self, i, x)
 
-class View(Component):
+
+class View(Component, Observer):
 	"""Vertical list of items."""
 
 	def __init__(self, items = [], select_mode = SELECT_SINGLE, model = MODEL):
@@ -103,7 +132,7 @@ class View(Component):
 			self.items = ListModel(items)
 		else:
 			self.items = items
-		self.items.views.append(self)
+		self.items.add_observer(self)
 		self.children = None
 		self.select_mode = select_mode
 		self.selection = []
@@ -118,42 +147,55 @@ class View(Component):
 
 	def make(self, value):
 		"""Buid a component for the given value."""
-		return Label(str(value))
+		return Text(str(value))
 
 	def select(self, i):
 		"""Select the item corresponding to index i."""
 		self.selection.append(i)
-		self.get_children()[i].add_class("select")
+		self.call("list_select", { "id": self.get_id(), "index": i })
 
 	def deselect(self, i):
 		"""Deselect the item of index i o all."""
 		self.selection.remove(i)
-		self.get_children()[i].remove_class("select")
+		self.call("list_deselect", { "id": self.get_id(), "index": i })
 
 	def deselect_all(self):
 		"""Deselect the whole selection."""
 		for i in self.selection:
-			self.get_children()[i].remove_class("select")
+			self.call("list_deselect", { "id": self.get_id(), "index": i })
 		self.selection = []
 
-	def append_item(self, x):
+	def on_append(self, x):
 		self.deselect_all()
 		item = self.make(x)
 		self.get_children().append(item)
 		if self.online():
 			self.append_content("<div>%s</div>" % buffer(item.gen))
 
-	def insert_item(self, i, x):
+	def on_insert(self, i, x):
 		self.deselect_all()
 		item = self.make(x)
 		self.get_children().insert(i, item)
 		if self.online():
 			self.insert_content("<div>%s</div>" % buffer(item.gen), i)
 
-	def remove_item(self, x):
+	def on_remove(self, x):
 		self.deselect_all()
 		i = self.items.index(x)
-		self.remove_child(i)
+		if self.online():
+			self.remove_child(i)
+
+	def on_set(self, i, x):
+		children = self.get_children()
+		item = self.make(x)
+		children[i] = item
+		item.finalize(self.page)
+		if self.online():
+			self.call("list_set", {
+				"id": self.get_id(),
+				"index": i,
+				"content": buffer(item.gen)
+			});
 
 	def get_children(self):
 		if self.children == None:
@@ -176,7 +218,7 @@ class View(Component):
 
 	def receive(self, msg, handler):
 		if msg["action"] == "select":
-			i = self.index_of(msg["item"])
+			i = msg["item"]
 			print("DEBUG: i=", i)
 			if i in self.selection:
 				self.deselect_all()
@@ -191,7 +233,7 @@ class View(Component):
 		self.gen_attrs(out)
 		out.write('/>')
 		for item in self.get_children():
-			out.write('<div>')
+			out.write("<div>")
 			item.gen(out)
-			out.write('</div>')
+			out.write("</div>")
 		out.write("</div>")

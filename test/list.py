@@ -8,22 +8,31 @@ my_list = [
 	"Rome",
 	"Paris",
 	"London",
-	"Stockholm"
+	"Stockholm",
+	"Berlin",
+	"Madrid",
+	"Washington",
+	"Bucarest",
+	"Prague",
+	"Brussel",
+	"Amsterdam"
 ]
 
 class MyPage(Page):
 
 	def __init__(self, app):
 		self.count = 0
-		self.list = list.View(my_list)
+		self.component = list.View(my_list)
+		self.items = self.component.get_items()
 		Page.__init__(
 			self,
 			VGroup([
-				self.list,
+				self.component,
 				HGroup([
 					Button("clear", on_click=self.clear),
 					Button("insert", on_click=self.insert),
-					Button("remove", on_click=self.remove)
+					Button("remove", on_click=self.remove),
+					Button("set", on_click=self.set),
 				])
 			]),
 			app = app
@@ -34,17 +43,22 @@ class MyPage(Page):
 
 	def insert(self):
 		item = "item %d" % self.count
-		s = self.list.get_selection()
+		s = self.component.get_selection()
 		if s:
-			self.list.get_items().insert(s[0], item)
+			self.items.insert(s[0], item)
 		else:
-			self.list.get_items().append(item)
+			self.items.append(item)
 		self.count = self.count + 1
 
 	def remove(self):
-		s = self.list.get_selection()
+		s = self.component.get_selection()
 		if s:
-			self.list.get_items().remove(self.list.get_items().get(s[0]))
+			self.items.remove(self.items.get(s[0]))
+
+	def set(self):
+		s = self.component.get_selection()
+		if s:
+			self.items.set(s[0], "???")
 
 
 class MyApp(Application):
@@ -55,5 +69,5 @@ class MyApp(Application):
 	def first(self):
 		return MyPage(self)
 
-run(MyApp())
+run(MyApp(), debug=True)
 
