@@ -125,7 +125,7 @@ class ListModel(Model):
 class View(Component, Observer):
 	"""Vertical list of items."""
 
-	def __init__(self, items = [], select_mode = SELECT_SINGLE, model = MODEL):
+	def __init__(self, items = [], selection = [], select_mode = SELECT_SINGLE, model = MODEL):
 		Component.__init__(self, model)
 		self.add_class("list")
 		if isinstance(items, list):
@@ -135,7 +135,7 @@ class View(Component, Observer):
 		self.items.add_observer(self)
 		self.children = None
 		self.select_mode = select_mode
-		self.selection = []
+		self.selection = selection
 
 	def get_items(self):
 		"""Get the model of items."""
@@ -163,7 +163,19 @@ class View(Component, Observer):
 		"""Deselect the whole selection."""
 		for i in self.selection:
 			self.call("list_deselect", { "id": self.get_id(), "index": i })
-		self.selection = []
+		self.selection.clear()
+
+	def set_items(self, items):
+		"""Chane the items displayed."""
+		if isinstance(items, list):
+			items = ListModel(items)
+		self.selection.clear();
+		self.items.remove_observer(self)
+		self.items = items
+		self.items.add_observer(self)
+		self.children = None
+		if self.online():
+			self.set_content(buffer(self.gen_content))
 
 	def on_append(self, x):
 		self.deselect_all()
@@ -232,8 +244,13 @@ class View(Component, Observer):
 			out.write(' onclick="list_on_click(\'%s\', event);"' % self.get_id())
 		self.gen_attrs(out)
 		out.write('/>')
+		self.gen_content(out)
+		out.write("</div>")
+
+	def gen_content(self, out):
+		"""Generate the content of the view."""
 		for item in self.get_children():
 			out.write("<div>")
 			item.gen(out)
 			out.write("</div>")
-		out.write("</div>")
+

@@ -10,7 +10,6 @@ function list_on_click(id, event) {
 		i++;
 	}
 	ui_send({id: id, action: "select", item: i});
-	/*console.log("list_on_clic");*/
 	event.stopPropagation();
 }
 
