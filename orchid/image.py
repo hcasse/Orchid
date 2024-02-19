@@ -2,19 +2,19 @@
 
 from orchid.base import *
 
-class Image:
+class Image(Displayable):
 	"""Base class to represent an image (according different sources:
 	file to download, standard icon, etc)."""
 
 	def __init__(self, model):
 		self.model = model
 
-	def get_model(self):
-		return self.model
-
 	def gen(self, out, type = CONTEXT_NONE):
 		"""Generate the code for the image."""
 		pass
+
+	def finalize(self, page):
+		page.add_model(self.model)
 
 
 class IconModel(Model):

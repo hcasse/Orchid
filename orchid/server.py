@@ -228,10 +228,12 @@ class Handler(http.server.SimpleHTTPRequestHandler):
 		self.wfile.write(bytes(text, "utf-8"))
 
 	def do_POST(self):
+		debug = self.server.manager.config['debug']
 		length = int(self.headers['content-length'])
 		data = self.rfile.read(length)
 		msg = json.loads(data)
-		print("DEBUG: receive ", msg)
+		if debug:
+			print("DEBUG: receive ", msg)
 		try:
 			page = self.server.manager.get_page(msg["page"])
 		except KeyError:
@@ -242,24 +244,28 @@ class Handler(http.server.SimpleHTTPRequestHandler):
 		self.send_header("Content-type", "application/json")
 		self.end_headers()
 		s = json.dumps({"status": "ok", "answers": answers})
-		print("DEBUG: answer ", s)
+		if debug:
+			print("DEBUG: answer ", s)
 		self.wfile.write(s.encode("utf-8"))
 		if self.server.manager.is_completed():
 			threading.Thread(target=partial(check_quit, self.server.manager)).start()
 
 	def do_GET(self):
+		debug = self.server.manager.config['debug']
 		prov = self.server.manager.get(self.path)
 		if prov == None:
 			self.log_error("bad path: %s" % self.path)
 			self.send_response(404)
 			self.end_headers()
-			print("DEBUG: request processed!")
+			if debug:
+				print("DEBUG: request processed!")
 		else:
 			self.send_response(200)
 			prov.add_headers(self)
 			self.end_headers()
 			prov.gen(self.wfile)
-			print("DEBUG: request processed!")
+			if debug:
+				print("DEBUG: request processed!")
 
 
 def open_browser(host, port):
@@ -273,11 +279,13 @@ DEFAULT_CONFIG = {
 	'browser': True,
 	'server': False,
 	'session_timeout': 120 * 60,
-	'session_check_time': 10 * 60
+	'session_check_time': 10 * 60,
+	'debug': False
 }
 
 def run(app, **args):
 	"""Run the UI with the following configuration items:
+	* debug -- run in debugging mode,
 	* host -- name of the host,
 	* port -- port to use,
 	* dirs -- list of directories to get files,

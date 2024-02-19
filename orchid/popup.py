@@ -60,7 +60,8 @@ class MenuButton(Button):
 		self.pos = pos
 
 	def finalize(self, page):
-		page.collect_rec(self.menu)
+		Button.finalize(self, page)
+		self.menu.finalize(page)
 
 	def gen(self, out):
 		out.write("<div class='dropdown'>")

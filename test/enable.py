@@ -31,5 +31,5 @@ class MyApp(Application):
 	def first(self):
 		return MyPage(self)
 
-run(MyApp(), server = True)
+run(MyApp())
 

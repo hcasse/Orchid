@@ -36,6 +36,10 @@ class Group(Component):
 		"""Get the group context (one of CONTEXT_* constants)."""
 		return CONTEXT_NONE
 
+	def finalize(self, page):
+		Component.finalize(self, page)
+		for child in self.children:
+			child.finalize(page)
 
 # HGroup class
 class HGroupModel(Model):

@@ -99,8 +99,43 @@ class Model:
 		return self.script_paths
 
 
-class Component(Subject):
-	"""Component to build a user-interface."""
+class Displayable:
+	"""Defines an object that may be displayed in the UI but is not
+	interactive. It may be finalized and generated."""
+
+	def finalize(self, page):
+		"""Called before the generation in order to link with the page
+		and possibly ask for resources."""
+		pass
+
+	def gen(self, out):
+		"""Called  to generate the HTML content corresponding to the
+		displayable on the given output (supporting only write() method).
+		The default implementation does nothing."""
+		pass
+
+DISPLAY_NONE = Displayable()
+"""Displayable that displays nothing."""
+
+class Text(Displayable):
+	"""A simple displayable showing a text."""
+
+	def __init__(self, text, style = None):
+		self.text = text
+		self.style = style
+
+	def gen(self, out):
+		out.write("<span")
+		if self.style is not None:
+			out.write(' class="text-%s"' % self.style)
+		out.write('>')
+		out.write(self.text)
+		out.write('</span>')
+
+
+class Component(Subject, Displayable):
+	"""Component to build a user-interface. A component may be displayed
+	but is also interactive requiring to have a link with the page."""
 
 	def __init__(self, model):
 		global COMPONENT_ID
@@ -156,10 +191,6 @@ class Component(Subject):
 				out.write(" %s" % att)
 			else:
 				out.write(" %s=\"%s\"" % (att, val))
-
-	def gen(self, out):
-		"""Called to generate the component itself."""
-		pass
 
 	def online(self):
 		"""Test if the current page is online."""
@@ -307,7 +338,8 @@ class Component(Subject):
 	def finalize(self, page):
 		"""Called to let component declare additional resources when
 		added to a page."""
-		pass
+		page.on_add(self)
+
 
 class ExpandableComponent(Component):
 
@@ -384,20 +416,7 @@ class Page:
 		comp.page = self
 		self.components[comp.get_id()] = comp
 		self.add_model(comp.get_model())
-		# Deprecated: use finalize instead.
-		for m in comp.get_add_models():
-			self.add_model(m)
-		comp.finalize(self)
-
-	def collect_rec(self, comp):
-		"""Collect information about all components and sub-components
-		of comp."""
-		todo = [comp]
-		while todo != []:
-			c = todo.pop()
-			self.on_add(c)
-			for cc in c.get_children():
-				todo.append(cc)
+		#print("DEBUG:", comp.get_id(), "->", comp)
 
 	def add_popup(self, popup):
 		"""Called to add a popup."""
@@ -410,8 +429,7 @@ class Page:
 		main.parent = self
 		self.components = {}
 		self.models = {}
-		todo = [main]
-		self.collect_rec(main)
+		main.finalize(self)
 		main.set_style("flex", "1")
 
 	def get_context(self):

@@ -31,11 +31,10 @@ class Button(Component):
 		self.enabled = True
 		self.set_enabled(enabled)
 
-	def get_add_models(self):
+	def finalize(self, page):
+		Component.finalize(self, page)
 		if self.image != None:
-			return [self.image.model]
-		else:
-			return []
+			self.image.finalize(page)
 
 	def gen(self, out):
 		out.write('<button')
