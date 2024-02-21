@@ -282,7 +282,7 @@ label.field {
 
 
 /* modal */
-.modal {
+.hidden {
 	display: none;
 	position: fixed;
 	z-index: 1;
@@ -293,7 +293,7 @@ label.field {
 	overflow: auto;
 }
 
-.modal-content {
+.hidden-content {
 	width: fit-content;
 	position: absolute;
 }

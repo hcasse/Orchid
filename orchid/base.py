@@ -214,7 +214,7 @@ class Component(Subject, Displayable):
 		"""Send a message to the UI."""
 		self.page.messages.append(msg)
 
-	def call(self, fun, args):
+	def call(self, fun, args = {}):
 		"""Send a message to call a function."""
 		self.send({"type": "call", "fun": fun, "args": args})
 
@@ -367,6 +367,14 @@ class ExpandableComponent(Component):
 # console.log("resize " + e.id + ": " + w + " x " + h);
 # ui_show_size(e);
 
+class Modal:
+	"""Modal is an interface for popup and dialogs allow to hide when
+	clicked out of the popup."""
+
+	def hide(self):
+		"""Called to let the modal to close."""
+		pass
+
 
 class Page:
 	"""Implements a page ready to be displayed."""
@@ -383,15 +391,15 @@ class Page:
 		self.app = app
 		self.title = title
 		self.session = None
-		self.popups = []
 		if main != None:
 			self.set_main(main)
 		else:
 			self.models = {}
 			self.components = {}
 		self.style = style
-		self.current_popup = None
-		self.new_popup = None
+		self.current_modal = None
+		self.new_modal = None
+		self.hidden = []
 
 	def get_id(self):
 		"""Get unique identifier of the page."""
@@ -426,12 +434,15 @@ class Page:
 		comp.page = self
 		self.components[comp.get_id()] = comp
 		self.add_model(comp.get_model())
-		#print("DEBUG:", comp.get_id(), "->", comp)
 
-	def add_popup(self, popup):
-		"""Called to add a popup."""
-		self.popups.append(popup)
-		self.collect_rec(popup)
+	def add_hidden(self, component):
+		"""Add an hidden component."""
+		self.hidden.append(component)
+		component.finalize(page)
+
+	def remove_hidden(self, component):
+		"""Remove an hidden component."""
+		self.hidden.remove(component)
 
 	def set_main(self, main):
 		"""Set the main component."""
@@ -492,8 +503,6 @@ class Page:
 		# manage answers
 		res = self.messages
 		self.messages = []
-		self.current_popup = self.new_popup
-		self.new_popup = None
 		return res
 
 	def on_close(self):
@@ -507,7 +516,11 @@ class Page:
 		if a == "close":
 			self.on_close()
 		elif a == "click":
-			self.hide_popup()
+			if self.new_modal != None:
+				self.current_modal = self.new_modal
+				self.new_modal = None
+			else:
+				self.disable_modal()
 		else:
 			handler.log_error("unknown action: %s" % a)
 
@@ -590,10 +603,10 @@ class Page:
 		self.gen_body_attrs(out)
 		out.write(">\n")
 		self.gen_content(out)
-		out.write("<popups id='ui-popups' class='modal' onclick='popup_onclick(event);'>")
-		for popup in self.popups:
-			popup.gen(out)
-		out.write("</popups>")
+		out.write("<div id='ui-hidden' class='hidden'>")
+		for component in self.hidden:
+			component.gen(out)
+		out.write("</div>")
 		out.write('</body>')
 		out.write('</html>')
 
@@ -607,19 +620,17 @@ class Page:
 		corresponding to the path."""
 		self.manager.add_file(url, path, mime)
 
-	def show_popup(self, popup, display="block"):
-		"""Called to show the given popup."""
-		if self.current_popup != None:
-			self.hide_popup()
-		self.new_popup = popup
-		#popup.set_style("display", display)
-		popup.call("popup_check", {"id": popup.get_id(), "display": display})
+	def enable_modal(self, modal):
+		"""Called to enable the given model."""
+		if self.current_modal != None:
+			self.hide_modal()
+		self.new_modal = modal
 
-	def hide_popup(self):
-		"""Close the current popup."""
-		if self.current_popup != None:
-			self.current_popup.set_style("display", "none")
-			self.current_popup = None
+	def disable_modal(self):
+		"""Disable current modal."""
+		if self.current_modal != None:
+			self.current_modal.on_modal_disable()
+			self.current_modal = None
 	
 
 class Session:

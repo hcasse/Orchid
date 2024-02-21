@@ -5,21 +5,28 @@ from orchid import popup
 
 class MyPage(Page):
 
-	def __init__(self, app):
-		self.menu = popup.MenuButton(
+	def make_menu(self):
+		return popup.MenuButton(
 			popup.Menu([
 				Button("Menu 1", on_click=self.menu1),
 				Button("Menu 2", on_click=self.menu2)
 			])
 		)
 
+	def __init__(self, app):
 		Page.__init__(self,
 			VGroup([
 				HGroup([
-					self.menu,
-					Spring(hexpand=True)
+					self.make_menu(),
+					Spring(hexpand=True),
+					self.make_menu()
 				]),
-				Editor()
+				Editor(),
+				HGroup([
+					self.make_menu(),
+					Spring(hexpand=True),
+					self.make_menu()
+				])				
 			]),
 			app = app)
 
@@ -38,5 +45,5 @@ class MyApp(Application):
 	def first(self):
 		return MyPage(self)
 
-run(MyApp())
+run(MyApp(), debug=True)
 
