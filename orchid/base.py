@@ -19,7 +19,6 @@
 
 import time
 
-PAGE_ID = 1
 COMPONENT_ID = 1
 
 # type of context
@@ -35,6 +34,10 @@ ICON_ERASE = "erase"
 ICON_FORWARD = "forward"
 ICON_BACKWARD = "backward"
 ICON_MENU = "menu"
+
+def write_nothing(page, out):
+	"""Funcion writing nothing to out."""
+	pass
 
 class Observer:
 	"""Observer for subject-observer pattern."""
@@ -71,18 +74,28 @@ class Subject:
 		for observer in self.observers:
 			observer.update(self)
 
-
 class Model:
 	"""Represents a model of component and is used to manage its
-	resources."""
+	resources. The parameters are:
+	* style -- CSS code to insert in the HTML header.
+	* script -- JS code to insert in the HTML header.
+	* style_paths -- CSS paths to link with.
+	* script_paths -- JS  paths to link with.
+	* before_main -- function taking out as parameter called before main component generation.
+	* after_main -- function taking out as parameter called before main component generation.
+
+	Style and script paths are retrieved (when relative) from the `dirs` list passed in the configuration.
+	"""
 
 	def __init__(self,
+		name = None,
 		parent = None,
 		style = "",
 		script = "",
 		style_paths = [],
 		script_paths = []
 	):
+		self.name = name 
 		self.parent = parent
 		self.style = style
 		self.script = script
@@ -108,6 +121,17 @@ class Model:
 		"""Return a list of script paths to embed."""
 		return self.script_paths
 
+	def __repr__(self):
+		if self.name is not None:
+			return self.name
+		else:
+			return str(self.__class__)
+
+
+class Handler:
+	"""Interface providing access to the HTTP server handler."""
+
+	
 
 class Displayable:
 	"""Defines an object that may be displayed in the UI but is not
@@ -143,39 +167,37 @@ class Text(Displayable):
 		out.write('</span>')
 
 
-class Component(Subject, Displayable):
-	"""Component to build a user-interface. A component may be displayed
-	but is also interactive requiring to have a link with the page."""
+class AbstractComponent(Displayable, Subject):
+	"""Base class allowing to generate HTML with attributes, classes
+	style and content and an identifier that may be customized."""
 
-	def __init__(self, model):
+	def __init__(self):
 		global COMPONENT_ID
 		Subject.__init__(self)
-		self.page = None
-		self.model = model
 		self.id = str(COMPONENT_ID)
 		COMPONENT_ID += 1
 		self.classes = []
 		self.style = {}
 		self.attrs = {}
 
-	def get_model(self):
-		"""Get the model of the component."""
-		return self.model
+	def online(self):
+		"""Test if the current page is online.
+		Must be implemented by each extension class."""
+		return None
+
+	def send(self, msg):
+		"""Send a message to the UI.
+		Must be implemented by each extension class."""
+		pass
+
+	def receive(self, msg, handler):
+		"""Called to process a message on the current component.
+		Default implementation displays an error."""
+		handler.log_error("%s: unknown message: %s" % (self.model, msg))
 
 	def get_id(self):
-		"""Get the unique identifier (string) of the component in the page."""
+		"""Return the identifier of the current element."""
 		return self.id
-
-	def get_page(self):
-		"""Get the page containing the component."""
-		return self.page
-
-	def get_context(self):
-		"""Get the context of the page. One of CONTEXT_XXX constant."""
-		return CONTEXT_NONE
-
-	def get_children(self):
-		return []
 
 	def gen_attrs(self, out):
 		"""Generate common attributes"""
@@ -202,18 +224,6 @@ class Component(Subject, Displayable):
 			else:
 				out.write(" %s=\"%s\"" % (att, val))
 
-	def online(self):
-		"""Test if the current page is online."""
-		return self.page != None and self.page.online
-
-	def receive(self, msg, handler):
-		"""Called to process a message."""
-		handler.log_error("%s: unknown message: %s" % (self.model, msg))
-
-	def send(self, msg):
-		"""Send a message to the UI."""
-		self.page.messages.append(msg)
-
 	def call(self, fun, args = {}):
 		"""Send a message to call a function."""
 		self.send({"type": "call", "fun": fun, "args": args})
@@ -230,7 +240,9 @@ class Component(Subject, Displayable):
 			self.send({"type": "set-content", "id": self.get_id(), "content": content})
 
 	def set_attr(self, attr, val = None):
-		"""Send a message to set an attribute."""
+		"""Send a message to set an attribute.
+		Notice that, if you have to use a quote in the value, use the simple
+		quote."""
 		self.attrs[attr] = val
 		if self.online():
 			self.send({
@@ -238,6 +250,13 @@ class Component(Subject, Displayable):
 				"id": self.get_id(),
 				"attr": attr,
 				"val": val if val != None else ""})
+
+	def get_attr(self, attr):
+		"""Get the value of an attribute. Return None if the attribute is not defined."""
+		try:
+			return self.attrs[attr]
+		except KeyError:
+			return None
 
 	def append_content(self, content):
 		"""Append content to the current element."""
@@ -302,6 +321,47 @@ class Component(Subject, Displayable):
 			if self.online():
 				self.send_classes(self.classes)
 
+
+class Component(AbstractComponent):
+	"""Component to build a user-interface. A component may be displayed
+	but is also interactive requiring to have a link with the page."""
+
+	def __init__(self, model):
+		global COMPONENT_ID
+		AbstractComponent.__init__(self)
+		self.page = None
+		self.model = model
+		self.id = str(COMPONENT_ID)
+		COMPONENT_ID += 1
+
+	def get_model(self):
+		"""Get the model of the component."""
+		return self.model
+
+	def get_id(self):
+		"""Get the unique identifier (string) of the component in the page."""
+		return self.id
+
+	def get_page(self):
+		"""Get the page containing the component."""
+		return self.page
+
+	def get_context(self):
+		"""Get the context of the page. One of CONTEXT_XXX constant."""
+		return CONTEXT_NONE
+
+	def get_children(self):
+		return []
+
+	def online(self):
+		"""Test if the current page is online."""
+		return self.page != None and self.page.online
+
+	def send(self, msg):
+		"""Send a message to the UI."""
+		self.page.messages.append(msg)
+
+	# !!CHECK!! check usage! Seems deprecated.
 	def send_classes(self, classes, id = None):
 		"""Set the classes of a component."""
 		if id == None:
@@ -324,11 +384,6 @@ class Component(Subject, Displayable):
 				return (self.weight, self.weight)
 		except AttributeError:
 			return (0, 0)
-
-	def get_add_models(self):
-		"""Called to get additional used modles.
-		Deprecated: use finalize instead."""
-		return []
 
 	def set_enabled(self, enabled = True):
 		"""Enable/disable a component."""
@@ -364,46 +419,52 @@ class ExpandableComponent(Component):
 				ui_set_height(e, h);
 			}
 """ % (self.get_id(), self.get_id()))
-# console.log("resize " + e.id + ": " + w + " x " + h);
-# ui_show_size(e);
 
-class Modal:
-	"""Modal is an interface for popup and dialogs allow to hide when
-	clicked out of the popup."""
 
-	def hide(self):
-		"""Called to let the modal to close."""
+class PageObserver:
+	"""Observer of events of a page."""
+
+	def on_open(self, page):
+		"""Called when the page is opened."""
+		pass
+
+	def on_receive(self, page, msg):
+		"""Called when the page receive a message.
+		Return True to stop propagation."""
+		pass
+
+	def on_close(self, page):
+		"""Called when the page is closed."""
 		pass
 
 
-class Page:
+class Page(AbstractComponent):
 	"""Implements a page ready to be displayed."""
 
 	def __init__(self, main = None, parent = None,
 	app = None, title = None, style = "default.css"):
-		global PAGE_ID
+		AbstractComponent.__init__(self)
 		self.messages = []
-		self.main = None
-		self.id = str(PAGE_ID)
-		PAGE_ID += 1
-		self.online = False
+		self.is_online = False
 		self.parent = parent
 		self.app = app
 		self.title = title
 		self.session = None
+		self.main = None
 		if main != None:
 			self.set_main(main)
 		else:
 			self.models = {}
 			self.components = {}
-		self.style = style
-		self.current_modal = None
-		self.new_modal = None
+		self.base_style = style
 		self.hidden = []
+		self.set_attr("onbeforeunload", "ui_close();")
+		self.set_attr("onclick", "ui_complete();")
 
-	def get_id(self):
-		"""Get unique identifier of the page."""
-		return self.id
+	def online(self):
+		"""Test if the current page is online.
+		Must be implemented by each extension class."""
+		return self.is_online
 
 	def get_session(self):
 		"""Get the current session."""
@@ -435,14 +496,10 @@ class Page:
 		self.components[comp.get_id()] = comp
 		self.add_model(comp.get_model())
 
-	def add_hidden(self, component):
-		"""Add an hidden component."""
-		self.hidden.append(component)
-		component.finalize(page)
-
-	def remove_hidden(self, component):
-		"""Remove an hidden component."""
-		self.hidden.remove(component)
+	def add_hidden(self, comp):
+		"""Add an hidden component (typically dialog or popup)."""
+		self.hidden.append(comp)
+		comp.finalize(self)
 
 	def set_main(self, main):
 		"""Set the main component."""
@@ -477,7 +534,9 @@ class Page:
 	def gen_content(self, out):
 		"""Generate the content."""
 		self.main.gen(out)
-		self.online = True
+		for comp in self.hidden:
+			comp.gen(out)
+		self.is_online = True
 
 	def receive(self, messages, handler):
 		"""Called to receive messages and answer. The answer is a
@@ -495,10 +554,9 @@ class Page:
 			else:
 				try:
 					comp = self.components[id]
+					comp.receive(m, handler)
 				except KeyError:
 					handler.log_error("unknown component in %s" % m)
-					return
-				comp.receive(m, handler)
 
 		# manage answers
 		res = self.messages
@@ -506,21 +564,29 @@ class Page:
 		return res
 
 	def on_close(self):
+		"""Called when a closure message is received from the client."""
+		for obs in self.filter_observers(PageObserver):
+			obs.on_close(self)
 		self.session.remove_page(self)
 		if self.parent != None:
 			self.parent.on_close()
 
+	def close(self):
+		"""Called to close the page."""
+		self.send({"type": "quit"})
+
 	def manage(self, msg, handler):
 		"""Manage window messages."""
+
+		# observers turn
+		for obs in self.filter_observers(PageObserver):
+			if obs.on_receive(self, msg):
+				return
+
+		# default actions
 		a = msg["action"]
 		if a == "close":
 			self.on_close()
-		elif a == "click":
-			if self.new_modal != None:
-				self.current_modal = self.new_modal
-				self.new_modal = None
-			else:
-				self.disable_modal()
 		else:
 			handler.log_error("unknown action: %s" % a)
 
@@ -536,7 +602,7 @@ class Page:
 
 	def gen_style_paths(self, out):
 		"""Called to generate linked CSS."""
-		ss = ["basic.css", self.style]
+		ss = ["basic.css", self.base_style]
 		for m in self.models:
 			for s in m.get_style_paths():
 				if s not in ss:
@@ -555,12 +621,6 @@ class Page:
 			"args": "/_/%s" % page.get_id()
 		})
 
-	def gen_body_attrs(self, out):
-		"""Generate body attributes."""
-		out.write("""
-			onbeforeunload="ui_close();"
-""")
-
 	def gen_title(self, out):
 		if self.title != None:
 			text = self.title
@@ -574,14 +634,9 @@ class Page:
 		"""Send a message to the UI."""
 		self.messages.append(msg)
 
-	def call(self, fun, args):
-		"""Send a message to call a function."""
-		self.send({"type": "call", "fun": fun, "args": args})
-
-	def close(self):
-		self.send({"type": "quit"})
-
 	def gen(self, out):
+		for obs in self.filter_observers(PageObserver):
+			obs.on_open(self)
 		out.write("""
 <!DOCTYPE html>
 <html lang="en">
@@ -599,14 +654,10 @@ class Page:
 		self.gen_script(out)
 		out.write("\t</script>\n")
 		out.write("</head>\n")
-		out.write('<body id="content" onclick="ui_ontopclick()" ')
-		self.gen_body_attrs(out)
+		out.write('<body ')
+		self.gen_attrs(out)
 		out.write(">\n")
 		self.gen_content(out)
-		out.write("<div id='ui-hidden' class='hidden'>")
-		for component in self.hidden:
-			component.gen(out)
-		out.write("</div>")
 		out.write('</body>')
 		out.write('</html>')
 
@@ -620,18 +671,6 @@ class Page:
 		corresponding to the path."""
 		self.manager.add_file(url, path, mime)
 
-	def enable_modal(self, modal):
-		"""Called to enable the given model."""
-		if self.current_modal != None:
-			self.hide_modal()
-		self.new_modal = modal
-
-	def disable_modal(self):
-		"""Disable current modal."""
-		if self.current_modal != None:
-			self.current_modal.on_modal_disable()
-			self.current_modal = None
-	
 
 class Session:
 	"""Represent a sessuib to a specific client. It allows to

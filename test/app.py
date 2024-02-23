@@ -12,14 +12,17 @@ class MyPage(Page):
 				struct.Header(
 					"app-test",
 					[
-						Button("click here"),
-						Button(image = Icon("quit"))
+						Button("click here", on_click=self.clicked),
+						Button(image = Icon("quit"), on_click=self.close)
 					]
 				),
 				Editor(init = "Hello, World!")
 			]),
 			app = app
 		)
+
+	def clicked(self):
+		print("DEBUG: clicked!")
 
 class MyApp(Application):
 

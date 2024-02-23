@@ -50,7 +50,6 @@ class Button(Component):
 	def receive(self, m, h):
 		if m["action"] == "click":
 			if self.enabled:
-				#h.log_message("click!")
 				self.on_click()
 		else:
 			Component.receive(self, m, h)

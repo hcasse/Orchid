@@ -125,6 +125,9 @@ function ui_post(obj) {
 }
 
 function ui_complete() {
+	//console.log('DEBUG: complete');
+	if(ui_messages.length == 0)
+		return;
 	ui_http.open("POST", "ui", true);
 	messages = ui_messages;
 	ui_messages = [];
@@ -135,7 +138,7 @@ function ui_complete() {
 }
 
 function ui_send(obj) {
-	console.log("DEBUG: send " + obj.id + " " + obj.action);
+	//console.log("DEBUG: send " + obj.id + " " + obj.action);
 	ui_post(obj);
 	ui_complete();
 }
@@ -153,9 +156,6 @@ function ui_close() {
 }
 
 function ui_onclick(id) {
+	//console.log('DEBUG: ui_onclick()');
 	ui_post({id: id, action: "click"});
-}
-
-function ui_ontopclick() {
-	ui_send({id: "0", action: "click"});
 }

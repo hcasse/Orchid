@@ -45,7 +45,7 @@ class Console(ExpandableComponent):
 	def append(self, line):
 		"""Append the given line to the console. The line may use any text
 		formatting HTML tag."""
-		self.append_content("<p>%s</p>" %line)
+		self.append_content("<p>%s</p>" % line)
 		self.show_last()
 
 	def clear(self):

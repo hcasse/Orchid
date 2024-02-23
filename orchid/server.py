@@ -1,3 +1,20 @@
+#
+#	This file is part of Orchid.
+#
+#    Orchid is free software: you can redistribute it and/or modify
+#	it under the terms of the GNU Lesser General Public License as
+#	published by the Free Software Foundation, either version 3 of the
+#	License, or (at your option) any later version.
+#
+#	Orchid is distributed in the hope that it will be useful, but
+#	WITHOUT ANY WARRANTY; without even the implied warranty of
+#	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+#	GNU Lesser General Public License for more details.
+#
+#	You should have received a copy of the GNU Lesser General Public
+#	License along with Orchid. If not, see <https://www.gnu.org/licenses/>.
+#
+
 """Classes in charge of HTTP communication."""
 
 from functools import partial
@@ -124,15 +141,15 @@ TEXT_MIMES = {
 	"text/xml"
 }
 
-CMD_MAP = {
-	"body-attrs":	Page.gen_body_attrs,
-	"content":		Page.gen_content,
-	"style": 		Page.gen_style,
-	"script": 		Page.gen_script,
-	"script-paths": Page.gen_script_paths,
-	"style-paths": 	Page.gen_style_paths,
-	"title":		Page.gen_title
-}
+# CMD_MAP = {
+	# "body-attrs":	Page.gen_body_attrs,
+	# "content":		Page.gen_content,
+	# "style": 		Page.gen_style,
+	# "script": 		Page.gen_script,
+	# "script-paths": Page.gen_script_paths,
+	# "style-paths": 	Page.gen_style_paths,
+	# "title":		Page.gen_title
+# }
 
 class Manager:
 	"""Orchid server manager."""

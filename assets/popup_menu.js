@@ -29,3 +29,7 @@ function popup_menu_show(args) {
 	popup.style.left = x + "px";
 	popup.style.top = y + "px";
 }
+
+function popup_menu_top_click(id) {
+	ui_post({id: id, action: "hide"});
+}
