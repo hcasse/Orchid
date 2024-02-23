@@ -19,7 +19,8 @@
 
 # https://css-tricks.com/some-hands-on-with-the-html-dialog-element/
 
-from orchid.base import Component, Model
+from functools import partial
+from orchid import *
 
 MODEL = Model(
 	name = "orchid.dialog.Base",
@@ -60,3 +61,59 @@ class Base(Component):
 
 	def hide(self):
 		self.call("dialog_hide", {"id": self.get_id()})
+
+def default_answer(dialog, answer):
+	pass
+
+class Answer(Base):
+	"""Answer dialog: provides information to the user and wait
+	for its answer."""
+
+	def __init__(self, page, message, buttons = ["Okay"], title = None, on_close = default_answer):
+		"""Build the dialog displaying the given message optionally with a title.
+		It displays the given list of button (may be Orchid button or simple strings).
+		The on_close is function is called when the dialog is close and takes as
+		parameter (dialog, answer) with answer the index of the clicked answer button (starting from 0)."""
+		content = []
+
+		# process title
+		if title is not None:
+			if not isinstance(title, Component):
+				title = Label(title)
+			title.add_class("dialog-title")
+			content.append(title)
+		self.title = title
+
+		# add message
+		if not isinstance(message, Component):
+			message = Label(message)
+		message.add_class("dialog-message")
+		content.append(message)
+		self.message = message
+
+		# prepare buttons
+		buts = [Spring(hexpand=True)]
+		n = 0
+		for but in buttons:
+			if not isinstance(but, Component):
+				but = Button(label = but)
+			but.old_on_click = but.on_click
+			but.on_click = partial(self.select, but, n)
+			buts.append(but)
+			buts.append(Spring(hexpand=True))
+			n = n + 1
+		self.buttons = HGroup(buts)
+		self.buttons.add_class("dialog-buttons")
+		content.append(self.buttons)
+
+		# initialize the parent
+		Base.__init__(self, page, VGroup(content))
+		self.on_close = on_close
+		self.add_class("dialog-answer")
+
+	def select(self, but, i):
+		self.hide()
+		but.old_on_click()
+		self.on_close(self, i)
+
+	

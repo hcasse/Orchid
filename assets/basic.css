@@ -4,6 +4,7 @@
 :root {
 	--sequence-separation-fill: lightcyan;
 	--select: purple;
+	--back: #EEEEEE;
 }
 
 
@@ -319,7 +320,34 @@ dialog::backdrop {
 }
 
 dialog {
+	background-color: var(--back);
 	box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
 	background-color: #EEEEEE;
 	border-color: var(--select);
+	border-radius: 8px;
+	border-width: 2px;
 }
+
+.dialog-answer {
+	padding: 0;	
+}
+
+.dialog-title {
+	padding: 4px;
+	color: white;
+	background: var(--select);
+	align-self: stretch !important;
+}
+
+.dialog-message {
+	background: white;
+	padding: 8px;
+	border: darkgray solid 1px;
+	margin-left: 4px;
+	margin-right: 4px;
+}
+
+.dialog-buttons {
+	padding: 8px;
+}
+

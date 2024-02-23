@@ -12,35 +12,43 @@ class MyPage(Page):
 			self,
 			VGroup([
 				HGroup([
-					Button("Show", on_click=self.open),
-					Button("Not modal", on_click=self.bad),
+					Button("Show base", on_click=self.open),
+					Button("Show answer", on_click=self.open2)
 				]),
 				self.console
 			]),
 			app = app
 		)
-		print("DEBUG: after page")
+
 		self.dialog = dialog.Base(
 			self,
 			VGroup([
 				Label('First dialog!'),
-				Button("Close", on_click=self.close),
-				Button("Left", on_click=self.left)
+				Button("Close", on_click=self.close)
 			])
+		)
+
+		self.dialog2 = dialog.Answer(
+			self,
+			"This is an anwer dialog!",
+			title = "Answer Dialog",
+			buttons = ["Zero", "One", "Two"],
+			on_close=self.on_close2
 		)
 
 	def open(self):
 		self.dialog.show()
 
+	def open2(self):
+		self.dialog2.show()
+
+	def on_close2(self, dialog, i):
+		print("DEBUG: got", i, "from", dialog)
+
 	def close(self):
 		print("DEBUG: close")
 		self.dialog.hide()
 
-	def bad(self):
-		print("DEBUG: not modal!")
-
-	def left(self):
-		self.dialog.set_style("left", "4px")
 
 class MyApp(Application):
 
