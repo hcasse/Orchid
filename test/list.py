@@ -3,6 +3,7 @@
 from orchid import *
 import orchid.list as list
 import orchid.group as group
+from orchid import popup
 
 my_list = [
 	"Rome",
@@ -31,7 +32,15 @@ class MyPage(Page):
 	def __init__(self, app):
 		self.count = 0
 		self.selection = []
-		self.component = list.View(my_list, selection = self.selection)
+
+		self.menu = popup.Menu([
+				Button("Menu 1", on_click=self.menu1),
+				Button("Menu 2", on_click=self.menu2)
+			])
+
+		self.component = list.View(my_list,
+			selection = self.selection,
+			context_menu = self.menu)
 		self.items = self.component.get_items()
 		Page.__init__(
 			self,
@@ -69,6 +78,13 @@ class MyPage(Page):
 
 	def change(self):
 		self.component.set_items(alt_list)
+
+	def menu1(self):
+		print("DEBUG: menu1!")
+
+	def menu2(self):
+		print("DEBUG: menu2!")
+
 
 class MyApp(Application):
 

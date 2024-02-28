@@ -47,6 +47,45 @@ class Menu(VGroup):
 	def get_context(self):
 		return CONTEXT_MENU
 
+	def receive(self, msg, handler):
+		if msg['action'] == 'hide':
+			self.hide()
+		else:
+			VGroup.receive(self, msg, handler)
+
+	def get_onclick(self):
+		"""Get the on-click code."""
+		return "popup_menu_top_click('%s');" % self.get_id()
+
+	def show(self, ref, index = None):
+		"""Show the menu."""
+		code = self.get_onclick()
+		onclick = self.page.get_attr("onclick")
+		if code not in onclick:
+			self.page.set_attr("onclick", code + onclick)
+		if index is None:
+			self.call("popup_menu_show", {
+				"id": self.get_id(),
+				"ref": ref.get_id()
+			})
+		else:
+			self.call("popup_menu_show_child", {
+				"id": self.get_id(),
+				"ref": ref.get_id(),
+				"index": index
+			})
+
+	def hide(self):
+		"""Hide the menu."""
+		code = self.get_onclick()
+		onclick = self.page.get_attr("onclick")
+		try:
+			p = onclick.index(code)
+			self.page.set_attr("onclick", onclick[:p] + onclick[p+len(code):])
+		except ValueError:
+			pass
+		self.call("popup_menu_hide", {"id": self.get_id()})
+
 
 class MenuButton(Button):
 	"""Button that is able to display a menu."""
@@ -60,7 +99,6 @@ class MenuButton(Button):
 			enabled=enabled,
 			on_click=self.on_click)
 		self.menu = menu
-		self.shown = False
 
 	def finalize(self, page):
 		Button.finalize(self, page)
@@ -72,33 +110,12 @@ class MenuButton(Button):
 		self.menu.gen(out)
 		out.write("</div>")
 
-	def receive(self, msg, handler):
-		if msg["action"] == "hide":
-			self.hide()
-		else:
-			Button.receive(self, msg, handler)
-
 	def on_click(self):
-		if not self.shown:
-			self.show_menu()
+		self.show()
 
-	def show_menu(self):
+	def show(self):
 		"""Show the current menu."""
-		self.old = self.page.get_attr("onclick")
-		self.page.set_attr(
-			"onclick",
-			("popup_menu_top_click('%s');" % self.get_id()) + self.old
-		)
-		self.call("popup_menu_show", {
-			"id": self.menu.get_id(),
-			"ref": self.get_id()
-		})
-		self.shown = True
+		self.menu.show(self)
 
 	def hide(self):
-		self.page.set_attr(
-			"onclick",
-			self.old
-		)
-		self.call("popup_menu_hide", {"id": self.menu.get_id()})
-		self.shown = False
+		self.menu.hide()

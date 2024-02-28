@@ -355,7 +355,7 @@ class Component(AbstractComponent):
 
 	def online(self):
 		"""Test if the current page is online."""
-		return self.page != None and self.page.online
+		return self.page != None and self.page.online()
 
 	def send(self, msg):
 		"""Send a message to the UI."""
@@ -451,15 +451,15 @@ class Page(AbstractComponent):
 		self.title = title
 		self.session = None
 		self.main = None
+		self.base_style = style
+		self.hidden = []
+		self.set_attr("onbeforeunload", "ui_close();")
+		self.set_attr("onclick", "ui_complete();")
 		if main != None:
 			self.set_main(main)
 		else:
 			self.models = {}
 			self.components = {}
-		self.base_style = style
-		self.hidden = []
-		self.set_attr("onbeforeunload", "ui_close();")
-		self.set_attr("onclick", "ui_complete();")
 
 	def online(self):
 		"""Test if the current page is online.
@@ -554,9 +554,11 @@ class Page(AbstractComponent):
 			else:
 				try:
 					comp = self.components[id]
-					comp.receive(m, handler)
 				except KeyError:
 					handler.log_error("unknown component in %s" % m)
+					comp = None
+				if comp != None:
+					comp.receive(m, handler)
 
 		# manage answers
 		res = self.messages

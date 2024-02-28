@@ -125,7 +125,13 @@ class ListModel(Model):
 class View(Component, Observer):
 	"""Vertical list of items."""
 
-	def __init__(self, items = [], selection = [], select_mode = SELECT_SINGLE, model = MODEL):
+	def __init__(self,
+		items = [],
+		selection = [],
+		select_mode = SELECT_SINGLE,
+		model = MODEL,
+		context_menu = None
+	):
 		Component.__init__(self, model)
 		self.add_class("list")
 		if isinstance(items, list):
@@ -136,6 +142,19 @@ class View(Component, Observer):
 		self.children = None
 		self.select_mode = select_mode
 		self.selection = selection
+		self.context_menu = context_menu
+		if select_mode != SELECT_NONE:
+			self.set_attr('onclick',
+				"list_on_click('%s', event);" % self.get_id())
+		if context_menu != None:
+			self.set_attr("oncontextmenu",
+				"list_on_context_menu('%s', event);" % self.get_id())
+
+	def finalize(self, page):
+		Component.finalize(self, page)
+		if self.context_menu != None:
+			self.context_menu.finalize(page)
+			page.add_hidden(self.context_menu)
 
 	def get_items(self):
 		"""Get the model of items."""
@@ -229,7 +248,8 @@ class View(Component, Observer):
 		return True
 
 	def receive(self, msg, handler):
-		if msg["action"] == "select":
+		action = msg["action"]
+		if action == "select":
 			i = msg["item"]
 			print("DEBUG: i=", i)
 			if i in self.selection:
@@ -237,11 +257,17 @@ class View(Component, Observer):
 			else:
 				self.deselect_all()
 				self.select(i)
+		elif action == "menu":
+			i = msg["item"]
+			if self.selection != [msg["item"]]:
+				self.deselect_all()
+				self.select(i)
+			self.context_menu.show(self, i)
+		else:
+			Component.receive(self, msg, handler)
 
 	def gen(self, out):
 		out.write('<div')
-		if self.select_mode != SELECT_NONE:
-			out.write(' onclick="list_on_click(\'%s\', event);"' % self.get_id())
 		self.gen_attrs(out)
 		out.write('/>')
 		self.gen_content(out)

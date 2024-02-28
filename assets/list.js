@@ -1,7 +1,9 @@
 
-function list_on_click(id, event) {
+function list_index(id, event) {
 	var item = event.target;
 	var list = window.document.getElementById(id);
+	if(item == list)
+		return -1;
 	while(item.parentNode != list)
 		item = item.parentNode;
 	var i = 0;
@@ -9,8 +11,22 @@ function list_on_click(id, event) {
 		item = item.previousSibling;
 		i++;
 	}
-	ui_send({id: id, action: "select", item: i});
-	event.stopPropagation();
+	return i;
+}
+
+function list_on_click(id, event) {
+	console.log("DEBUG: got click: " + event.button);
+	const index = list_index(id, event);
+	if(index >= 0)
+		ui_send({id: id, action: "select", item: index});
+}
+
+function list_on_context_menu(id, event) {
+	console.log("DEBUG: context menu: " + event.button);
+	event.preventDefault();
+	const index = list_index(id, event);
+	if(index >= 0)
+		ui_send({id: id, action: "menu", item: index});
 }
 
 function list_select(args) {

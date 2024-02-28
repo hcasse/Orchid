@@ -1,13 +1,8 @@
 
-function popup_menu_hide(args) {
-	const popup = window.document.getElementById(args.id);
-	popup.style.display = 'none';
-}
+function popup_menu_place(popup_id, ref) {
 
-function popup_menu_show(args) {
-	const popup = window.document.getElementById(args.id);
+	const popup = window.document.getElementById(popup_id);
 	popup.style.display = 'flex';
-	const ref = window.document.getElementById(args.ref);
 
 	// compute position
 	const rbox = ref.getBoundingClientRect();
@@ -28,8 +23,25 @@ function popup_menu_show(args) {
 	// set the position
 	popup.style.left = x + "px";
 	popup.style.top = y + "px";
+	
+}
+
+function popup_menu_hide(args) {
+	const popup = window.document.getElementById(args.id);
+	popup.style.display = 'none';
+}
+
+function popup_menu_show(args) {
+	const ref = window.document.getElementById(args.ref);
+	popup_menu_place(args.id, ref);
 }
 
 function popup_menu_top_click(id) {
 	ui_post({id: id, action: "hide"});
+}
+
+function popup_menu_show_child(args) {
+	const parent = window.document.getElementById(args.ref);
+	const ref = parent.childNodes.item(args.index);
+	popup_menu_place(args.id, ref);	
 }
