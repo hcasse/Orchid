@@ -18,7 +18,7 @@
 """Data/Process-oriented user interface."""
 
 from orchid.base import *
-from orchid.button import Button
+from orchid.button import Button, CheckButton
 from orchid.label import Label
 from orchid.label import Banner
 from orchid.field import Field, is_valid_number

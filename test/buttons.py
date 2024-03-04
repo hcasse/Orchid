@@ -18,7 +18,9 @@ class MyPage(Page):
 					Button(image = Icon("stop"), on_click=self.click),
 					Button(image = Icon("record"), on_click=self.click),
 					self.star
-				])
+				]),
+				Button("Button with tool tip!", help="The tooltip!"),
+				CheckButton("check button", help="This is a check button!", on_change=self.on_checkbox_change)
 			]),
 			app = app
 		)
@@ -26,6 +28,8 @@ class MyPage(Page):
 	def click(self):
 		print("Clicked!")
 
+	def on_checkbox_change(self, value):
+		print("Checkbox:", value)
 
 class MyApp(Application):
 
@@ -35,5 +39,5 @@ class MyApp(Application):
 	def first(self):
 		return MyPage(self)
 
-run(MyApp())
+run(MyApp(), debug=True)
 
