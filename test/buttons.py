@@ -6,6 +6,15 @@ class MyPage(Page):
 
 	def __init__(self, app):
 		self.star = Button(Icon("star-empty"), enabled = False)
+
+		self.checkbox = CheckBox("check box",
+			help="This is a check box!",
+			on_change=self.on_checkbox_change)
+
+		self.radio = RadioButton(
+			["choice 1", "choice 2", "choice 3"],
+			on_change = self.on_choose)
+
 		Page.__init__(
 			self,
 			VGroup([
@@ -20,16 +29,30 @@ class MyPage(Page):
 					self.star
 				]),
 				Button("Button with tool tip!", help="The tooltip!"),
-				CheckButton("check button", help="This is a check button!", on_change=self.on_checkbox_change)
+				HGroup([self.checkbox, Button("invert", on_click=self.invert_checkbox)]),
+				HGroup([self.radio, Button("next", on_click=self.next)])
 			]),
 			app = app
 		)
+
+	def next(self):
+		i = self.radio.get_choice() + 1
+		if i >= 3:
+			i = 0
+		self.radio.set_choice(i)
+
+	def invert_checkbox(self):
+		self.checkbox.set_value(not self.checkbox.get_value())
 
 	def click(self):
 		print("Clicked!")
 
 	def on_checkbox_change(self, value):
 		print("Checkbox:", value)
+
+	def on_choose(self, n):
+		print("Choosen", n)
+
 
 class MyApp(Application):
 

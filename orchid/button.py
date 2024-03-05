@@ -85,43 +85,50 @@ class Button(AbstractButton):
 		pass
 
 
-CHECK_BUTTON_MODEL = Model("check-button",
+CHECK_BOX_MODEL = Model("check-box",
 	script=
 """
-function check_button_on_change(id, event) {
+function check_box_on_change(id, event) {
 	const comp = document.getElementById(id);
-	console.log("DEBUG: change " + id + " -> " + comp.checked);
 	if(comp.checked)
 		ui_send({id: id, action: 'check'});
 	else
 		ui_send({id: id, action: 'uncheck'});
 }
+
+function check_box_set(args) {
+	const comp = document.getElementById(args.id);
+	comp.checked = args.checked;
+}
 """
 )
 
-class CheckButton(AbstractButton):
-	"""Implements a check button representing a boolean value."""
+class CheckBox(AbstractButton):
+	"""Implements a check box representing a boolean value."""
 
 	def __init__(self, label, value=False, enabled=True, help=None, on_change=lambda x: None):
-		AbstractButton.__init__(self, CHECK_BUTTON_MODEL, enabled=enabled, help=help)
+		AbstractButton.__init__(self, CHECK_BOX_MODEL, enabled=enabled, help=help)
 		self.label = label
 		self.value = value
 		self.value = False
 		self.set_value(value)
 		self.set_attr("onchange",
-			"check_button_on_change('%s', event);" % self.get_id())
+			"check_box_on_change('%s', event);" % self.get_id())
 		self.on_change = on_change
 
 	def set_value(self, value):
+		"""Change the value of the checkbox."""
 		if value != self.value:
-			if value:
-				self.set_attr("checked")
-			else:
-				self.remove_attr("checked")
 			self.value = value
+			self.call("check_box_set",
+				{"id": self.get_id(), "checked": value})
+
+	def get_value(self):
+		"""Get the value of the checkbox."""
+		return self.value
 
 	def gen(self, out):
-		out.write('<div><input type="checkbox" name="%s"' % self.get_id())
+		out.write('<div class="checkbox"><input type="checkbox" name="%s"' % self.get_id())
 		self.gen_attrs(out)
 		out.write('><label for="%s">' % self.get_id())
 		out.write(self.label)
@@ -137,3 +144,63 @@ class CheckButton(AbstractButton):
 			self.on_change(self.value)
 		else:
 			AbstractButton.receive(self, msg, handler)
+
+
+RADIO_BUTTON_MODEL = Model("radio-button",
+	script =
+"""
+function radio_button_on_change(id, event) {
+	ui_send({id: id, action: "choose", choice: event.target.value});
+}
+
+function radio_button_set(args) {
+	const comp = document.getElementById(args.id);
+	comp.checked = true;
+}
+"""
+)
+
+class RadioButton(Component):
+	"""List of exclusive buttons."""
+
+	def __init__(self, options, choice=0, help=None, on_change=lambda n: None, horizontal=False):
+		Component.__init__(self, RADIO_BUTTON_MODEL)
+		self.options = options
+		self.choice = choice
+		self.help = help
+		self.on_change = on_change
+		self.horizontal = horizontal
+
+	def get_option_id(self, n):
+		return "%s-%d" % (self.get_id(), n)
+
+	def set_choice(self, n):
+		"""Set the current choice with n in [0, number of options-1]."""
+		if self.choice != n:
+			self.choice = n
+			self.call("radio_button_set", {"id": self.get_option_id(n)})
+
+	def get_choice(self):
+		"""Get the current choosen option. Return is in [0, number of options-1]."""
+		return self.choice
+
+	def gen(self, out):
+		out.write('<div onchange="radio_button_on_change(\'%s\', event);">' % self.get_id())
+		for i in range(0, len(self.options)):
+			if i != 0 and not self.horizontal:
+				out.write('<br/>')
+			id = self.get_option_id(i)
+			out.write('<input type="radio" id="%s" name="%s" value="%d"' % (id, self.get_id(), i))
+			if i == self.choice:
+				out.write(' checked')
+			out.write('>')
+			out.write('<label for="%s">%s</label>' % (id, self.options[i]))
+		out.write("</div>")
+
+	def receive(self, msg, handler):
+		action = msg['action']
+		if action == 'choose':
+			self.choice = int(msg['choice'])
+			self.on_change(self.choice)
+		else:
+			Component.receive(self, msg, handler)

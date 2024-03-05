@@ -240,9 +240,7 @@ class AbstractComponent(Displayable, Subject):
 			self.send({"type": "set-content", "id": self.get_id(), "content": content})
 
 	def set_attr(self, attr, val = None):
-		"""Send a message to set an attribute.
-		Notice that, if you have to use a quote in the value, use the simple
-		quote."""
+		"""Set the value of an attribute of the current component. If on line, propagate the schange to the remote page."""
 		self.attrs[attr] = val
 		if self.online():
 			self.send({
@@ -251,12 +249,38 @@ class AbstractComponent(Displayable, Subject):
 				"attr": attr,
 				"val": val if val != None else ""})
 
+	def set_attr_async(self, attr, val = None):
+		"""Set an attribute for the current component. Do not propagate
+		this modificaton to the online page.
+
+		Useful to updte the component state according to changes from
+		the remote page."""
+		self.attrs[attr] = val		
+
 	def get_attr(self, attr):
 		"""Get the value of an attribute. Return None if the attribute is not defined."""
 		try:
 			return self.attrs[attr]
 		except KeyError:
 			return None
+
+	def remove_attr(self, attr):
+		"""Remove an attribute of the current component. If on line, propagate the modification to the remote page."""
+		try:
+			del self.attrs[attr]
+			if self.online():
+				self.send({"type": "remove-attr", "id": self.get_id(), "attr": attr})
+		except KeyError:
+			pass
+
+	def remove_attr_async(self, attr):
+		"""Remove an attribute of the current component. No propagation is performed to the remote page."""
+		try:
+			del self.attrs[attr]
+			if self.online():
+				self.send({"type": "remove-attr", "id": self.get_id(), "attr": attr})
+		except KeyError:
+			pass
 
 	def append_content(self, content):
 		"""Append content to the current element."""
@@ -298,15 +322,6 @@ class AbstractComponent(Displayable, Subject):
 				"type": "show-last",
 				"id": self.get_id()})
 	
-	def remove_attr(self, attr):
-		"""Send a message to remove an attribute."""
-		try:
-			del self.attrs[attr]
-			if self.online():
-				self.send({"type": "remove-attr", "id": self.get_id(), "attr": attr})
-		except KeyError:
-			pass
-
 	def add_class(self, cls):
 		"""Add a class of the component."""
 		if cls not in self.classes:
