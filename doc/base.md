@@ -118,11 +118,12 @@ In the component,
 
 In the page,
 
+```python
 	function my_function(args) {
 		for(var i = 0; i < args.times; i++)
 			console.log(args.msg);
 	}
-
+```
 
 These configurations are passed automatically to the HTTP client once the page has been generated but can be inserted in the generated HTML page with `gen_attrs`(*out*), typically after the element tag:
 

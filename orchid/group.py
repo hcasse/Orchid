@@ -1,5 +1,6 @@
 """Group components."""
 
+import orchid
 from orchid.base import *
 
 class Group(Component):
@@ -12,16 +13,48 @@ class Group(Component):
 		self.children = list(comps)
 		self.expandh = False
 		self.expandv = False
-		hw, vw = (0 ,0)
+		self.remap_children()
+
+	def remap_children(self):
+		"""Re-build the mapping of children."""
+		self.weight = (0, 0)
 		for c in self.children:
-			c.parent = self
-			if c.expands_horizontal():
-				self.expandh = True
-				hw = 1;
-			if c.expands_vertical():
-				self.expandv = True
-				vw = 1;
-		self.weight = (hw, vw)
+			self.map_child(c)	
+
+	def map_child(self, child):
+		"""Map the child in the group."""
+		(hw, vw) = self.weight
+		child.parent = self
+		if child.expands_horizontal():
+			self.expandh = True
+			hw = 1;
+		if child.expands_vertical():
+			self.expandv = True
+			vw = 1;
+		if (hw, vw) != self.weight:
+			self.weight = (hw, vw)
+
+	def insert(self, child, i = -1):
+		"""Add a child to the group."""
+		if i < 0:
+			self.children.append(child)
+		else:
+			self.children.insert(i, child)
+		self.map_child(child)
+		child.finalize(self.page)
+		if self.online():
+			buf = orchid.Buffer()
+			child.gen(buf)
+			if i < 0:
+				self.append_child(str(buf))
+			else:
+				self.insert_child(str(buf), i)
+
+	def remove(self, i):
+		"""Remove a child."""
+		self.remove_child(i)
+		del self.children[i]
+		self.remap_children()
 
 	def get_children(self):
 		return self.children
@@ -75,15 +108,17 @@ class HGroup(Group):
 		Group.__init__(self, model, comps)
 		self.align = align
 		self.add_class("hgroup")
-		for child in self.get_children():
-			child.add_class("hgroup-item")
-			w  = child.get_weight()[0]
-			if w == 0 and child.expands_horizontal():
-				w = 1
-			if w != 0:
-				child.set_style("flex", str(w))
-			if child.expands_vertical():
-				child.add_class("hgroup-expand")
+
+	def map_child(self, child):
+		Group.map_child(self, child)
+		child.add_class("hgroup-item")
+		w  = child.get_weight()[0]
+		if w == 0 and child.expands_horizontal():
+			w = 1
+		if w != 0:
+			child.set_style("flex", str(w))
+		if child.expands_vertical():
+			child.add_class("hgroup-expand")
 
 	def gen(self, out):
 		out.write('<div ')
@@ -131,15 +166,17 @@ class VGroup(Group):
 		Group.__init__(self, model, comps)
 		self.align = align
 		self.add_class("vgroup")
-		for child in self.get_children():
-			child.add_class("vgroup-item")
-			w = child.get_weight()[1]
-			if w == 0 and child.expands_vertical():
-				w = 1
-			if w != 0:
-				child.set_style("flex", str(w))
-			if child.expands_horizontal():
-				child.add_class("vgroup-expand")
+
+	def map_child(self, child):
+		Group.map_child(self, child)
+		child.add_class("vgroup-item")
+		w = child.get_weight()[1]
+		if w == 0 and child.expands_vertical():
+			w = 1
+		if w != 0:
+			child.set_style("flex", str(w))
+		if child.expands_horizontal():
+			child.add_class("vgroup-expand")
 
 	def gen(self, out):
 		out.write('<div ')
@@ -179,27 +216,6 @@ class Spring(ExpandableComponent):
 		self.set_style("display", "inline-block")
 
 
-# LayeredPane
-# LAYERED_PANE_MODEL = Model(
-	# style = """
-# .layered-parent {
-	# position: relative;
-# }
-
-# .layered-child {
-	# position: absolute;
-	# left: 0;
-	# top: 0;
-	# width: 100%;
-	# height: 100%;
-# }
-
-# .layered-top {
-	# z-index: 1;
-# }
-# """
-# )
-
 LAYERED_PANE_MODEL = Model(
 	style = """
 .layered-parent {
@@ -222,35 +238,36 @@ LAYERED_PANE_MODEL = Model(
 )
 
 class LayeredPane(Group):
+	"""A group made of overlapping layer with only one visible at a time."""
 
 	def __init__(self, comps, model = LAYERED_PANE_MODEL):
 		Group.__init__(self, model, comps)
 		self.hexpand = None
 		self.vexpand = None
 		self.add_class("layered-parent")
-		#for c in self.children:
-		#	c.add_class("layered-child")
-		#if self.children != None:
-		#	self.children[0].add_class("layered-top")
-		#else:
-		#	self.current = -1
-		if self.children == []:
-			self.current = -1
-		else:
-			self.current = 0
-			self.children[0].add_class("layered-child")
-			self.children[0].add_class("layered-top")
-			for c in self.children[1:]:
-				c.add_class("layered-child")
-				c.add_class("layered-inactive")
+		self.current = -1
+		if self.children != []:
+			self.set_layer(0)
 
 	def set_layer(self, num):
+		if num == self.current:
+			return
 		if self.current >= 0:
 			self.children[self.current].add_class("layered-inactive")
 			self.children[self.current].remove_class("layered-active")
 		self.children[num].add_class("layered-active")
 		self.children[num].remove_class("layered-inactive")
 		self.current = num
+
+	def map_child(self, child):
+		Group.map_child(self, child)
+		child.add_class("layered-child")
+		child.add_class("layered-inactive")
+
+	def remove(self, i):
+		Group.remove(self, i)
+		if self.current == i:
+			self.current = -1
 
 	def expands_horizontal(self):
 		if self.hexpand == None:
@@ -272,5 +289,103 @@ class LayeredPane(Group):
 			c.gen(out)
 		out.write('</div>\n')
 
-	
 
+
+TABBED_PANE_MODEL = Model(
+		parent = VGROUP_MODEL,
+		name = "orchid-tabbed-pane",
+		style = """
+.tabbed-head {
+}
+.tabbed-current {	
+}
+.tabbed-buttons {
+	
+}
+.tabbed-body {
+}
+"""
+	)
+
+class TabbedPane(VGroup):
+	"""A group of components visible with pane. The given components
+	must have a method named "get_title()"."""
+
+	def __init__(self, tabs, model=TABBED_PANE_MODEL):
+		heads = []
+		for tab in tabs:
+			heads.append(self.make_head(tab, len(heads)))
+		self.heads = HGroup(heads)
+		self.heads.add_class("tabbed-buttons")
+		self.panes = LayeredPane(tabs)
+		self.panes.add_class("tabbed-body")
+		self.current = -1
+		if tabs:
+			self.select(0)
+		VGroup.__init__(self, [self.heads, self.panes], model)
+		self.add_class("tabbed")
+		self.number_panes()
+
+	def number_panes(self):
+		panes = self.panes.get_children()
+		for i in range(0, len(panes)):
+			panes[i]._tabbed_num = i
+
+	def make_head(self, pane, i):
+		try:
+			title = pane.get_title()
+		except AttributeError:
+			title = "Tab %s" % i
+		but = orchid.Button(title,
+			on_click=lambda: self.select(pane._tabbed_num))
+		but.add_class("tabbed-head")
+		return but
+
+	def select(self, n):
+		if n == self.current:
+			return
+		if self.current >= 0:
+			self.heads.get_children()[self.current].remove_class("tabbed-current")
+		self.current = n
+		self.heads.get_children()[self.current].add_class("tabbed-current")
+		self.panes.set_layer(n)
+
+	def expands_horizontal(self):
+		return True
+
+	def expands_vertical(self):
+		expand = False
+		for child in self.panes.get_children():
+			if child.expands_vertical():
+				expand = True
+				break
+		return expand
+
+	def insert(self, child, i = -1):
+		but = self.make_head(child,
+			i if i>= 0 else len(self.panes.get_children()))
+		self.heads.insert(but, i)
+		self.panes.insert(child, i)
+		self.number_panes()
+
+	def remove(self, i):
+		if i == self.current:
+			l = len(self.panes.get_children()) 
+			if l < 2:
+				self.current = -1
+			else:
+				if self.current + 1 >= l:
+					self.select(0)
+				else:
+					self.select(self.current + 1)
+		self.heads.remove(i)
+		self.panes.remove(i)
+		self.number_panes()
+
+	def gen(self, out):
+		out.write('<div ')
+		self.gen_attrs(out)
+		out.write('>\n')
+		for c in self.children:
+			c.gen(out)
+		out.write('</div>\n')

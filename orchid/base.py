@@ -311,9 +311,26 @@ class AbstractComponent(Displayable, Subject):
 		"""Remove a child at given index from the current component."""
 		if self.online():
 			self.send({
-				"type": "remove",
+				"type": "remove-child",
 				"id": self.get_id(),
 				"child": index});
+
+	def append_child(self, content):
+		"""Append a child component."""
+		if self.online():
+			self.send({
+				"type": "append-child",
+				"id": self.get_id(),
+				"child": content});
+
+	def insert_child(self, content, pos):
+		"""Insert a child element at given position."""
+		if self.online():
+			self.send({
+				"type": "insert-child",
+				"id": self.get_id(),
+				"child": content,
+				"pos": pos});
 
 	def show_last(self):
 		"""If the current element is a container, show its last item."""

@@ -24,7 +24,7 @@ from orchid.label import Banner
 from orchid.field import Field, is_valid_number
 from orchid.group import HGroup, VGroup
 from orchid.group import Spring
-from orchid.group import LayeredPane
+from orchid.group import LayeredPane, TabbedPane
 from orchid.updater import *
 from orchid.editor import Editor
 from orchid.console import Console

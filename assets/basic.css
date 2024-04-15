@@ -5,6 +5,7 @@
 	--sequence-separation-fill: lightcyan;
 	--select: purple;
 	--back: #EEEEEE;
+	--border: gray;
 }
 
 
@@ -350,4 +351,23 @@ dialog {
 .dialog-buttons {
 	padding: 8px;
 }
+
+/* tabbed pane */
+.tabbed-head {
+}
+.tabbed-current {
+	border: 1px solid var(--border);
+	border-bottom: none;
+	border-radius: 4px 4px 0 0;
+	background-color: white;
+}
+.tabbed-buttons {
+	
+}
+.tabbed-body {
+}
+.tabbed {
+	row-gap: 0 !important;
+}
+
 

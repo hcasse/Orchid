@@ -92,18 +92,24 @@ ui_http.onreadystatechange = function() {
 					while(component.firstChild)
 						component.removeChild(component.firstChild);
 					break;
-				case "insert":
-					converter.innerHTML = a["content"];
+				case "insert-child":
+					converter.innerHTML = a["child"];
 					component = document.getElementById(a["id"]);
-					to = component.childNodes.item(a["pos"]);
-					for(const child of converter.children)
-						component.insertBefore(child, to);
+					to = component.children[a["pos"]];
+					component.insertBefore(converter.children[0], to);
 					while(converter.firstChild)
-						converter.removeChild(converter.firstChild);
+						converter.firstChild.remove();
 					break;
-				case "remove":
+				case "append-child":
+					converter.innerHTML = a["child"];
 					component = document.getElementById(a["id"]);
-					child = component.childNodes.item(a["child"]);
+					component.append(converter.children[0]);					
+					while(converter.firstChild)
+						converter.firstChild.remove();
+					break;
+				case "remove-child":
+					component = document.getElementById(a["id"]);
+					child = component.children[a["child"]];
 					component.removeChild(child);
 					break;
 				case "show-last":
