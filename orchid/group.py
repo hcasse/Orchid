@@ -295,12 +295,13 @@ TABBED_PANE_MODEL = Model(
 		parent = VGROUP_MODEL,
 		name = "orchid-tabbed-pane",
 		style = """
-.tabbed-head {
+.tabbed-label {
 }
 .tabbed-current {	
 }
-.tabbed-buttons {
-	
+.tabbed-labelbar {
+	flex-wrap: wrap;
+	align-items: flex-end;
 }
 .tabbed-body {
 }
@@ -316,7 +317,7 @@ class TabbedPane(VGroup):
 		for tab in tabs:
 			heads.append(self.make_head(tab, len(heads)))
 		self.heads = HGroup(heads)
-		self.heads.add_class("tabbed-buttons")
+		self.heads.add_class("tabbed-labelbar")
 		self.panes = LayeredPane(tabs)
 		self.panes.add_class("tabbed-body")
 		self.current = -1
@@ -338,7 +339,7 @@ class TabbedPane(VGroup):
 			title = "Tab %s" % i
 		but = orchid.Button(title,
 			on_click=lambda: self.select(pane._tabbed_num))
-		but.add_class("tabbed-head")
+		but.add_class("tabbed-label")
 		return but
 
 	def select(self, n):
