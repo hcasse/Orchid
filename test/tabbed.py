@@ -2,14 +2,26 @@
 
 from orchid import *
 
-class MyTab(Editor):
+class MyTab(Tab):
 
-	def __init__(self, title, text):
-		Editor.__init__(self, text)
-		self.title = title
+	def __init__(self, label, text):
+		self.component = Editor(text)
+		self.label = label
 
-	def get_title(self):
-		return self.title
+	def get_label(self):
+		return self.label
+
+	def get_component(self):
+		return self.component
+
+	def on_show(self):
+		print("Shown", self.label)
+
+	def on_hide(self):
+		print("Hidden", self.label)
+
+	def on_release(self):
+		print("Released", self.label)
 
 
 class MyPage(Page):
@@ -29,7 +41,8 @@ class MyPage(Page):
 			VGroup([
 				HGroup([
 					Button("add", on_click=self.add),
-					Button("remove", on_click=self.remove)
+					Button("remove", on_click=self.remove),
+					Button("first", on_click=self.first)
 				]),
 				self.tab
 			]),
@@ -44,6 +57,10 @@ class MyPage(Page):
 	def remove(self):
 		self.cnt = self.cnt - 1
 		self.tab.remove(self.cnt)
+
+	def first(self):
+		self.tab.select(self.tab.get_tab(0))
+
 
 class MyApp(Application):
 
