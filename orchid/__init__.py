@@ -17,6 +17,7 @@
 
 """Data/Process-oriented user interface."""
 
+from orchid.util import *
 from orchid.base import *
 from orchid.button import Button, CheckBox, RadioButton
 from orchid.label import Label
@@ -58,24 +59,4 @@ DIR_SOUTH_WEST = 5
 DIR_WEST = 6
 DIR_NORTH_EAST = 7
 DIR_CENTER = 8
-
-class Buffer:
-	"""Text buffer supporting write function."""
-
-	def __init__(self, text = ""):
-		self.text = text
-
-	def write(self, text):
-		self.text = self.text + text
-
-	def __str__(self):
-		return self.text
-
-def buffer(fun):
-	"""Call function with a buffer to generate a text content and return
-	the produced text."""
-	buf = Buffer()
-	fun(buf)
-	return str(buf)
-
 

@@ -40,7 +40,8 @@ class Button(AbstractButton):
 		image = None,
 		on_click = None,
 		enabled = True,
-		help = None
+		help = None,
+		model = BUTTON_MODEL
 	):
 		"""The parameters are the following:
 		* label - text displayed on the button,
@@ -48,7 +49,7 @@ class Button(AbstractButton):
 		* on_click - function called when the button is clicked (no parameter).
 		* enabled - enable/disable the button,
 		* help - plain text displayed to get help from the button (usually )"""
-		AbstractButton.__init__(self, BUTTON_MODEL, enabled=enabled, help=help)
+		AbstractButton.__init__(self, model, enabled=enabled, help=help)
 		self.label = label
 		self.image = image
 		if image == None and isinstance(label, orchid.image.Image):

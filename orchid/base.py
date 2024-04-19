@@ -18,6 +18,7 @@
 """Orchid base classes and definitions. """
 
 import time
+from orchid.util import *
 
 COMPONENT_ID = 1
 
@@ -520,7 +521,23 @@ class Page(AbstractComponent):
 				m = None
 			except KeyError:
 				self.models[m] = 1
+				if self.online():
+					self.download_model(model)
 				m = m.get_parent()
+
+	def download_model(self, model):
+		"""Update a remote page with the model of a new added component."""
+		script = Buffer()
+		model.gen_script(script)
+		style = Buffer()
+		model.gen_style(style)
+		self.send({
+			"type": "model",
+			"script": str(script),
+			"style": str(style),
+			"script_paths": model.get_script_paths(),
+			"style_paths": model.get_style_paths()
+		})
 
 	def on_add(self, comp):
 		"""Called each time a component is added."""

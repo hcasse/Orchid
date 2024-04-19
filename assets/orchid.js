@@ -115,6 +115,29 @@ ui_http.onreadystatechange = function() {
 				case "show-last":
 					show_last(a["id"]);
 					break;
+				case "model":
+					if(a["script"]) {
+						elem = document.createElement("script");
+						elem.innerHTML = a["script"];
+						document.head.appendChild(elem);
+					}
+					if(a["style"]) {
+						elem = document.createElement("style");
+						elem.innerHTML = a["style"];
+						document.head.appendChild(elem);
+					}
+					for(let path in a["style_paths"]) {
+						elem = document.createElement("link");
+						elem.setAttribute("rel", "stylesheet");
+						elem.setAttribute("href", path);
+						document.head.appendChild(elem);
+					}
+					for(let path in a["script_paths"]) {
+						elem = document.createElement("script");
+						elem.setAttribute("src", path);
+						document.head.appendChild(elem);
+					}
+					break;
 				default:
 					console.error("unknow command: " + a);
 					break;
