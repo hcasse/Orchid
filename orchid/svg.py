@@ -21,6 +21,8 @@ useful constants.
 * for stroke-dash-array: DASHED, DOTTED.
 """
 
+import os.path
+
 from orchid import *
 from orchid.util import *
 
@@ -48,6 +50,7 @@ class Canvas(Component):
 		self.num = SVG_NUM
 		SVG_NUM = SVG_NUM + 1;
 		self.child_num = 0
+		self.image_map = {}
 		
 		self.stroke = None
 		self.stroke_width = None
@@ -131,3 +134,47 @@ class Canvas(Component):
 	def remove(self, num):
 		"""Remove an object."""
 		self.call("svg_remove", {"id": "svg-%d-%d" % (self.num, num)})
+
+	def draw_image(self, path, x, y, w=None, h=None):
+		"""Draw an image."""
+		path = os.path.normpath(path)
+		try:
+			url = self.image_map[path]
+		except KeyError:
+			url = "/svg/%s" % path
+			if os.path.splitext(path) in [".svg"]:
+				self.get_page().publish_text_file(url, path)
+			else:
+				self.get_page().publish_file(url, path)
+		added = ""
+		if w:
+			added += " width='%d'" % w
+		if h:
+			added += " height='%d'" % h
+		num = self.next_num()
+		self.call("svg_append",
+			{
+				"id": self.get_id(),
+				"content": "<image id='svg-%d-%d' href='%s' x='%d' y='%d' %s/>" % (self.num, num, url, x, y, added)
+			}
+		)
+		return num
+
+	def inject(self, content, replace_id=False):
+		"""Inject raw SVG in the image. If replace_id is True, replace any instance of "{id}
+		by a unique id for the container of this object."""
+		num = self.next_num()
+		id = self.get_object_id(num)
+		if replace_id:
+			content = content.replace("{id}", id)
+		self.call("svg_append",
+			{
+				"id": self.get_id(),
+				"content": "<g  id='%s'>%s</g>" % (id, content)
+			}
+		)
+		return num
+
+	def get_object_id(self, num, suffix = ""):
+		"""Get the identifier for the given object number. Add the suffix if provided."""
+		return "svg-%d-%d%s" % (self.num, num, suffix)

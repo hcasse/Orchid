@@ -712,15 +712,29 @@ class Page(AbstractComponent):
 		out.write('</body>')
 		out.write('</html>')
 
-	def publish_text(self, url, text, mime = None):
+	def publish_text_file(self, url, text, mime = None):
 		"""Publish an URL returning the given text
 		(for big GET operation)."""
-		self.manager.add_text(url, text, mime)
+		self.manager.add_text_file(url, text, mime)
 
 	def publish_file(self, url, path, mime = None):
 		"""Publish an URL returning the content of the file
 		corresponding to the path."""
 		self.manager.add_file(url, path, mime)
+
+	def publish(self, url, provider):
+		"""Publish an URL with a custom provider."""
+		self.manager.add_provider(url, provider)
+
+	def set_direct_attr(self, id, att, val):
+		"""Set the attribute of an element identified with id.
+		Works only online."""
+		if self.online():
+			self.send({
+				"type": "set-attr",
+				"id": id,
+				"attr": att,
+				"val": val})
 
 
 class Session:

@@ -175,8 +175,12 @@ class Manager:
 		self.paths[upath] = prov
 		return prov
 
-	def add_text(self, path, text, mime = "text/plain"):
+	def add_text_file(self, path, text, mime = "text/plain"):
 		prov = TextProvider(text, mime)
+		self.paths[path] = prov
+		return prov
+
+	def add_provider(self, path, prov):
 		self.paths[path] = prov
 		return prov
 

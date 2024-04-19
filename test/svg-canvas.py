@@ -16,7 +16,8 @@ class MyPage(Page):
 				HGroup([
 					Button("Start", on_click=self.start),
 					Button("Stop", on_click=self.stop),
-					Button("Reset", on_click=self.reset)
+					Button("Reset", on_click=self.reset),
+					Button("Picture", on_click=self.picture)
 				]),
 				self.canvas
 			]),
@@ -40,6 +41,9 @@ class MyPage(Page):
 		self.objects.append(self.canvas.line(self.x1, 0, self.x2, 200))
 		self.x1 += 10
 		self.x2 -= 10
+
+	def picture(self):
+		self.canvas.draw_image("led.svg", 400, 10)
 
 
 class MyApp(Application):

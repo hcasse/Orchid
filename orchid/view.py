@@ -122,7 +122,7 @@ class InteractiveView(Component):
 
 	def publish(self):
 		if self.text != None:
-			self.get_page().publish_text(self.url, self.text)
+			self.get_page().publish_text_file(self.url, self.text)
 		elif self.path != None:
 			self.get_page().publish_file(self.url, self.path)
 
