@@ -49,7 +49,7 @@ class Provider:
 
 
 class FileProvider(Provider):
-	"""Provider provding a file from the file system."""
+	"""Provider providing a file from the file system."""
 
 	def __init__(self, path, mime = None):
 		if mime == None:

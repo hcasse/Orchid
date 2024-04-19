@@ -188,3 +188,33 @@ function ui_onclick(id) {
 	//console.log('DEBUG: ui_onclick()');
 	ui_post({id: id, action: "click"});
 }
+
+
+// Timer
+
+ui_timers = new Map()
+
+function ui_timer_start(args) {
+	let id = args["id"];
+	let time = args["time"];
+	let periodic = args["periodic"];
+
+	function callback() {
+		ui_send({ id: id, action: "trigger" });
+	}
+	
+	if(!ui_timers.has(id)) {
+		if(periodic)
+			ui_timers.set(id, setInterval(callback, time));
+		else
+			ui_timers.set(id, setTimeout(callback, time));			
+	}
+}
+
+function ui_timer_stop(args) {
+	let id = args["id"];
+	if(ui_timers.has(id)) {
+		clearTimeout(ui_timers.get(id));
+		ui_timers.delete(id);
+	}
+}

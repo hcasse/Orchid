@@ -833,3 +833,49 @@ class Application:
 		Default return the base class Session. This function can be
 		overloaded to customize the session object."""
 		return Session(self, man)
+
+
+TIMER_MODEL = Model("timer")
+
+class Timer(Component):
+	"""A timer that is able to call the trigger() function according to a time basis. IT may be oneshot or periodic if a periond in ms is given.
+	It may also be started at application start-time if started is True."""
+
+	def __init__(self, page, trigger, period=0, started=False):
+		Component.__init__(self, TIMER_MODEL)
+		self.trigger = trigger
+		self.period = period
+		self.started = started
+		page.add_hidden(self)
+
+	def gen(self, out):
+		if self.started and self.period != 0:
+			out.write('<script>ui_timer_start({id: "%s", time: %d, periodic: true});</script>' % (self.get_id(), self.period))
+
+	def start(self, time = None):
+		"""Start the timer to trigger at given time or after period.
+		Argument time is in ms. If not given, the period time applies."""
+		if time != None:
+			periodic = False
+		else:
+			time = self.period
+			periodic = True
+		self.started = True
+		self.call("ui_timer_start", {
+			"id": self.get_id(),
+			"time": time,
+			"periodic": periodic
+		})
+
+	def stop(self):
+		"""Stop the timer."""
+		self.call("ui_timer_stop", {"id": self.get_id()})
+		self.started = False
+
+	def receive(self, m, h):
+		if m["action"] == "trigger":
+			if self.period == 0:
+				self.started = False
+			self.trigger()
+		else:
+			Component.receive(self, m, h)

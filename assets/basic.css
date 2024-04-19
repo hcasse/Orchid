@@ -371,3 +371,9 @@ dialog {
 }
 
 
+/* svg-canvas */
+.svg-canvas {
+	background: white;
+	border: 1px solid black;
+	padding: 0;	
+}
