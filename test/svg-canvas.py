@@ -7,9 +7,10 @@ class MyPage(Page):
 
 	def __init__(self, app):
 		self.canvas = Canvas()
+		self.canvas.circle(50, 50, 30,
+			stroke="green", fill="yellow", stroke_width=4)
 		self.objects = []
 		self.reset()
-		self.canvas.set_stroke("red")
 		Page.__init__(
 			self,
 			VGroup([
@@ -22,7 +23,7 @@ class MyPage(Page):
 				self.canvas
 			]),
 			app = app)
-		self.timer = Timer(self, self.step, period=250, started = True)
+		self.timer = Timer(self, self.step, period=250, started = False)
 
 	def reset(self):
 		self.x1 = 0
@@ -38,12 +39,13 @@ class MyPage(Page):
 		self.timer.stop()
 
 	def step(self):
-		self.objects.append(self.canvas.line(self.x1, 0, self.x2, 200))
+		self.objects.append(self.canvas.line(
+			self.x1, 0, self.x2, 200, stroke="red"))
 		self.x1 += 10
 		self.x2 -= 10
 
 	def picture(self):
-		self.canvas.draw_image("led.svg", 400, 10)
+		self.canvas.image("led.svg", 100, 10)
 
 
 class MyApp(Application):

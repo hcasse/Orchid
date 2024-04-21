@@ -1,24 +1,28 @@
 #!/usr/bin/env python3
 
 from orchid import *
-from orchid.svg import Canvas
+from orchid.svg import Canvas, Content
 from orchid.util import Buffer
 from orchid.server import Provider
 
-class LED:
+# https://www.sarasoueidan.com/blog/svg-coordinate-systems/
 
-	def  __init__(self, x, y, image, color, canvas):
+class LED(Content):
+
+	def  __init__(self, x, y, image, color, **args):
+		Content.__init__(self, image, **args)
 		self.color = color
-		x -= 200
-		num = canvas.inject("<g transform='scale(0.1)translate(%d, %d)'>%s" % (x, y, image), True)
 		self.state = False
-		self.id = canvas.get_object_id(num)
-		self.page = canvas.get_page()
+		self.scale(.1)
+		self.translate(x, y)
 
 	def set(self, color1, color2):
-		self.page.set_direct_attr(self.id + "_path", "fill", "#" + color1)
-		self.page.set_direct_attr(self.id + "_s1", "style", "stop-color:#" + color2)
-		self.page.set_direct_attr(self.id + "_s2", "style", "stop-color:#" + color2 + ";stop-opacity:0")
+		if self.parent.online():
+			id = self.get_id()
+			self.set_direct_attr(id + "_path1", "fill", "#" + color1)
+			self.set_direct_attr(id + "_path2", "fill", "#" + color1)
+			self.set_direct_attr(id + "_stop1", "style", "stop-color:#" + color2)
+			self.set_direct_attr(id + "_stop2", "style", "stop-color:#" + color2 + ";stop-opacity:0")
 
 	def on(self):
 		if not self.state:
@@ -48,7 +52,6 @@ class MyPage(Page):
 			self,
 			VGroup([
 				HGroup([
-					Button("show", on_click=self.show),
 					Button("red", on_click=self.red),
 					Button("green", on_click=self.green)
 				]),
@@ -59,16 +62,20 @@ class MyPage(Page):
 		# prepare SVG
 		buf = Buffer()
 		with open("led.svg") as input:
-			for i in range(0, 8):
+			l = input.readline()
+			while not l.startswith("<svg"):
 				l = input.readline()
+			buf.write(l)
+			#while not l.endswith(">\n"):
+			#	l = input.readline()
+			l = input.readline()
 			while not l.startswith("</svg>"):
 				buf.write(l)
 				l = input.readline()
 		self.image = str(buf)
 
-	def show(self):
-		self.red = LED(0, 0, self.image, "FF0000", self.canvas)
-		self.green = LED(250, 0, self.image, "00FF00", self.canvas)
+		self.red = self.canvas.record(LED(0, 0, self.image, "FF0000"))
+		self.green = self.canvas.record(LED(50, 0, self.image, "00FF00"))
 
 	def red(self):
 		self.red.invert()

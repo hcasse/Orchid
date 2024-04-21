@@ -736,6 +736,15 @@ class Page(AbstractComponent):
 				"attr": att,
 				"val": val})
 
+	def remove_direct_attr(self, id, att):
+		"""Remove an attribute of an arbitrary object."""
+		if self.online():
+			self.send({
+				"type": "remove-attr",
+				"id": id,
+				"attr": attr
+			})
+
 
 class Session:
 	"""Represent a sessuib to a specific client. It allows to
