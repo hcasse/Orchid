@@ -42,6 +42,10 @@ DOTTED = [1, 1]
 def adjust(key):
 	return key.replace('_', '-')
 
+def make_event_id(id, event):
+	if isinstance(id, Shape):
+		id = str(id.num)
+	return "%s-%s" % (id, event)
 
 class Transform:
 	"""A transformation in SVG."""
@@ -99,11 +103,12 @@ class Translate(Transform):
 class Shape:
 	"""Represents a shape in the canvas."""
 
-	def __init__(self, **args):
-		self.parent = None
+	def __init__(self, canvas, **args):
+		self.parent = canvas
 		self.num = None
 		self.attrs = dict(**args)
 		self.trans = None
+		canvas.record(self)
 
 	def get_id(self):
 		return "svg-%d-%d" % (self.parent.num, self.num)
@@ -128,16 +133,30 @@ class Shape:
 		pass
 
 	def set_attr(self, att, val):
+		"""Set an attribute of the shape. If val is None, remove it."""
 		if val == None:
-			del self.attrs["stroke"]
-			if self.online():
-				self.parent.get_page().remove_direct_attr(
-					self.get_id(), adjust(att))
+			self.remove_attr(att)
 		else:
-			self.attrs["stroke"] = stroke
-			if self.online():
+			self.attrs[att] = val
+			if self.parent.online():
 				self.parent.get_page().set_direct_attr(
 					self.get_id(), adjust(att), val)
+
+	def remove_attr(self, att):
+		"""Remove an attribute."""
+		del self.attrs[att]
+		if self.online():
+			self.parent.get_page().remove_direct_attr(
+				self.get_id(), adjust(att))
+
+	def add_event(self, event, fun):
+		"""Add an event on the current shape. event is any usual HTML event.
+		fun is the function to call when the event is triggered."""
+		self.parent.add_event(self, event, fun)
+
+	def remove_event(self, event):
+		"""Remove the gien event on the current shape."""
+		self.parent.remove_event(self, event)
 
 	def finalize(self, parent):
 		self.parent = parent
@@ -161,8 +180,8 @@ class Shape:
 class Circle(Shape):
 	"""A circle."""
 
-	def __init__(self, x, y, r, **args):
-		Shape.__init__(self, **args)
+	def __init__(self, canvas, x, y, r, **args):
+		Shape.__init__(self, canvas, **args)
 		self.x = x
 		self.y = y
 		self.r = r
@@ -175,8 +194,8 @@ class Circle(Shape):
 class Line(Shape):
 	"""A line."""
 
-	def __init__(self, x1, y1, x2, y2, **args):
-		Shape.__init__(self, **args)
+	def __init__(self, canvas, x1, y1, x2, y2, **args):
+		Shape.__init__(self, canvas, **args)
 		self.x1 = x1
 		self.y1 = y1
 		self.x2 = x2
@@ -188,8 +207,8 @@ class Line(Shape):
 
 class Image(Shape):
 
-	def __init__(self, path, x, y, w=None, h=None, **args):
-		Shape.__init__(self, **args)
+	def __init__(self, canvas, path, x, y, w=None, h=None, **args):
+		Shape.__init__(self, canvas, **args)
 		self.path = os.path.normpath(path)
 		self.url = None
 		self.x = x
@@ -213,8 +232,8 @@ class Image(Shape):
 
 class Content(Shape):
 
-	def __init__(self, content, **args):
-		Shape.__init__(self, **args)
+	def __init__(self, canvas, content, **args):
+		Shape.__init__(self, canvas, **args)
 		self.content = content
 
 	def finalize(self, parent):
@@ -243,6 +262,7 @@ class Canvas(Component):
 		self.child_num = 0
 		self.image_map = {}
 		self.shapes = []
+		self.events = {}
 		
 	def record(self, shape):
 		shape.parent = self
@@ -250,13 +270,11 @@ class Canvas(Component):
 		self.child_num += 1
 		self.shapes.append(shape)
 		if self.get_page() != None:
-			shape.finalize(self)
 			if self.online():
 				buf = Buffer()
 				shape.gen(buf)
 				self.call("svg_append",
 					{ "id": self.get_id(), "content": str(buf) })			
-		return shape
 
 	def gen(self, out):
 		out.write("<svg ")
@@ -295,11 +313,11 @@ class Canvas(Component):
 
 	def circle(self, x, y, r, **args):
 		"""Draw a circle at point(x, y) of ray r."""
-		return self.record(Circle(x, y, r, **args))
+		return Circle(self, x, y, r, **args)
 
 	def line(self, x1, y1, x2, y2, **args):
 		"""Draw a line."""
-		return self.record(Line(x1, y1, x2, y2, **args))
+		return Line(self, x1, y1, x2, y2, **args)
 
 	def remove(self, shape):
 		"""Remove an object."""
@@ -309,7 +327,29 @@ class Canvas(Component):
 
 	def image(self, path, x, y, w=None, h=None, **args):
 		"""Draw an image."""
-		return self.record(Image(path, x, y, w, h, **args))
+		return Image(self, path, x, y, w, h, **args)
 
 	def content(self, content, **args):
-		return self.record(Content(content, **args))
+		return Content(self, content, **args)
+
+	def add_event(self, id, event, fun):
+		"""Add an event handler on SVG shapes. id may be a string or a shape."""
+		self.events[make_event_id(id, event)] = fun
+		if isinstance(id, Shape):
+			id.set_attr(event, self.gen_event_call(id, event))
+
+	def remove_event(self, id, event):
+		"""Remove an event handler. id may be a string or a shape."""
+		del self.events[make_event_id(id, event)]
+		if isinstance(id, Shape):
+			id.remove_attr(event, self.gen_event_call(id, event))
+
+	def gen_event_call(self, id, event):
+		"""Generate code to invoke event. id may be a shape or any string."""
+		return 'svg_on_event("%s", "%s");' % (self.get_id(), make_event_id(id, event))
+
+	def receive(self, m, h):
+		try:
+			self.events[m["event"]]()
+		except KeyError:
+			Component.receive(self, m, h)

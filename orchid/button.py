@@ -10,7 +10,9 @@ class AbstractButton(Component):
 
 	def __init__(self, model, enabled = True, help = None):
 		Component.__init__(self, model)
-		self.enabled = True
+		self.enabled = enabled
+		if not self.enabled:
+			self.set_attr("disabled", "")
 		self.set_enabled(enabled)
 		self.help = help
 		if help != None:
@@ -18,6 +20,7 @@ class AbstractButton(Component):
 
 	def enable(self):
 		if not self.enabled:
+			print("DEBUG: enabled!")
 			self.enabled = True
 			self.remove_attr("disabled")
 
@@ -66,6 +69,8 @@ class Button(AbstractButton):
 	def gen(self, out):
 		out.write('<button')
 		self.gen_attrs(out)
+		if not self.enabled:
+			out.write(" disabled")
 		out.write(' onclick="ui_onclick(\'%s\');">' % self.get_id())
 		if self.image != None:
 			self.image.gen(out, self.parent.get_context())
