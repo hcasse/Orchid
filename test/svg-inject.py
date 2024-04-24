@@ -9,12 +9,15 @@ from orchid.server import Provider
 
 class LED(Content):
 
-	def  __init__(self, canvas, x, y, image, color, **args):
-		Content.__init__(self, canvas, image, **args)
+	def  __init__(self, x, y, image, color, **args):
+		Content.__init__(self, image, **args)
 		self.color = color
 		self.state = False
 		self.scale(.1)
 		self.translate(x, y)
+
+	def finalize(self, page):
+		Content.finalize(self, page)
 		self.add_event("onclick", self.on_click)
 		self.add_event("onmousedown", self.on_mouse_down)
 		self.add_event("onmouseup", self.on_mouse_up)
@@ -81,7 +84,7 @@ class MyPage(Page):
 		buts = []
 		x = 0
 		for color in COLORS:
-			shape = LED(self.canvas, x, 0, self.image, color)
+			shape = self.canvas.record(LED(x, 0, self.image, color))
 			buts.append(Button(color, on_click=shape.invert))
 			x = x + 50
 

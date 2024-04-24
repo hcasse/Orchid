@@ -103,15 +103,17 @@ class Translate(Transform):
 class Shape:
 	"""Represents a shape in the canvas."""
 
-	def __init__(self, canvas, **args):
-		self.parent = canvas
+	def __init__(self, **args):
+		self.parent = None
 		self.num = None
 		self.attrs = dict(**args)
 		self.trans = None
-		canvas.record(self)
 
 	def get_id(self):
 		return "svg-%d-%d" % (self.parent.num, self.num)
+
+	def finalize(self):
+		pass
 
 	def make_transform(self):
 		buf = Buffer()
@@ -158,9 +160,6 @@ class Shape:
 		"""Remove the gien event on the current shape."""
 		self.parent.remove_event(self, event)
 
-	def finalize(self, parent):
-		self.parent = parent
-
 	def add_transformation(self, t):
 		"""Add a transformation."""
 		t.next = self.trans
@@ -180,8 +179,8 @@ class Shape:
 class Circle(Shape):
 	"""A circle."""
 
-	def __init__(self, canvas, x, y, r, **args):
-		Shape.__init__(self, canvas, **args)
+	def __init__(self, x, y, r, **args):
+		Shape.__init__(self, **args)
 		self.x = x
 		self.y = y
 		self.r = r
@@ -194,8 +193,8 @@ class Circle(Shape):
 class Line(Shape):
 	"""A line."""
 
-	def __init__(self, canvas, x1, y1, x2, y2, **args):
-		Shape.__init__(self, canvas, **args)
+	def __init__(self, x1, y1, x2, y2, **args):
+		Shape.__init__(self, **args)
 		self.x1 = x1
 		self.y1 = y1
 		self.x2 = x2
@@ -207,8 +206,8 @@ class Line(Shape):
 
 class Image(Shape):
 
-	def __init__(self, canvas, path, x, y, w=None, h=None, **args):
-		Shape.__init__(self, canvas, **args)
+	def __init__(self, path, x, y, w=None, h=None, **args):
+		Shape.__init__(self, **args)
 		self.path = os.path.normpath(path)
 		self.url = None
 		self.x = x
@@ -225,19 +224,19 @@ class Image(Shape):
 		out.write("<image id='%s' href='%s' x='%d' y='%d' %s/>" %
 			(self.get_id(), self.url, self.x, self.y, added))
 
-	def finalize(self, parent):
-		Shape.finalize(self, parent)
+	def finalize(self):
+		Shape.finalize(self)
 		self.url = parent.publish(self.path)
 
 
 class Content(Shape):
 
-	def __init__(self, canvas, content, **args):
-		Shape.__init__(self, canvas, **args)
+	def __init__(self, content, **args):
+		Shape.__init__(self, **args)
 		self.content = content
 
-	def finalize(self, parent):
-		Shape.finalize(self, parent)
+	def finalize(self):
+		Shape.finalize(self)
 		self.content = self.content.replace("{id}", self.get_id())
 
 	def gen(self, out):
@@ -269,12 +268,14 @@ class Canvas(Component):
 		shape.num = self.child_num
 		self.child_num += 1
 		self.shapes.append(shape)
-		if self.get_page() != None:
+		if self.get_page() is not None:
+			shape.finalize(self)
 			if self.online():
 				buf = Buffer()
 				shape.gen(buf)
 				self.call("svg_append",
-					{ "id": self.get_id(), "content": str(buf) })			
+					{ "id": self.get_id(), "content": str(buf) })
+		return shape
 
 	def gen(self, out):
 		out.write("<svg ")
@@ -303,7 +304,7 @@ class Canvas(Component):
 	def finalize(self, page):
 		Component.finalize(self, page)
 		for shape in self.shapes:
-			shape.finalize(self)
+			shape.finalize()
 
 	def expands_horizontal(self):
 		return True
@@ -313,11 +314,11 @@ class Canvas(Component):
 
 	def circle(self, x, y, r, **args):
 		"""Draw a circle at point(x, y) of ray r."""
-		return Circle(self, x, y, r, **args)
+		return self.record(Circle(x, y, r, **args))
 
 	def line(self, x1, y1, x2, y2, **args):
 		"""Draw a line."""
-		return Line(self, x1, y1, x2, y2, **args)
+		return self.record(Line(x1, y1, x2, y2, **args))
 
 	def remove(self, shape):
 		"""Remove an object."""
@@ -327,10 +328,10 @@ class Canvas(Component):
 
 	def image(self, path, x, y, w=None, h=None, **args):
 		"""Draw an image."""
-		return Image(self, path, x, y, w, h, **args)
+		return self.record(Image(path, x, y, w, h, **args))
 
 	def content(self, content, **args):
-		return Content(self, content, **args)
+		return self.record(Content(content, **args))
 
 	def add_event(self, id, event, fun):
 		"""Add an event handler on SVG shapes. id may be a string or a shape."""
