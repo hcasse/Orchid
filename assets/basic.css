@@ -6,6 +6,7 @@
 	--select: purple;
 	--back: #EEEEEE;
 	--border: gray;
+	--error-back: #FF7F7F;
 }
 
 
@@ -150,7 +151,7 @@ a.tool-button-disabled {
 
 
 /* field style */
-input.field {
+div.field input {
 	margin: 0;
 	padding: 2px;
 	font-family: sans-serif;
@@ -158,11 +159,15 @@ input.field {
 	background-color: white;
 }
 
-input.invalid {
-	background-color: #FF7F7F;
+div.valid input {
+	background-color: white;
 }
 
-label.field {
+div.invalid input {
+	background-color: var(--error-back);
+}
+
+div.field label {
 	padding-right: .5em;
 }
 

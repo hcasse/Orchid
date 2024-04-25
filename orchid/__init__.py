@@ -22,7 +22,9 @@ from orchid.base import *
 from orchid.button import Button, CheckBox, RadioButton
 from orchid.label import Label
 from orchid.label import Banner
-from orchid.field import Field, is_valid_number
+from orchid.field import Field, ColorField, DateField, TimeField, \
+	DateTimeField, PasswordField, EmailField, RangeField, \
+	as_natural, as_re
 from orchid.group import HGroup, VGroup
 from orchid.group import Spring
 from orchid.group import LayeredPane

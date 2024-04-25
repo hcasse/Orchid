@@ -17,6 +17,7 @@
 
 """Orchid base classes and definitions. """
 
+import html
 import time
 from orchid.util import *
 
@@ -200,6 +201,17 @@ class AbstractComponent(Displayable, Subject):
 		"""Return the identifier of the current element."""
 		return self.id
 
+	def make_attr(self, val):
+		"""Prepare a string to displayed as an attribute."""
+		return html.escape(val, quote=True)
+
+	def gen_attr(self, out, att, val = None):
+		"""Generate an attribute on the given output."""
+		if val is None:
+			out.write(' %s' % att)
+		else:
+			out.write(' %s="%s"' % (att, html.escape(str(val), quote=True)))
+
 	def gen_attrs(self, out):
 		"""Generate common attributes"""
 
@@ -210,7 +222,7 @@ class AbstractComponent(Displayable, Subject):
 		if self.style != {}:
 			out.write(' style="')
 			for k in self.style:
-				out.write("%s: %s; " % (k, self.style[k]))
+				out.write("%s: %s; " % (k, self.make_attr(self.style[k])))
 			out.write('"')
 
 		# generate classes
@@ -223,7 +235,7 @@ class AbstractComponent(Displayable, Subject):
 			if val == None:
 				out.write(" %s" % att)
 			else:
-				out.write(" %s=\"%s\"" % (att, val))
+				out.write(" %s=\"%s\"" % (att, self.make_attr(val)))
 
 	def call(self, fun, args = {}):
 		"""Send a message to call a function."""
