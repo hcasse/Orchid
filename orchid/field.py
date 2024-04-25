@@ -64,7 +64,6 @@ class Field(Component):
 		if m["action"] == "change":
 			content = m["value"]
 			if self.content != content:
-				print("content = %s" % self.content)
 				self.content = content
 				self.update_observers(self)
 				self.check_validity()

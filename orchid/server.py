@@ -288,6 +288,11 @@ class Handler(http.server.SimpleHTTPRequestHandler):
 			if debug:
 				print("DEBUG: request processed!")
 
+	def log_message(self, format, *args):
+		debug = self.server.manager.config['debug']
+		if debug:
+			http.server.SimpleHTTPRequestHandler.log_message(self, format, *args)
+
 
 def open_browser(host, port):
 	time.sleep(.5)

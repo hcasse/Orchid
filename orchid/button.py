@@ -20,7 +20,6 @@ class AbstractButton(Component):
 
 	def enable(self):
 		if not self.enabled:
-			print("DEBUG: enabled!")
 			self.enabled = True
 			self.remove_attr("disabled")
 

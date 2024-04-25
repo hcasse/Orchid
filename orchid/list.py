@@ -68,9 +68,7 @@ class Model(Subject):
 
 	def append(self, x):
 		"""Append a value."""
-		print("DEBUG: append")
 		for obs in self.filter_observers(Observer):
-			print("DEBUG: -" , obs)
 			obs.on_append(x)
 
 	def insert(self, i, x):
@@ -251,7 +249,6 @@ class View(Component, Observer):
 		action = msg["action"]
 		if action == "select":
 			i = msg["item"]
-			print("DEBUG: i=", i)
 			if i in self.selection:
 				self.deselect_all()
 			else:

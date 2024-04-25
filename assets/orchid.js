@@ -1,6 +1,6 @@
 // Communication management
 
-
+// https://developer.mozilla.org/fr/docs/Web/API/Window/requestIdleCallback
 
 var ui_messages = [];
 var ui_http = new XMLHttpRequest();

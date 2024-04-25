@@ -16,8 +16,8 @@ class LED(Content):
 		self.scale(.1)
 		self.translate(x, y)
 
-	def finalize(self, page):
-		Content.finalize(self, page)
+	def finalize(self):
+		Content.finalize(self)
 		self.add_event("onclick", self.on_click)
 		self.add_event("onmousedown", self.on_mouse_down)
 		self.add_event("onmouseup", self.on_mouse_up)
@@ -107,5 +107,5 @@ class MyApp(Application):
 	def first(self):
 		return self.fst
 
-run(MyApp(), debug=True)
+run(MyApp())
 
