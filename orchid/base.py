@@ -561,6 +561,10 @@ class Page(AbstractComponent):
 		"""Add an hidden component (typically dialog or popup)."""
 		self.hidden.append(comp)
 		comp.finalize(self)
+		if self.online():
+			buf = Buffer()
+			comp.gen(buf)
+			self.append_child(str(buf))
 
 	def set_main(self, main):
 		"""Set the main component."""

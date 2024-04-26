@@ -62,8 +62,10 @@ class Base(Component):
 	def hide(self):
 		self.call("dialog_hide", {"id": self.get_id()})
 
+
 def default_answer(dialog, answer):
 	pass
+
 
 class Answer(Base):
 	"""Answer dialog: provides information to the user and wait
@@ -117,3 +119,15 @@ class Answer(Base):
 		self.on_close(self, i)
 
 	
+class Message(Base):
+	"""Display a dialog with a message. Dialog display can
+	be customized with a type.
+
+	The type may "warning", "error", "info"."""
+
+	def __init__(self, page, message, title=None, type=None):
+		Base.__init__(self, page, VGroup([
+			Label(message),
+			Button("Ok", on_click=self.hide)
+		]))
+
