@@ -849,6 +849,7 @@ class Application:
 		copyright = None,
 		description = None,
 		website = None,
+		icon = None,
 		style_paths = []
 	):
 		self.name = name
@@ -857,6 +858,7 @@ class Application:
 		self.copyright = copyright
 		self.description = description
 		self.website = website
+		self.icon = icon
 		self.style_paths = style_paths
 
 	def first(self):
@@ -918,3 +920,24 @@ class Timer(Component):
 			self.trigger()
 		else:
 			Component.receive(self, m, h)
+
+
+PLAIN_MODEL = Model("plain")
+
+class Plain(Component):
+	"""A component displaying plain HTML. The HTML can be embedded
+	in a parent tag if needed (supporting class and attribute setting)."""
+
+	def __init__(self, text, in_tag=None):
+		Component.__init__(self, PLAIN_MODEL)
+		self.text = text.replace("\n", "<br>")
+		self.in_tag = in_tag
+
+	def gen(self, out):
+		if self.in_tag is not None:
+			out.write("<%s" % self.in_tag)
+			self.gen_attrs(out)
+			out.write(">")
+		out.write(self.text)
+		if self.in_tag is not None:
+			out.write("</%s>" % self.in_tag)

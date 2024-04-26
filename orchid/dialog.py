@@ -172,5 +172,50 @@ class Message(Base):
 		self.on_close()
 
 
+class About(Base):
+	"""Dialog displaying information about the application."""
+
+	def __init__(self, page):
+		app = page.app
+		all = []
+
+		# prepare the icon if any
+		content = []
+		if app.icon is not None:
+			label = Label(AssetImage(app.icon, width=96))
+			label.add_class("dialog-about-icon")
+			all.append(label)
+
+		# prepare the text
+		text = []
+		title = app.name
+		if app.version != None:
+			title = "%s V%s" % (title, app.version)
+		title = Label(title)
+		title.add_class("dialog-about-title")
+		text.append(title)
+		if app.description is not None:
+			text.append(Plain(app.description, in_tag="p"))
+		if app.website is not None:
+			text.append(Plain('<a href="%s">%s</a>' % (app.website, app.website), in_tag="p"))
+		if app.license is not None:
+			text.append(Plain("<b>License:</b> %s" % app.license, in_tag="p"))
+		if app.copyright is not None:
+			text.append(Plain("<i>%s</i>" % app.copyright, in_tag="center"))
+		text = VGroup(text)
+		text.add_class("dialog-text")
+		all.append(text)
+
+		# prepare buttons
+		buttons = HGroup([
+			Spring(hexpand=True),
+			Button("Ok", on_click=self.hide)
+		])
+		buttons.add_class("dialog-buttons")
+		all.append(buttons)
+
+		# build the dialog
+		Base.__init__(self, page, VGroup(all))
+		self.add_class("dialog-about")
 
 

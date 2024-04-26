@@ -334,7 +334,7 @@ dialog {
 	border-width: 2px;
 }
 
-.dialog-answer, .dialog-message {
+.dialog-answer, .dialog-message, .dialog-about {
 	padding: 0;	
 }
 
@@ -350,15 +350,24 @@ dialog {
 	border: darkgray solid 1px;
 }
 
-.dialog-text, .dialog-message-text {
+.dialog-text, .dialog-message-text, .dialog {
 	padding: 8px;
 	margin-left: 4px;
 	margin-right: 4px;
 }
 
-.dialog-buttons, .dialog-icon {
+.dialog-buttons, .dialog-icon, .dialog-about-icon {
 	padding: 8px;
 }
+
+.dialog-about-title {
+	font-weight: bold;
+}
+.dialog-about p {
+	margin: 0;
+}
+
+
 
 /* tabbed pane */
 .tabbed-head {
