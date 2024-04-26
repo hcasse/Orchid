@@ -62,6 +62,17 @@ class Base(Component):
 	def hide(self):
 		self.call("dialog_hide", {"id": self.get_id()})
 
+	def make_title(self, title):
+		"""Generate the title from a component or from a string title."""
+		if not isinstance(title, Component):
+			title = Label(title)
+		title.add_class("dialog-title")
+		return title
+
+	def make_message(self, message):
+		"""Transform message to be displayed in dialog."""
+		return Label(message.replace("\n", "<br>"))
+
 
 def default_answer(dialog, answer):
 	pass
@@ -79,17 +90,14 @@ class Answer(Base):
 		content = []
 
 		# process title
-		if title is not None:
-			if not isinstance(title, Component):
-				title = Label(title)
-			title.add_class("dialog-title")
-			content.append(title)
-		self.title = title
+		if title != None:
+			self.title = self.make_title(title)
+			content.append(self.title)
 
 		# add message
 		if not isinstance(message, Component):
 			message = Label(message)
-		message.add_class("dialog-message")
+		message.add_class("dialog-text")
 		content.append(message)
 		self.message = message
 
@@ -118,16 +126,51 @@ class Answer(Base):
 		but.old_on_click()
 		self.on_close(self, i)
 
-	
+MESSAGES = {
+	"warning": "basic/warning.svg",
+	"error": "basic/error.svg",
+	"info": "basic/info.svg"
+}
+
 class Message(Base):
 	"""Display a dialog with a message. Dialog display can
 	be customized with a type.
 
-	The type may "warning", "error", "info"."""
+	The type may "warning", "error", "info".
 
-	def __init__(self, page, message, title=None, type=None):
-		Base.__init__(self, page, VGroup([
-			Label(message),
-			Button("Ok", on_click=self.hide)
-		]))
+	In addition, the callback on_close is called when the dialog is closed."""
+
+	def __init__(self, page, message, title=None, type=None, on_close=lambda: None):
+		content = []
+		if title != None:
+			content.append(self.make_title(title))
+		message = self.make_message(message)
+		message.add_class("dialog-text")
+		if type != None and type in MESSAGES:
+			icon = Label(AssetImage(MESSAGES[type], width=32))
+			icon.add_class("dialog-icon")
+			content.append(HGroup([
+				icon,
+				message
+			]))
+		else:
+			content.append(message)
+		buttons = HGroup([
+			Spring(hexpand=True),
+			Button("Ok", on_click=self.close)
+		])
+		buttons.add_class("dialog-buttons")
+		content.append(buttons)
+		Base.__init__(self, page, VGroup(content))
+		if type != None and type in MESSAGES:
+			self.add_class(type)
+		self.on_close = on_close
+		self.add_class("dialog-message")
+
+	def close(self):
+		self.hide()
+		self.on_close()
+
+
+
 

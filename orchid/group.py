@@ -219,6 +219,7 @@ class Spring(ExpandableComponent):
 		self.vexpand = vexpand
 		vw = weight if vexpand else 0
 		self.weight = (hw, vw)
+		self.set_style("display", "inline-block")
 
 	def expands_horizontal(self):
 		return self.hexpand
@@ -230,7 +231,6 @@ class Spring(ExpandableComponent):
 		out.write("<div")
 		self.gen_attrs(out)
 		out.write("></div>\n")
-		self.set_style("display", "inline-block")
 
 
 LAYERED_PANE_MODEL = Model(

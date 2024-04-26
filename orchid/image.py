@@ -17,13 +17,10 @@ class Image(Displayable):
 		page.add_model(self.model)
 
 
-class IconModel(Model):
-
-	def get_style_paths(self):
-		return ["bootstrap-icons/bootstrap-icons.css"]
-		
-
-ICON_MODEL = IconModel()
+ICON_MODEL = Model(
+	"icon-model",
+	style_paths = ["bootstrap-icons/bootstrap-icons.css"]
+)
 
 BOOTSTRAP_ICONS = {
 
@@ -215,3 +212,23 @@ class Icon(Image):
 		if self.color != None:
 			out.write(' style="color: %s"' % self.color)
 		out.write('"></i>')
+
+
+ASSET_IMAGE_MODEL = Model("asset-image")
+
+class AssetImage(Image):
+	"""Image from the assets of the application or from Orchid."""
+
+	def __init__(self, path, width=None, height=None):
+		Image.__init__(self, model=ASSET_IMAGE_MODEL)
+		self.path = path
+		self.width = width
+		self.height = height
+
+	def gen(self, out, type = CONTEXT_NONE):
+		out.write('<img src="%s"' % self.path)
+		if self.width != None:
+			out.write(' width="%d"' % self.width)
+		if self.height != None:
+			out.write(' width="%d"' % self.height)
+		out.write(">")

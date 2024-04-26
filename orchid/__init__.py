@@ -25,15 +25,13 @@ from orchid.label import Banner
 from orchid.field import Field, ColorField, DateField, TimeField, \
 	DateTimeField, PasswordField, EmailField, RangeField, \
 	as_natural, as_re
-from orchid.group import HGroup, VGroup
-from orchid.group import Spring
-from orchid.group import LayeredPane
+from orchid.group import HGroup, VGroup, Spring, LayeredPane
 from orchid.tabbedpane import TabbedPane, Tab
 from orchid.updater import *
 from orchid.editor import Editor
 from orchid.console import Console
 from orchid.struct import Header, ToolBar
-from orchid.image import Icon, Image
+from orchid.image import Icon, Image, AssetImage
 from orchid.server import run
 from orchid.view import InteractiveView
 

@@ -334,7 +334,7 @@ dialog {
 	border-width: 2px;
 }
 
-.dialog-answer {
+.dialog-answer, .dialog-message {
 	padding: 0;	
 }
 
@@ -345,7 +345,7 @@ dialog {
 	align-self: stretch !important;
 }
 
-.dialog-message {
+.dialog-text {
 	background: white;
 	padding: 8px;
 	border: darkgray solid 1px;
@@ -353,7 +353,7 @@ dialog {
 	margin-right: 4px;
 }
 
-.dialog-buttons {
+.dialog-buttons, .dialog-icon {
 	padding: 8px;
 }
 

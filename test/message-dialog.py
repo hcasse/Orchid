@@ -12,14 +12,27 @@ class MyPage(Page):
 			VGroup([
 				HGroup([
 					Button("Warning", on_click=self.on_warning),
+					Button("Error", on_click=self.on_error),
+					Button("Info", on_click=self.on_info),
 				]),
 			]),
 			app = app
 		)
 
 	def on_warning(self):
-		d = dialog.Message(self, "This is a warning!", type="warning", title="My Warning")
+		d = dialog.Message(self, "This is a warning!\nAnother line.", type="warning", title="My Warning", on_close=self.do_close)
 		d.show()
+
+	def on_error(self):
+		d = dialog.Message(self, "There is an error:\nIt's joke!", type="error", title="Fatal Error", on_close=self.do_close)
+		d.show()
+
+	def on_info(self):
+		d = dialog.Message(self, "Information.", type="info", title="Information", on_close=self.do_close)
+		d.show()
+
+	def do_close(self):
+		print("Dialog closed!")
 
 class MyApp(Application):
 

@@ -107,7 +107,6 @@ class Field(Component):
 			self.set_validity(False)
 		else:
 			if self.content != content:
-				print("DEBUG: content =", content)
 				self.content = content
 				self.update_observers()
 			self.set_validity(True)
