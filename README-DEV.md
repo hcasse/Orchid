@@ -14,3 +14,4 @@ Use one of the test script in `test` directory.
 
 * Split Pane: https://htmldom.dev/create-resizable-split-views/
 
+* Support for theme: https://github.com/SebastJava/mint-yz-theme/tree/master
