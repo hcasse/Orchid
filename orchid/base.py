@@ -203,7 +203,7 @@ class AbstractComponent(Displayable, Subject):
 
 	def make_attr(self, val):
 		"""Prepare a string to displayed as an attribute."""
-		return html.escape(val, quote=True)
+		return html.escape(str(val), quote=True)
 
 	def gen_attr(self, out, att, val = None):
 		"""Generate an attribute on the given output."""
