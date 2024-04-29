@@ -37,7 +37,8 @@ class Field(Component):
 		place_holder = None,
 		read_only = False,
 		help = None,
-		convert = lambda x: x
+		convert = lambda x: x,
+		enabled = True
 	):
 		Component.__init__(self, FIELD_MODEL)
 		self.label = label
@@ -58,6 +59,26 @@ class Field(Component):
 		self.content = None
 		self.valid = None
 		self.check(init)
+		self.enabled = None
+		self.setEnabled(enabled)
+
+	def setEnabled(self, enabled):
+		"""Set enabled state."""
+		if self.enabled != enabled:
+			if enabled:
+				self.enable()
+			else:
+				self.disable()
+
+	def enable(self):
+		"""Enable the field."""
+		self.enabled = True
+		self.remove_attr("disabled")
+
+	def disable(self):
+		"""Disable the field."""
+		self.enabled = False
+		self.add_attr("disabled")
 
 	def get_content(self):
 		"""Get the content of the field."""
@@ -191,6 +212,114 @@ class RangeField(Field):
 		self.gen_attr(out, "type", "range")
 		self.gen_attr(out, "min", self.min)
 		self.gen_attr(out, "max", self.max)
+
+
+SELECT_MODEL = Model(
+		"select-model",
+		script = """
+function select_choose(m) {
+	let comp = document.getElementById(m.idx);
+	comp.selectedIndex = m.id;
+}
+
+function select_on_choose(elt) {
+	ui_send({id: elt.id, action: "choose", idx: elt.selectedIndex });
+}
+"""
+	)
+
+class Select(Component):
+	"""Field to select from a list."""
+
+	def __init__(self, choices, choice=0, label=None, enabled=True, size=None, help=None):
+		Component.__init__(self, SELECT_MODEL)
+		self.choices = choices
+		self.choice = choice
+		self.enabled = None
+		self.setEnabled(enabled)
+		self.size = size
+		self.label = label
+		self.help = help
+		self.set_attr("onchange", 'select_on_choose(this);')
+
+	def setEnabled(self, enabled):
+		"""Set the enabled state."""
+		if enabled != self.enabled:
+			if enabled:
+				self.enable()
+			else:
+				self.disable()
+
+	def enable(self):
+		"""Enable the selector."""
+		self.remove_attr("disabled")
+		self.enabled = True
+
+	def disable(self):
+		"""Disable the selector."""
+		self.add_attr("disabled")
+		self.enabled = True
+
+	def get_choice(self):
+		"""Get the current choice number."""
+		return self.choice
+
+	def set_choice(self, choice):
+		"""Set the current choice."""
+		if self.choice != choice:
+			self.choice = choice
+			self.call("select_choose", {"id": self.get_id(), "idx": self.choice})
+
+	def receive(self, m, h):
+		if m["action"] == "choose":
+			self.choice = m["idx"]
+		else:
+			Component.receive(self, m, h)
+
+	def gen(self, out):
+		out.write("<div>")
+		if self.label is not None:
+			out.write('<label for="%s">%s</label>' % (self.get_id(), self.label))
+		out.write('<select')
+		self.gen_attrs(out)
+		if self.label is not None:
+			out.write(' name="%s"' % self.get_id())
+		if self.help is not None:
+			self.gen_attr(out, "title", self.help)
+		out.write('>')
+		self.gen_options(out)
+		out.write('</select>')
+		out.write("</div>")
+
+	def gen_option(self, i, out):
+		out.write('<option value="%s">%s</option>' % (i, self.choices[i]))
+
+	def gen_options(self, out):
+		for i in range(0, len(self.choices)):
+			self.gen_option(i, out)
+
+	def set_choices(self, choices):
+		"""Change the set of choices."""
+		self.choices = choices
+		self.choice = 0
+		if self.online():
+			buf = Buffer()
+			self.gen_options(buf)
+			self.set_content(str(buf))
+
+	def add_choice(self, choice):
+		"""Add a choice to the list of choices."""
+		self.choices.append(choice)
+		if self.online():
+			buf = Buffer()
+			self.gen_option(len(self.choices)-1, buf)
+			self.append_content(str(buf))
+
+	def remove_choice(self, i):
+		"""Remove the choice matching the given number."""
+		del self.choices[i]
+		if self.online():
+			self.remove_child(i)
 
 
 def as_natural(x):

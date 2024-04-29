@@ -24,7 +24,7 @@ from orchid.label import Label
 from orchid.label import Banner
 from orchid.field import Field, ColorField, DateField, TimeField, \
 	DateTimeField, PasswordField, EmailField, RangeField, \
-	as_natural, as_re
+	Select, as_natural, as_re
 from orchid.group import HGroup, VGroup, Spring, LayeredPane
 from orchid.tabbedpane import TabbedPane, Tab
 from orchid.updater import *

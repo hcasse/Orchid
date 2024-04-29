@@ -3,10 +3,17 @@
 
 :root {
 	--sequence-separation-fill: lightcyan;
-	--select: purple;
+	/*--select: purple;*/
+	--mydarkorange: #d64832ff;
+	--myorange: #f65a16ff;
+	--mylightorange: #fe7339ff;
+	--myyellow: #edac70ff;
+	--myred: #c31f26ff;
+	--mydarkred: #a53b4aff2;
 	--back: #EEEEEE;
 	--border: gray;
 	--error-back: #FF7F7F;
+	--select: var(--myorange);
 }
 
 
@@ -394,4 +401,14 @@ dialog {
 	background: white;
 	border: 1px solid black;
 	padding: 0;	
+}
+
+
+/* banner */
+.banner {
+	font-size: 1.5em;
+	font-weight: bold;
+	padding: 6px;
+	background-image: linear-gradient(to bottom right, var(--myyellow), var(--mylightorange));
+
 }
