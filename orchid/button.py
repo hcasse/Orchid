@@ -30,7 +30,7 @@ class AbstractButton(Component):
 
 		
 
-BUTTON_MODEL = Model("button")
+BUTTON_MODEL = Model("button-model")
 
 class Button(AbstractButton):
 	"""Represents a simple button that can represented by a label

@@ -18,6 +18,7 @@
 """Orchid base classes and definitions. """
 
 import html
+import importlib
 import time
 from orchid.util import *
 
@@ -487,7 +488,7 @@ class Page(AbstractComponent):
 	"""Implements a page ready to be displayed."""
 
 	def __init__(self, main = None, parent = None,
-	app = None, title = None, style = "default.css"):
+	app = None, title = None, style = "default.css", theme = "basic"):
 		AbstractComponent.__init__(self)
 		self.messages = []
 		self.is_online = False
@@ -500,11 +501,24 @@ class Page(AbstractComponent):
 		self.hidden = []
 		self.set_attr("onbeforeunload", "ui_close();")
 		self.set_attr("onclick", "ui_complete();")
+
+		# prepare the theme
+		if isinstance(theme, str):
+			m = importlib.import_module("orchid.themes.%s" % theme)
+			theme = m.get()
+		self.theme = theme
+
+		# install main component
 		if main != None:
 			self.set_main(main)
 		else:
 			self.models = {}
 			self.components = {}
+		self.add_model(theme)
+
+	def get_theme(self):
+		"""Get the current theme of the page."""
+		return self.theme
 
 	def online(self):
 		"""Test if the current page is online.
@@ -669,7 +683,7 @@ class Page(AbstractComponent):
 
 	def gen_style_paths(self, out):
 		"""Called to generate linked CSS."""
-		ss = ["basic.css", self.base_style]
+		ss = [self.base_style]
 		for m in self.models:
 			for s in m.get_style_paths():
 				if s not in ss:
@@ -850,7 +864,8 @@ class Application:
 		description = None,
 		website = None,
 		icon = None,
-		style_paths = []
+		style_paths = [],
+		theme = "basic"
 	):
 		self.name = name
 		self.version = version
@@ -860,6 +875,11 @@ class Application:
 		self.website = website
 		self.icon = icon
 		self.style_paths = style_paths
+		self.theme = theme
+
+	def get_theme(self):
+		"""Get the theme of the application."""
+		return self.theme
 
 	def first(self):
 		"""Function called to get the first page."""
@@ -941,3 +961,26 @@ class Plain(Component):
 		out.write(self.text)
 		if self.in_tag is not None:
 			out.write("</%s>" % self.in_tag)
+
+
+class Theme(Model):
+	"""A theme represented a set of assorted resource to display the UI."""
+
+	def __init__(self,
+		name = None,
+		parent = None,
+		style = "",
+		script = "",
+		style_paths = [],
+		script_paths = []
+	):
+		Model.__init__(self, name, parent, style, script, style_paths, script_paths)
+
+	def get_name(self):
+		"""Get the name of the theme."""
+		return self.name
+
+	def get_icon(self, name, color = None):
+		"""Get an icon by name. Possibly with a color if the icon is monochrom."""
+		return None
+

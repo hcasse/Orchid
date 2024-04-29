@@ -5,7 +5,7 @@ from orchid.label import Label
 from orchid.group import HGroup, Spring, HGROUP_MODEL
 
 # Header component
-HEADER_MODEL = Model(HGROUP_MODEL)
+HEADER_MODEL = Model("hgroupo-model", parent=HGROUP_MODEL)
 
 class Header(HGroup):
 
