@@ -2,6 +2,8 @@
 
 import re
 from orchid.base import *
+from orchid.group import VGroup
+from orchid.label import Label
 
 FIELD_MODEL = Model(
 	"abstract-field-model",
@@ -38,9 +40,10 @@ class Field(Component):
 		read_only = False,
 		help = None,
 		convert = lambda x: x,
-		enabled = True
+		enabled = True,
+		model = FIELD_MODEL
 	):
-		Component.__init__(self, FIELD_MODEL)
+		Component.__init__(self, model)
 		self.label = label
 		self.size = size
 		self.valid = True
@@ -88,17 +91,17 @@ class Field(Component):
 			return None
 
 	def gen_custom(self, out):
+		"""Called to generate custom attributes (used for specialization).
+		Default implementation selects text type."""
 		self.gen_attr(out, "type", "text")
 
-	def gen(self, out):
-		out.write("<div ")
-		self.gen_attrs(out)
-		out.write(">")
-		if self.label != None:
-			out.write('<label for="%s-field">%s</label>' % (self.get_id(), self.label))
-		out.write('<input id="%s-field"' % self.get_id())
-		self.gen_attr(out, "value", self.content)
-		self.gen_attr(out, "oninput", 'field_change("%s", this.value);' % self.get_id())
+	def gen_custom_content(self, out):
+		"""Called to generate custom content (just after input).
+		Default implementation does nothing."""
+		pass
+
+	def gen_input_attrs(self, out):
+		"""Generate attributes that goes inside <input> tag."""
 		if self.size != None:
 			self.gen_attr(out, "size", self.size)
 		if self.place_holder is not None:
@@ -108,8 +111,28 @@ class Field(Component):
 		if self.help is not None:
 			self.gen_attr(out, "title", self.help)
 		self.gen_custom(out)
+		self.gen_attr(out, "value", self.content)
+		self.gen_attr(out, "oninput", 'field_change("%s", this.value);' % self.get_id())
+
+	def gen_label(self, out):
+		"""Generate label for the field."""
+		if self.label != None:
+			out.write('<label for="%s-field">%s</label>' % (self.get_id(), self.label))
+
+	def gen_input(self, out):
+		"""Generate the <input> tag."""
+		out.write('<input id="%s-field"' % self.get_id())
+		self.gen_input_attrs(out)
+		out.write('>')
+		self.gen_custom_content(out)
+		out.write('</input>')
+
+	def gen(self, out):
+		out.write("<div ")
 		self.gen_attrs(out)
-		out.write('/>')
+		out.write(">")
+		self.gen_label(out)
+		self.gen_input(out)
 		out.write("</div>")
 
 	def set_validity(self, valid):
@@ -320,6 +343,129 @@ class Select(Component):
 		del self.choices[i]
 		if self.online():
 			self.remove_child(i)
+
+
+PROPOSAL_MODEL = Model(
+	"field.proposal-model",
+	parent = FIELD_MODEL,
+
+	style = """
+.proposal-field {
+	display: inline-block;
+}
+
+.proposal-field div {
+	display: inline-block;
+}
+
+.proposal-selected {
+	background-color: var(--myyellow);
+}
+
+.proposal-popup {
+	display: none;
+	position: absolute;
+	z-index: 1;
+	width: max-content;
+	padding: 4px;
+	box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+	background-color: #EEEEEE;
+}
+""",
+
+	script = """
+var proposal_pos = null;
+
+function proposal_reset() {
+	let parent = proposal_pos.parentElement;
+	if(proposal_pos != null)
+		proposal_pos.classList.remove("proposal-selected");
+	proposal_pos = null;
+	parent.style.display = "none";
+}
+
+function proposal_on_key_down(id_props, id_input, evt) {
+	console.log("Key = " + evt.key);
+	if(evt.key == "ArrowDown") {
+		if(proposal_pos != null) {
+			proposal_pos.classList.remove("proposal-selected");
+			proposal_pos = proposal_pos.nextElementSibling;
+		}
+		if(proposal_pos == null)
+			proposal_pos = document.getElementById(id_props).firstElementChild;
+		proposal_pos.classList.add("proposal-selected");
+	}
+	else if(evt.key == "ArrowUp") {
+		if(proposal_pos != null) {
+			proposal_pos.classList.remove("proposal-selected");
+			proposal_pos = proposal_pos.previousElementSibling;
+		}
+		if(proposal_pos == null)
+			proposal_pos = document.getElementById(id_props).lastElementChild;
+		proposal_pos.classList.add("proposal-selected");
+	}
+	else if(evt.key == "Enter" && proposal_pos != null) {
+		let elt = document.getElementById(id_input + "-field");
+		let value = proposal_pos.innerHTML;
+		elt.value = value;
+		proposal_reset();
+		ui_send({id: id_input, action: "select", value: value});
+	}
+}
+"""
+)
+
+class ProposalField(Field):
+	"""Like a field but also with the possibility to provides, with a menu,
+	proposals to the user to shorten the typing effort."""
+
+	def __init__(self, propose = lambda x: [], **args):
+		Field.__init__(self, model=PROPOSAL_MODEL, **args)
+		self.propose = propose
+		self.state = -1
+		self.prev = []
+		self.group = VGroup([])
+		self.group.add_class("proposal-popup")
+		self.group.set_style("display", "none")
+		self.add_class("proposal-field")
+
+	def gen(self, out):
+		out.write("<div ")
+		self.gen_attrs(out)
+		out.write(">")
+		self.gen_label(out)
+		out.write("<div>")
+		self.gen_input(out)
+		self.group.gen(out)
+		out.write("</div></div>")
+
+	def finalize(self, page):
+		Field.finalize(self, page)
+		self.group.finalize(page)
+		self.set_attr("onkeydown", 'proposal_on_key_down("%s", "%s", event);' %
+				(self.group.get_id(), self.get_id()))
+
+	def receive(self, m, h):
+		if m["action"] == "change":
+			print("DEBUG: change ", m["value"])
+			value = m["value"]
+			if value == "":
+				self.group.set_style("display", "none")
+				self.prev = []
+			else:
+				props = self.propose(value)
+				if props != self.prev:
+					self.prev = props
+					if props == [] or (len(props) == 1 and props[0] == value):
+						self.call("proposal_reset")
+					else:
+						self.group.set_style("display", "flex")
+						labs = [Label(prop) for prop in props]
+						self.group.replace_children(labs)
+		elif m["action"] == "select":
+			print("DEBUG: select ", m["value"])
+			self.check(m["value"])
+		Field.receive(self, m, h)
 
 
 def as_natural(x):

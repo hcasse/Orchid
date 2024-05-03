@@ -51,6 +51,27 @@ class Group(Component):
 		if (hw, vw) != self.weight:
 			self.weight = (hw, vw)
 
+	def remove_children(self):
+		"""Remove all children of the group."""
+		self.children = []
+		self.remap_children()
+		self.clear_content()
+
+	def replace_children(self, children):
+		"""Replace all children by the new ones."""
+		if self.online():
+			self.remove_children()
+		self.children = children
+		self.remap_children()
+		for child in children:
+			child.finalize(self.page)
+		if self.online():
+			self.clear_content()
+			buf = orchid.Buffer()
+			for child in children:
+				child.gen(buf)
+			self.set_content(str(buf))
+
 	def insert(self, child, i = -1):
 		"""Add a child to the group."""
 		if i < 0:
