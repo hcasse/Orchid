@@ -22,6 +22,7 @@ class MyPage(Page):
 			self,
 			VGroup([
 				ProposalField(label="Proposal", propose=self.propose),
+				EmailField(label="Email", place_holder="Email"),
 				Editor(init="my editor!")
 			]),
 			app = app

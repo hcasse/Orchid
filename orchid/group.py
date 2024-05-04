@@ -113,14 +113,10 @@ class Group(Component):
 			child.finalize(page)
 
 # HGroup class
-class HGroupModel(Model):
-	"""Represents a group of component horizontally arranged."""
 
-	def __init__(self):
-		Model.__init__(self)
-
-	def gen_style(self, out):
-		out.write("""
+HGROUP_MODEL = Model(
+	"hgroup-model",
+	style = """
 .hgroup-item {
 }
 .hgroup-expand {
@@ -129,23 +125,33 @@ class HGroupModel(Model):
 
 .hgroup {
 	display: flex;
-	vertical-align: middle;
 	flex-wrap: nowrap;
 	column-gap: 4px;
 	align-self: stretch;
 	overflow: hidden;
-	align-items: center;
 }
 """)
 
-HGROUP_MODEL = HGroupModel()
 
 class HGroup(Group):
+	"""Creates an horizontal group.
+	* comps: components in the group.
+	* align: vertival alignment of model (one of ALIGN_ constant)."""
 
-	def __init__(self, comps = [], model = HGROUP_MODEL, align = None):
+	ALIGNS = {
+		ALIGN_NONE: None,
+		ALIGN_TOP: "start",
+		ALIGN_BOTTOM: "end",
+		ALIGN_CENTER: "center",
+		ALIGN_JUSTIFY: "stretch"
+	}
+
+	def __init__(self, comps = [], model = HGROUP_MODEL, align = ALIGN_LEFT):
 		Group.__init__(self, model, comps)
-		self.align = align
 		self.add_class("hgroup")
+		align = HGroup.ALIGNS[align]
+		if align is not None:
+			self.set_style("align-items", align)
 
 	def map_child(self, child):
 		Group.map_child(self, child)
@@ -177,7 +183,6 @@ class VGroupModel(Model):
 	def gen_style(self, out):
 		out.write("""
 .vgroup-item {
-	align-self: center;
 }
 .vgroup-expand {
 	align-self: stretch;
@@ -190,7 +195,6 @@ class VGroupModel(Model):
 	row-gap: 4px;
 	align-self: stretch;
 	overflow: hidden;
-	align-items: center;
 }
 """)
 # 	white-space: nowrap;
@@ -199,11 +203,24 @@ class VGroupModel(Model):
 VGROUP_MODEL = VGroupModel()
 
 class VGroup(Group):
+	"""Display a group of components vertically.
+	* comps: components in the group.
+	* align: horizontal alignment of components (one of ALIGN_ constant)."""
 
-	def __init__(self, comps, model = VGROUP_MODEL, align = None):
+	ALIGNS = {
+		ALIGN_NONE: None,
+		ALIGN_LEFT: "start",
+		ALIGN_RIGHT: "end",
+		ALIGN_CENTER: "center",
+		ALIGN_JUSTIFY: "stretch"
+	}
+
+	def __init__(self, comps, model = VGROUP_MODEL, align = ALIGN_NONE):
 		Group.__init__(self, model, comps)
-		self.align = align
 		self.add_class("vgroup")
+		align = VGroup.ALIGNS[align]
+		if align is not None:
+			self.set_style("align-items", align)
 
 	def map_child(self, child):
 		Group.map_child(self, child)

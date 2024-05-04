@@ -367,24 +367,33 @@ PROPOSAL_MODEL = Model(
 	position: absolute;
 	z-index: 1;
 	width: max-content;
-	padding: 4px;
-	box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
-	background-color: #EEEEEE;
 }
 """,
 
 	script = """
 var proposal_pos = null;
+var proposal_props = null;
+var proposal_input = null;
 
-function proposal_reset() {
-	let parent = proposal_pos.parentElement;
-	if(proposal_pos != null)
+function proposal_hide() {
+	if(proposal_pos != null) {
 		proposal_pos.classList.remove("proposal-selected");
-	proposal_pos = null;
-	parent.style.display = "none";
+		proposal_pos = null;
+	}
+	if(proposal_props != null) {
+		proposal_props.style.display = "none";
+		proposal_props = null;
+	}
 }
 
-function proposal_on_key_down(id_props, id_input, evt) {
+function proposal_show(m) {
+	proposal_props = document.getElementById(m.props);
+	proposal_props.style.display = "flex";
+	proposal_input = document.getElementById(m.input);
+	proposal_pos = null;
+}
+
+function proposal_on_key_down(evt) {
 	console.log("Key = " + evt.key);
 	if(evt.key == "ArrowDown") {
 		if(proposal_pos != null) {
@@ -392,8 +401,10 @@ function proposal_on_key_down(id_props, id_input, evt) {
 			proposal_pos = proposal_pos.nextElementSibling;
 		}
 		if(proposal_pos == null)
-			proposal_pos = document.getElementById(id_props).firstElementChild;
+			proposal_pos = proposal_props.firstElementChild;
 		proposal_pos.classList.add("proposal-selected");
+		event.stopPropagation();
+		event.preventDefault();
 	}
 	else if(evt.key == "ArrowUp") {
 		if(proposal_pos != null) {
@@ -401,15 +412,21 @@ function proposal_on_key_down(id_props, id_input, evt) {
 			proposal_pos = proposal_pos.previousElementSibling;
 		}
 		if(proposal_pos == null)
-			proposal_pos = document.getElementById(id_props).lastElementChild;
+			proposal_pos = proposal_props.lastElementChild;
 		proposal_pos.classList.add("proposal-selected");
+		event.stopPropagation();
+		event.preventDefault();
 	}
 	else if(evt.key == "Enter" && proposal_pos != null) {
-		let elt = document.getElementById(id_input + "-field");
 		let value = proposal_pos.innerHTML;
-		elt.value = value;
-		proposal_reset();
+		proposal_input.value = value;
+		proposal_hide();
 		ui_send({id: id_input, action: "select", value: value});
+	}
+	else if(evt.key == "Escape") {
+		proposal_hide();
+		event.stopPropagation();
+		event.preventDefault();
 	}
 }
 """
@@ -422,9 +439,8 @@ class ProposalField(Field):
 	def __init__(self, propose = lambda x: [], **args):
 		Field.__init__(self, model=PROPOSAL_MODEL, **args)
 		self.propose = propose
-		self.state = -1
 		self.prev = []
-		self.group = VGroup([])
+		self.group = VGroup([], align=ALIGN_JUSTIFY)
 		self.group.add_class("proposal-popup")
 		self.group.set_style("display", "none")
 		self.add_class("proposal-field")
@@ -439,29 +455,39 @@ class ProposalField(Field):
 		self.group.gen(out)
 		out.write("</div></div>")
 
+	def gen_input_attrs(self, out):
+		Field.gen_input_attrs(self, out)
+		out.write(' onfocusout="proposal_hide();"')
+
 	def finalize(self, page):
 		Field.finalize(self, page)
 		self.group.finalize(page)
-		self.set_attr("onkeydown", 'proposal_on_key_down("%s", "%s", event);' %
-				(self.group.get_id(), self.get_id()))
+		self.set_attr("onkeydown", 'proposal_on_key_down(event);')
+
+	def show(self):
+		self.call("proposal_show",
+			{"props": self.group.get_id(), "input": "%s-field" % self.get_id()})
+
+	def hide(self):
+		self.call("proposal_hide")
 
 	def receive(self, m, h):
 		if m["action"] == "change":
-			print("DEBUG: change ", m["value"])
+			#print("DEBUG: change ", m["value"])
 			value = m["value"]
 			if value == "":
-				self.group.set_style("display", "none")
+				self.hide()
 				self.prev = []
 			else:
 				props = self.propose(value)
 				if props != self.prev:
 					self.prev = props
 					if props == [] or (len(props) == 1 and props[0] == value):
-						self.call("proposal_reset")
+						self.hide()
 					else:
-						self.group.set_style("display", "flex")
 						labs = [Label(prop) for prop in props]
 						self.group.replace_children(labs)
+						self.show()
 		elif m["action"] == "select":
 			print("DEBUG: select ", m["value"])
 			self.check(m["value"])

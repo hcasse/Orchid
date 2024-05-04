@@ -38,6 +38,33 @@ ICON_FORWARD = "forward"
 ICON_BACKWARD = "backward"
 ICON_MENU = "menu"
 
+# position
+POS_CENTER = 0
+POS_BELOW = 1
+POS_ABOVE = 2
+POS_LEFT = 3
+POS_RIGHT = 4
+
+# direction
+DIR_NORTH = 0
+DIR_NORTH_EAST = 1
+DIR_EAST = 2
+DIR_SOUTH_EAST = 3
+DIR_SOUTH = 4
+DIR_SOUTH_WEST = 5
+DIR_WEST = 6
+DIR_NORTH_EAST = 7
+DIR_CENTER = 8
+
+# alignment
+ALIGN_NONE = 0
+ALIGN_LEFT = 1
+ALIGN_RIGHT = 2
+ALIGN_TOP = 1
+ALIGN_BOTTOM = 2
+ALIGN_CENTER = 3
+ALIGN_JUSTIFY = 4
+
 def write_nothing(page, out):
 	"""Funcion writing nothing to out."""
 	pass

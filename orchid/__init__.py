@@ -44,19 +44,3 @@ def text(type, text):
 	of SUCCESS, FAILED or INFO."""
 	return '<span class="text-%s">%s</span>' % (type, text)
 
-POS_CENTER = 0
-POS_BELOW = 1
-POS_ABOVE = 2
-POS_LEFT = 3
-POS_RIGHT = 4
-
-DIR_NORTH = 0
-DIR_NORTH_EAST = 1
-DIR_EAST = 2
-DIR_SOUTH_EAST = 3
-DIR_SOUTH = 4
-DIR_SOUTH_WEST = 5
-DIR_WEST = 6
-DIR_NORTH_EAST = 7
-DIR_CENTER = 8
-

@@ -412,3 +412,29 @@ dialog {
 	background-image: linear-gradient(to bottom right, var(--myyellow), var(--mylightorange));
 
 }
+
+
+/* proposal field */
+.proposal-field {
+}
+
+.proposal-field div {
+}
+
+.proposal-selected {
+	background-color: var(--myyellow);
+}
+
+.proposal-popup {
+	padding: 2px;
+	box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+	background-color: white;
+	border-width: 2px;
+	border-color: var(--back);
+	border-style: solid;
+	gap: 0 !important;
+}
+
+.proposal-popup div {
+	padding: 2px 4px 2px 4px;
+}

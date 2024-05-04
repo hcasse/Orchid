@@ -35,7 +35,7 @@ class Label(Component):
 		if self.online():
 			buf = Buffer()
 			self.gen_content(buf)
-			self.set_content(buf)
+			self.set_content(str(buf))
 
 BANNER_MODEL = Model()
 
