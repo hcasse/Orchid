@@ -5,6 +5,7 @@ from orchid import *
 class MyPage(Page):
 
 	def __init__(self, app):
+		self.my_field = Field("Set test", init="ok")
 		Page.__init__(
 			self,
 			VGroup([
@@ -20,10 +21,14 @@ class MyPage(Page):
 				PasswordField(label="Password"),
 				EmailField(label="EMail"),
 				RangeField(0, 10, label="Range"),
-				Button("Let's go!")
+				self.my_field,
+				Button("Let's go!", on_click=self.go)
 			]),
 			app = app
 		)
+
+	def go(self):
+		self.my_field.set_value("ko!")
 
 	def done(self):
 		print("Done!")
@@ -39,5 +44,5 @@ class MyApp(Application):
 	def first(self):
 		return MyPage(self)
 
-run(MyApp())
+run(MyApp(), debug=True)
 

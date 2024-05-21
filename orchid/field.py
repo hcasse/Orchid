@@ -146,6 +146,7 @@ class Field(Component):
 				self.add_class("invalid")
 
 	def check(self, content):
+		"""Check the current value."""
 		content = self.validate(content)
 		if content == None:
 			self.set_validity(False)
@@ -161,6 +162,13 @@ class Field(Component):
 			self.check(content)
 		else:
 			Component.receive(self, m, h)
+
+	def set_value(self, val):
+		"""Set the current value."""
+		if self.online():
+			self.get_page().set_direct_attr(\
+				"%s-field" % self.get_id(), "value", val)
+		self.check(val)
 
 
 class ColorField(Field):
