@@ -161,7 +161,6 @@ class Model:
 class Handler:
 	"""Interface providing access to the HTTP server handler."""
 
-	
 
 class Displayable:
 	"""Defines an object that may be displayed in the UI but is not
@@ -394,6 +393,10 @@ class AbstractComponent(Displayable, Subject):
 			if self.online():
 				self.send_classes(self.classes)
 
+	def set_top_class(self, cls):
+		"""Customize the component as a top component with the given class. The default implementation applies the style to the page."""
+		self.get_page().add_class(cls)
+
 
 class Component(AbstractComponent):
 	"""Component to build a user-interface. A component may be displayed
@@ -615,6 +618,7 @@ class Page(AbstractComponent):
 		self.models = {}
 		main.finalize(self)
 		main.set_style("flex", "1")
+		main.set_top_class("top-content")
 
 	def get_context(self):
 		return CONTEXT_MAIN

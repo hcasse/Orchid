@@ -89,7 +89,12 @@ class Group(Component):
 				self.insert_child(str(buf), i)
 
 	def remove(self, i):
-		"""Remove a child."""
+		"""Remove a child. i may be the index or the sub-component to remove."""
+		if not isinstance(i, int):
+			try:
+				i = self.children.index(i)
+			except ValueError:
+				return
 		self.remove_child(i)
 		del self.children[i]
 		self.remap_children()

@@ -13,6 +13,8 @@
 	--back: #EEEEEE;
 	--border: gray;
 	--error-back: #FF7F7F;
+	--warn-back: #fe7339ff;
+	--info-back: #add8e6;
 	--select: var(--myorange);
 }
 
@@ -34,7 +36,6 @@ html {
 
 body {
 	box-sizing: border-box;
-	padding: 8px;
 	margin: 0;
 	display: flex;
 	flex-direction: column;
@@ -45,16 +46,14 @@ body {
 	font-size: 11px;
 }
 
-#head {
-	flex: 0 1 auto;
-	padding: 8px 8px 0 8px;
+.top-content {
+	padding: 8px;
 }
 
-/*#content {
-	flex: 1 1 auto;
-	padding: 8px;
-	overflow: auto;
-}*/
+#head {
+	flex: 0 1 auto;
+}
+
 
 #tail {
 	flex: 0 1 auto;
@@ -119,45 +118,6 @@ a.button-disabled {
 }
 
 
-/* button style */
-/*a.tool-button {
-	padding: 2px 2px 2px 2px;
-	border-style: solid;
-	border-width: 1px;
-	border-color: #EEEEEE;
-	display: inline-block;
-	border-radius: 10px;
-	margin: 2px;
-}
-
-a.tool-button:link, a.tool-button:visited {
-	color: black;
-}
-
-a.tool-button:hover {
-	background-color: white;
-	border-color: #CCCCCC;
-}
-
-a.tool-button:active {
-	border-color: #92B372;
-	background-color: #92B372;
-	color: white;
-}
-
-a.tool-button-disabled {
-	padding: 2px 2px 2px 2px;
-	border-style: solid;
-	border-width: 1px;
-	border-color: #EEEEEE;
-	display: inline-block;
-	border-radius: 10px;
-	margin: 2px;
-	color: #CCCCCC;
-	pointer-events: none;
-}*/
-
-
 /* field style */
 div.field input {
 	margin: 0;
@@ -196,6 +156,21 @@ div.field label {
 	font-size: 1.5em;
 }
 
+.message {
+	padding: 8px;
+}
+
+.error-back {
+	background-color: var(--error-back);
+}
+
+.warn-back {
+	background-color: var(--warn-back);
+}
+
+.info-back {
+	background-color: var(--info-back);
+}
 
 
 /* Structure */
@@ -438,3 +413,6 @@ dialog {
 .proposal-popup div {
 	padding: 2px 4px 2px 4px;
 }
+
+
+/* message container */

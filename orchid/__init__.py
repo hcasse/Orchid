@@ -30,7 +30,7 @@ from orchid.tabbedpane import TabbedPane, Tab
 from orchid.updater import *
 from orchid.editor import Editor
 from orchid.console import Console
-from orchid.struct import Header, ToolBar
+from orchid.struct import Header, ToolBar, MessageContainer
 from orchid.image import Icon, Image, AssetImage
 from orchid.server import run
 from orchid.view import InteractiveView
