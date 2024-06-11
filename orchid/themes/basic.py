@@ -18,6 +18,13 @@
 """Definition of basic theme."""
 
 import orchid
+from orchid.image import AssetImage
+
+MESSAGES = {
+	"warning": "basic/warning.svg",
+	"error": "basic/error.svg",
+	"info": "basic/info.svg"
+}
 
 BOOTSTRAP_ICONS = {
 
@@ -221,9 +228,16 @@ class Theme(orchid.Theme):
 			"bootstrap-icons/bootstrap-icons.css"
 		])
 
-
 	def get_icon(self, name, color=None):
 		return Icon(name, color)
 
+	def get_dialog_icon(self, type, size=32):
+		if type in MESSAGES:
+			return AssetImage(MESSAGES[type], width=size)
+		else:
+			return None
+
+
 def get():
+	"""Get an instance of this theme."""
 	return Theme()

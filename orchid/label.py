@@ -5,7 +5,7 @@ from orchid.base import *
 LABEL_MODEL = Model()
 
 class Label(Component):
-	"""Display a single HTML text."""
+	"""Component displaying the given content that may be plain or an instance of Displayable."""
 
 	def __init__(self, content):
 		Component.__init__(self, LABEL_MODEL)

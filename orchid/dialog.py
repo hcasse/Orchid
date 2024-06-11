@@ -146,8 +146,9 @@ class Message(Base):
 			content.append(self.make_title(title))
 		message = self.make_message(message)
 		message.add_class("dialog-message-text")
-		if type != None and type in MESSAGES:
-			icon = Label(AssetImage(MESSAGES[type], width=32))
+		icon = page.get_theme().get_dialog_icon(type)
+		if icon is not None:
+			icon = Label(icon)
 			icon.add_class("dialog-icon")
 			content.append(HGroup([
 				icon,

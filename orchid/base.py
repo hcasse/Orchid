@@ -65,6 +65,12 @@ ALIGN_BOTTOM = 2
 ALIGN_CENTER = 3
 ALIGN_JUSTIFY = 4
 
+# message type
+MSG_WARN = "warning"
+MSG_ERROR = "error"
+MSG_INFO = "info"
+
+
 def write_nothing(page, out):
 	"""Funcion writing nothing to out."""
 	pass
@@ -1015,3 +1021,7 @@ class Theme(Model):
 		"""Get an icon by name. Possibly with a color if the icon is monochrom."""
 		return None
 
+	def get_dialog_icon(self, type):
+		"""Get the icon for a dialog. type must be one of MSG_XXX constant.
+		May return None if the type is not supported."""
+		return None
