@@ -1,15 +1,18 @@
 #!/usr/bin/python3
 
 from orchid import *
+from orchid.mind import *
 
 class MyPage(Page):
 
 	def __init__(self, app):
 		self.my_field = Field("Set test", init="ok")
+		self.my_text = Var("")
+		self.my_text.add_observer(self.update_text)
 		Page.__init__(
 			self,
 			VGroup([
-				Field("Type text:"),
+				Field("Type text:", var=self.my_text),
 				Field("Type natural:", validate=as_natural),
 				Field("Type binary:", validate=as_re("[01]+")),
 				Field("With place holder:", place_holder="a place holder"),
@@ -26,6 +29,9 @@ class MyPage(Page):
 			]),
 			app = app
 		)
+
+	def update_text(self, subject):
+		print("DEBUG: updated", self.my_text.get())
 
 	def go(self):
 		self.my_field.set_value("ko!")

@@ -4,6 +4,8 @@ import re
 from orchid.base import *
 from orchid.group import VGroup
 from orchid.label import Label
+from orchid.mind import Var, Entity
+
 
 FIELD_MODEL = Model(
 	"abstract-field-model",
@@ -32,7 +34,7 @@ class Field(Component):
 
 	def __init__(self,
 		label = None,
-		init = "",
+		init = None,
 		size = None,
 		validate = lambda x: x,
 		weight = None,
@@ -41,12 +43,22 @@ class Field(Component):
 		help = None,
 		convert = lambda x: x,
 		enabled = True,
-		model = FIELD_MODEL
+		model = FIELD_MODEL,
+		var = None
 	):
 		Component.__init__(self, model)
-		self.label = label
+
+		# var construction
+		if var is None:
+			self.var = self.make_var(init,
+				label=self.label,
+				help=self.help)
+		else:
+			self.var = var
+
+		# other attributes
 		self.size = size
-		self.valid = True
+		self.convert = convert
 		self.validate = validate
 		self.place_holder = place_holder
 		if weight == None:
@@ -56,16 +68,26 @@ class Field(Component):
 				weight = (1, 0)
 		self.weight = weight
 		self.read_only = read_only
-		self.add_class("field")
-		self.help = help
-		self.convert = convert
-		self.content = None
-		self.valid = None
-		self.check(init)
-		self.enabled = None
-		self.setEnabled(enabled)
 
-	def setEnabled(self, enabled):
+		# internal state
+		self.valid = None
+		self.add_class("field")
+		self.check(self.var.get())
+		self.enabled = None
+		self.set_enabled(enabled)
+
+	def make_var(self, init, **args):
+		"""Build a variable for the current field."""
+		if init is None:
+			return Var("", **args)
+		else:
+			return Var(init)
+
+	def get_var(self):
+		"""Get the variable containing the value of the field."""
+		return self.var
+
+	def set_enabled(self, enabled):
 		"""Set enabled state."""
 		if self.enabled != enabled:
 			if enabled:
@@ -83,12 +105,19 @@ class Field(Component):
 		self.enabled = False
 		self.add_attr("disabled")
 
-	def get_content(self):
+	def get_value(self):
 		"""Get the content of the field."""
 		if self.valid:
-			return self.content
+			return self.var.get()
 		else:
 			return None
+
+	def set_value(self, val):
+		"""Set the current value."""
+		if self.online():
+			self.get_page().set_direct_attr(\
+				"%s-field" % self.get_id(), "value", str(val))
+		self.check(val)
 
 	def gen_custom(self, out):
 		"""Called to generate custom attributes (used for specialization).
@@ -108,16 +137,18 @@ class Field(Component):
 			self.gen_attr(out, "placeholder", self.place_holder)
 		if self.read_only:
 			self.gen_attr(out, "readonly")
-		if self.help is not None:
-			self.gen_attr(out, "title", self.help)
+		if self.var.help is not None:
+			self.gen_attr(out, "title", self.var.help)
 		self.gen_custom(out)
-		self.gen_attr(out, "value", self.content)
+		val = self.get_value()
+		if val is not None:
+			self.gen_attr(out, "value", val)
 		self.gen_attr(out, "oninput", 'field_change("%s", this.value);' % self.get_id())
 
 	def gen_label(self, out):
 		"""Generate label for the field."""
-		if self.label != None:
-			out.write('<label for="%s-field">%s</label>' % (self.get_id(), self.label))
+		if self.var.label != None:
+			out.write('<label for="%s-field">%s</label>' % (self.get_id(), self.var.label))
 
 	def gen_input(self, out):
 		"""Generate the <input> tag."""
@@ -136,6 +167,7 @@ class Field(Component):
 		out.write("</div>")
 
 	def set_validity(self, valid):
+		"""Mark the field as valid or invalid."""
 		if self.valid != valid:
 			self.valid = valid
 			if valid:
@@ -145,14 +177,20 @@ class Field(Component):
 				self.remove_class("valid")
 				self.add_class("invalid")
 
+	def is_valid(self):
+		"""Test if the field is valid or invalid."""
+		return self.valid
+
 	def check(self, content):
 		"""Check the current value."""
+		if content is None:
+			return
 		content = self.validate(content)
 		if content == None:
 			self.set_validity(False)
 		else:
-			if self.content != content:
-				self.content = content
+			if self.var.get() != content:
+				self.var.set(content)
 				self.update_observers()
 			self.set_validity(True)
 
@@ -162,13 +200,6 @@ class Field(Component):
 			self.check(content)
 		else:
 			Component.receive(self, m, h)
-
-	def set_value(self, val):
-		"""Set the current value."""
-		if self.online():
-			self.get_page().set_direct_attr(\
-				"%s-field" % self.get_id(), "value", val)
-		self.check(val)
 
 
 class ColorField(Field):
@@ -235,9 +266,15 @@ class RangeField(Field):
 	"""Field to edit an email."""
 
 	def __init__(self, min, max, **args):
-		Field.__init__(self, **args)
 		self.min = min
 		self.max = max
+		Field.__init__(self, validate=as_natural, **args)
+
+	def make_var(self, init):
+		if init == None:
+			return Var(None, type=int)
+		else:
+			return Var(init)
 
 	def gen_custom(self, out):
 		self.gen_attr(out, "type", "range")
@@ -267,13 +304,13 @@ class Select(Component):
 		self.choices = choices
 		self.choice = choice
 		self.enabled = None
-		self.setEnabled(enabled)
+		self.set_enabled(enabled)
 		self.size = size
 		self.label = label
 		self.help = help
 		self.set_attr("onchange", 'select_on_choose(this);')
 
-	def setEnabled(self, enabled):
+	def set_enabled(self, enabled):
 		"""Set the enabled state."""
 		if enabled != self.enabled:
 			if enabled:
@@ -504,7 +541,10 @@ class ProposalField(Field):
 
 def as_natural(x):
 	"""Test if the string is numeric."""
-	return x if x.isnumeric() else None
+	try:
+		return int(x)
+	except ValueError:
+		return None
 
 def as_re(r):
 	"""Generate a function to test if the content match RE."""

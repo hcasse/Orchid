@@ -81,6 +81,17 @@ class Observer:
 	def update(self, subject):
 		pass
 
+
+class FunctionObserver(Observer):
+	"""An observer implemented as a function."""
+
+	def __init__(self, fun):
+		self.fun = fun
+
+	def update(self, subject):
+		self.fun(subject)
+
+
 class Subject:
 	"""Observer for subject-observer pattern."""
 
@@ -98,8 +109,13 @@ class Subject:
 				yield obs
 
 	def add_observer(self, observer):
-		"""Add an observer to the subject."""
+		"""Add an observer to the subject. The observer may either implements Observer, or be callable (and will take the subject as parameter).
+
+		Return the build observer that may be passed back to remove_observer()."""
+		if callable(observer):
+			observer = FunctionObserver(observer)
 		self.observers.append(observer)
+		return observer
 
 	def remove_observer(self, observer):
 		"""Remove an observer from the subject."""
@@ -403,6 +419,11 @@ class AbstractComponent(Displayable, Subject):
 		"""Customize the component as a top component with the given class. The default implementation applies the style to the page."""
 		self.get_page().add_class(cls)
 
+	def __str__(self):
+		try:
+			return "component(%s)" % self.get_id()
+		except AttributeError:
+			return "page"
 
 class Component(AbstractComponent):
 	"""Component to build a user-interface. A component may be displayed
@@ -486,6 +507,14 @@ class Component(AbstractComponent):
 		"""Called to let component declare additional resources when
 		added to a page."""
 		page.on_add(self)
+
+	def show(self):
+		"""Called when the component is shown. The default implementation does nothing."""
+		pass
+
+	def hide(self):
+		"""Called when the component is hidden."""
+		pass
 
 
 class ExpandableComponent(Component):
@@ -693,6 +722,12 @@ class Page(AbstractComponent):
 		"""Called to close the page."""
 		self.send({"type": "quit"})
 
+	def hide(self):
+		self.main.hide()
+
+	def show(self):
+		self.main.show()
+
 	def manage(self, msg, handler):
 		"""Manage window messages."""
 
@@ -755,6 +790,7 @@ class Page(AbstractComponent):
 	def gen(self, out):
 		for obs in self.filter_observers(PageObserver):
 			obs.on_open(self)
+		self.main.show()
 		out.write("""
 <!DOCTYPE html>
 <html lang="en">

@@ -117,6 +117,15 @@ class Group(Component):
 		for child in self.children:
 			child.finalize(page)
 
+	def show(self):
+		for child in self.children:
+			child.show()
+
+	def hide(self):
+		for child in self.children:
+			child.hide()
+
+
 # HGroup class
 
 HGROUP_MODEL = Model(

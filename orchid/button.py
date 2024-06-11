@@ -2,33 +2,58 @@
 
 from orchid.base import *
 import orchid.image
+from orchid.mind import AbstractAction, EnableObserver
+from orchid.label import Label
 
 
-class AbstractButton(Component):
+class ButtonAction(AbstractAction):
+	"""Default action built from button configuration."""
+
+	def __init__(self, enabled, on_click, **args):
+		AbstractAction.__init__(self, **args)
+		self.enabled = enabled
+		self.on_click = on_click
+
+	def is_enabled(self):
+		return self.enabled
+
+	def perform(self, console):
+		if self.on_click is not None:
+			self.on_click()
+
+
+class AbstractButton(Component, EnableObserver):
 	"""Abstract class for buttons supporting tooltip, enabling/disablong,
 	etc."""
 
-	def __init__(self, model, enabled = True, help = None):
+	def __init__(self, model, enabled=True, help=None, action=None):
 		Component.__init__(self, model)
-		self.enabled = enabled
-		if not self.enabled:
-			self.set_attr("disabled", "")
-		self.set_enabled(enabled)
-		self.help = help
-		if help != None:
-			self.set_attr("title", help)
+		if action is not None:
+			self.action = action
+		else:
+			self.action = ButtonAction(
+				enabled,
+				None,
+				help=help
+			)
 
-	def enable(self):
-		if not self.enabled:
-			self.enabled = True
-			self.remove_attr("disabled")
-
-	def disable(self):
-		if self.enabled:
-			self.enabled = False
+	def show(self):
+		self.action.add_observer(self)
+		if not self.action.is_enabled():
 			self.set_attr("disabled", None)
 
-		
+	def hide(self):
+		self.action.remove_observer(self)
+
+	def enable(self):
+		self.remove_attr("disabled")
+
+	def disable(self):
+		self.set_attr("disabled", None)
+
+	def is_enabled(self):
+		return self.action.is_enabled()
+
 
 BUTTON_MODEL = Model("button-model")
 
@@ -43,6 +68,7 @@ class Button(AbstractButton):
 		on_click = None,
 		enabled = True,
 		help = None,
+		action = None,
 		model = BUTTON_MODEL
 	):
 		"""The parameters are the following:
@@ -50,38 +76,49 @@ class Button(AbstractButton):
 		* image - displayed on the button,
 		* on_click - function called when the button is clicked (no parameter).
 		* enabled - enable/disable the button,
+		* action - orchid.mind action to use,
 		* help - plain text displayed to get help from the button (usually )"""
-		AbstractButton.__init__(self, model, enabled=enabled, help=help)
-		self.label = label
-		self.image = image
-		if image == None and isinstance(label, orchid.image.Image):
+		if action is not None:
+			AbstractButton.__init__(self, model, action=action)
+		else:
+			AbstractButton.__init__(self, model, action=ButtonAction(
+				enabled,
+				on_click,
+				label=label,
+				icon=image,
+				help=help
+			))
+		if self.action.label is None:
 			self.label = None
-			self.image = label
-		if on_click != None:
-			self.on_click = on_click
+		else:
+			self.label = Label(self.action.label)
+		if self.action.help is not None:
+			self.set_attr("title", self.action.help)
 
 	def finalize(self, page):
 		Component.finalize(self, page)
-		if self.image != None:
-			self.image.finalize(page)
+		if self.action.icon != None:
+			self.action.icon.finalize(page)
+		if self.label is not None:
+			self.label.finalize(page)
 
 	def gen(self, out):
 		out.write('<button')
 		self.gen_attrs(out)
-		if not self.enabled:
-			out.write(" disabled")
+		#if not self.is_enabled():
+		#	out.write(" disabled")
 		out.write(' onclick="ui_onclick(\'%s\');">' % self.get_id())
-		if self.image != None:
-			self.image.gen(out, self.parent.get_context())
-		if self.label != None:
-			out.write(self.label)
+		if self.action.icon is not None:
+			self.action.icon.gen(out, self.parent.get_context())
+		if self.label is not None:
+			self.label.gen(out)
 		out.write('</button>')
 		out.write('\n')
 
 	def receive(self, m, h):
 		if m["action"] == "click":
-			if self.enabled:
-				self.on_click()
+			if self.action.is_enabled():
+				self.action.perform(None)
 		else:
 			Component.receive(self, m, h)
 

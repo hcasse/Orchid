@@ -61,20 +61,6 @@ class Console:
 		pass
 	
 
-def observer(f):
-	"""Build an observer from a simple function."""
-
-	class IndirectObserver(Observer):
-
-		def __init__(self, f):
-			self.f = f
-
-		def update(self, subject):
-			self.f(subject)
-
-	return IndirectObserver(f)
-	
-
 class Entity:
 	"""An entity is an object (action, variable) of an application
 	that may be displayed or used by the human user. It is defined
@@ -133,8 +119,36 @@ class Var(Subject, Entity):
 	def __repr__(self):
 		return "var(%s: %s)" % (self.value, self.type)
 
+	def __str__(self):
+		return "var(%s: %s)" % (self.value, self.type)
 
-class AbstractAction(Subject, Entity):
+
+class EnableSubject(Subject):
+	"""A subject that calls enable() or disable() if there is or not observers."""
+
+	def __init__(self):
+		Subject.__init__(self)
+
+	def add_observer(self, observer):
+		if not self.observers:
+			self.enable()
+		Subject.add_observer(self, observer)
+
+	def remove_observer(self, observer):
+		Subject.remove_observer(self, observer)
+		if not self.observers:
+			self.disable()
+
+	def enable(self):
+		"""Called as soon as there is an observer."""
+		pass
+
+	def disable(self):
+		"""Called when there is no more observer."""
+		pass
+
+
+class AbstractAction(EnableSubject, Entity):
 	"""An action represents a command, a procedure that can be applied
 	on the current data set of the application.
 
@@ -156,19 +170,26 @@ class AbstractAction(Subject, Entity):
 		pass
 
 
-class Predicate(Subject, Observer):
+class AbstractPredicate(EnableSubject, Observer):
 	"""A formula that depends on variables and that may be True or
 	False. In turn, a predicate may be observed for changes."""
 
-	def __init__(self, vars = []):
-		Subject.__init__(self)
-		self.vars = vars
-		for var in vars:
-			var.add_observer(self)
-		self.value = self.check()
+	def __init__(self):
+		EnableSubject.__init__(self)
+		self.value = None
+
+	def enable(self):
+		"""Called to enable the predicate."""
+		pass
+
+	def disable(self):
+		"""Called to disable the predicate."""
+		self.value = None
 
 	def get(self):
 		"""Get the value of the predicate."""
+		if self.value is None:
+			self.value = self.check()
 		return self.value
 
 	def check(self):
@@ -176,34 +197,120 @@ class Predicate(Subject, Observer):
 		Default implementation returns True."""
 		return True
 
+
+class Predicate(AbstractPredicate):
+	"""A predicate that lsiten to a set of variables and check with a function."""
+
+	def __init__(self, vars = [], fun = lambda: True ):
+		AbstractPredicate.__init__(self)
+		self.vars = vars
+		self.fun = fun
+
+	def enable(self):
+		AbstractPredicate.enable(self)
+		for var in self.vars:
+			var.add_observer(self)
+
+	def disable(self):
+		for var in self.vars:
+			var.remove_observer(self)
+		AbstractPredicate.disable(self)
+		self.value = None
+
+	def check(self):
+		return self.fun()
+
 	def update(self, subject):
 		value = self.check()
 		if value != self.value:
 			self.value = value
 			self.update_observers()
 
-TRUE = Var(True)
-FALSE = Var(False)
+
+TRUE = AbstractPredicate()
+
+
+class EnableObserver(Observer):
+	"""Observer supporting activation of actions."""
+
+	def enable(self):
+		pass
+
+	def disable(self):
+		pass
+
 
 class Action(AbstractAction, Observer):
-	"""Default implementation of an action with a predication and
-	a function as action. Notice that the predicate may inherit from
-	Predicate but may be also a boolean Var (or anything implementing
-	Subject and evaluating to a boolean)."""
+	"""Default implementation of an action. An action basically
+	perform an action (method action()) when it is invoked.
+	In addition, an action may ne enabled or not depending on
+	an enable predication (default to TRUE - the predicate).
+	The observer must implement EnableObserver."""
 
-	def __init__(self, action, pred=True, **args):
-		AbstractAction.__init__(**args)
-		self.pred = pred
-		pred.add_observer(self)
-		self.action = action
+	def __init__(self, fun, enable=TRUE, **args):
+		AbstractAction.__init__(self, **args)
+		self.enable_pred = enable
+		self.fun = fun
+
+	def enable(self):
+		self.enable_pred.add_observer(self)
+
+	def disable(self):
+		self.enable_pred.remove_observer(self)
+
+	def update(self, subject):
+		if self.is_enabled():
+			for observer in self.filter_observers(EnableObserver):
+				observer.enable()
+		else:
+			for observer in self.filter_observers(EnableObserver):
+				observer.disable()
 
 	def is_enabled(self):
-		return self.pred.get()
+		return self.enable_pred.get()
 
 	def perform(self, console):
-		self.action(console)
+		self.fun(console)
 
-			
-		
 
-	
+def not_null(var):
+	"""Generate a predicate that test if the variable is not None, 0, empty text, empty list, etc."""
+	return Predicate(vars=[var], fun=lambda: bool(var.get()))
+
+
+def not_(pred):
+	"""Predicate inverting the result of another predicate."""
+	class NotPredicate(AbstractPredicate):
+		def enable(self):
+			pred.enable()
+		def disable(self):
+			pred.disable()
+		def check(self):
+			return not pred.check()
+	return NotPredicate()
+
+def and_(preds):
+	"""Predicate performing an AND with the given predicates."""
+	class AndPredicate(AbstractPredicate):
+		def enable(self):
+			for pred in preds:
+				pred.enable()
+		def disable(self):
+			for pred in preds:
+				pred.disable()
+		def check(self):
+			return all([pred.check() for pred in preds])
+	return AndPredicate()
+
+def or_(preds):
+	"""Predicate performing an OR with the given predicates."""
+	class AndPredicate(AbstractPredicate):
+		def enable(self):
+			for pred in preds:
+				pred.enable()
+		def disable(self):
+			for pred in preds:
+				pred.disable()
+		def check(self):
+			return any([pred.check() for pred in preds])
+	return AndPredicate()
