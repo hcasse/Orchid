@@ -19,6 +19,7 @@
 
 import html
 import importlib
+import sys
 import time
 from orchid.util import *
 
@@ -44,6 +45,7 @@ POS_BELOW = 1
 POS_ABOVE = 2
 POS_LEFT = 3
 POS_RIGHT = 4
+
 
 # direction
 DIR_NORTH = 0
@@ -230,11 +232,21 @@ class AbstractComponent(Displayable, Subject):
 		self.classes = []
 		self.style = {}
 		self.attrs = {}
+		self.parent = None
 
 	def online(self):
 		"""Test if the current page is online.
 		Must be implemented by each extension class."""
 		return None
+
+	def get_console(self):
+		"""Get the console to communicate with user."""
+		return self.parent.get_console()
+
+	def set_console(self, console):
+		"""Define the console for the current component. Usually go up in theme
+		component hierarchy to find a context supporting it (ultimately the page)."""
+		self.parent.set_console(console)
 
 	def send(self, msg):
 		"""Send a message to the UI.
@@ -553,7 +565,7 @@ class Page(AbstractComponent):
 	"""Implements a page ready to be displayed."""
 
 	def __init__(self, main = None, parent = None,
-	app = None, title = None, style = "default.css", theme = "basic"):
+	app = None, title = None, style = "default.css", theme = "basic", console=StandardConsole):
 		AbstractComponent.__init__(self)
 		self.messages = []
 		self.is_online = False
@@ -566,6 +578,7 @@ class Page(AbstractComponent):
 		self.hidden = []
 		self.set_attr("onbeforeunload", "ui_close();")
 		self.set_attr("onclick", "ui_complete();")
+		self.console=console
 
 		# prepare the theme
 		if isinstance(theme, str):
@@ -584,6 +597,14 @@ class Page(AbstractComponent):
 	def get_theme(self):
 		"""Get the current theme of the page."""
 		return self.theme
+
+	def get_console(self):
+		"""Get the current console."""
+		return self.console
+
+	def set_console(self, console):
+		"""Change the console."""
+		self.console = console
 
 	def online(self):
 		"""Test if the current page is online.

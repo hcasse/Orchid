@@ -11,14 +11,17 @@ class MyPage(Page):
 		self.pwd = Var("", label="Password")
 		self.repwd = Var("", label="Retype")
 		self.email = Var("", label="EMail")
-		self.message = Label("")
+		self.message = MessageLabel("")
 
 		apply_action = Action(
-				label="Apply",
-				fun = self.apply,
-				enable = Predicate(
-					[self.login, self.pwd, self.email],
-					fun=self.check
+			label="Apply",
+			fun = self.apply,
+			enable =
+				and_(
+					if_error(not_null(self.login), "Login required!"),
+					if_error(is_password(self.pwd), "Password must contains at least 8 character, 1 uppercase, 1 lower case and 1 digit."),
+					if_error(equals(self.pwd, self.repwd), "Password and re-typed different!"),
+					if_error(not_null(self.email), "EMail required!")
 				)
 			)
 
@@ -34,28 +37,6 @@ class MyPage(Page):
 			]),
 			app = app
 		)
-
-	def is_password_valid(self, pwd):
-		return \
-			len(pwd) >= 8 and \
-			any([c.islower() for c in pwd]) and \
-			any([c.isupper() for c in pwd]) and \
-			any([c.isdigit() for c in pwd])
-
-	def check(self):
-		msg = ""
-		if not self.login.get():
-			msg = "Login required!"
-		elif not self.pwd.get():
-			msg = "Empty password forbidden!"
-		elif not self.is_password_valid(self.pwd.get()):
-			msg = "Password must contains at least 8 character, 1 uppercase, 1 lower case and 1 digit"
-		elif self.pwd.get() != self.repwd.get():
-			msg = "Password and retyped password different!"
-		elif not self.email.get():
-			msg = "Email required!"
-		self.message.set_text(msg)
-		return not msg
 
 	def apply(self, console):
 		print("DEBUG: create user", self.login.get(), self.pwd.get(), self.email.get())

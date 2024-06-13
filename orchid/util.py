@@ -15,6 +15,8 @@
 #	License along with Orchid. If not, see <https://www.gnu.org/licenses/>.
 #
 
+import sys
+
 class Buffer:
 	"""Text buffer supporting write function."""
 
@@ -33,3 +35,99 @@ def buffer(fun):
 	buf = Buffer()
 	fun(buf)
 	return str(buf)
+
+
+class Console:
+	"""A console is the abstraction of an interface of the user. It
+	allows to display messages and to ask the user for information.
+	The way these information is really implemented depends on the
+	application itself."""
+
+	def clear_message(self):
+		"""Clear the last message."""
+		pass
+
+	def show_info(self, message):
+		"""Display generic information to the user."""
+		pass
+
+	def show_warning(self, message):
+		""""Display warning to the user."""
+		pass
+
+	def show_error(self, message):
+		"""Display erro message the user."""
+		pass
+
+	def ask_yes_or_no(self, message):
+		""""Ask the user to answer by yes or no and return the value
+		as a boolean (True for yes, False for no)."""
+		pass
+
+	def start_process(self, message):
+		"""Display the start of a process with the given message.
+		At startup is considered implemented at 0%."""
+		pass
+
+	def complete_process(self):
+		"""End the current process."""
+		pass
+
+	def set_process(self, percent):
+		"""Set the current status of the process. Percent is a number
+		between 0 and 1."""
+		pass
+
+
+class StandardConsole(Console):
+	"""Console using standard input/output."""
+
+	def show_info(self, msg):
+		sys.stderr.write("INFO: %s\n" % msg)
+
+	def show_warning(self, msg):
+		sys.stderr.write("WARNING: %s\n" % msg)
+
+	def show_error(self, msg):
+		sys.stderr.write("ERROR: %s\n" % msg)
+
+STANDARD_CONSOLE = StandardConsole()
+
+class ProxyConsole(Console):
+	"""Console redirecting the calls to anotehr console. Useful to specialize
+	some methods of the console. """
+
+	def __init__(self, console = STANDARD_CONSOLE):
+		self.console = console
+
+	def get_proxy(self):
+		"""Get the proxy console."""
+		return self.console
+
+	def set_proxy(self, console):
+		"""Change the proxy console."""
+		self.console = console
+
+	def clear_message(self):
+		self.console.clear_message()
+
+	def show_info(self, message):
+		self.console.show_info(message)
+
+	def show_warning(self, message):
+		self.console.show_warning(message)
+
+	def show_error(self, message):
+		self.console.show_error(message)
+
+	def ask_yes_or_no(self, message):
+		self.console.ask_yes_or_no(message)
+
+	def start_process(self, message):
+		self.console.process(message)
+
+	def complete_process(self):
+		self.console.complete_process()
+
+	def set_process(self, percent):
+		self.console.set_process(percent)

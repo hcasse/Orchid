@@ -1,6 +1,7 @@
 """Label component."""
 
 from orchid.base import *
+from orchid.util import ProxyConsole, STANDARD_CONSOLE
 
 LABEL_MODEL = Model()
 
@@ -37,7 +38,9 @@ class Label(Component):
 			self.gen_content(buf)
 			self.set_content(str(buf))
 
+
 BANNER_MODEL = Model()
+
 
 class Banner(ExpandableComponent):
 	"""Display an HTML text that occupies the whole avaiable width,
@@ -58,4 +61,41 @@ class Banner(ExpandableComponent):
 		out.write(self.text)
 		out.write('</div>\n')
 
-		
+
+class MessageLabel(Label, ProxyConsole):
+
+	def __init__(self, content, console = STANDARD_CONSOLE):
+		Label.__init__(self, content)
+		ProxyConsole.__init__(self, console)
+		self.last_cls = None
+
+	def finalize(self, page):
+		Label.finalize(self, page)
+		self.set_proxy(self.get_console())
+		self.set_console(self)
+
+	def clear_class(self):
+		if self.last_cls is not None:
+			self.remove_class(self.last_cls)
+
+	def replace_class(self, cls):
+		self.clear_class()
+		self.add_class(cls)
+		self.last_cls = cls
+
+	def clear_message(self):
+		self.clear_class()
+		self.last_cls = None
+		self.set_text("")
+
+	def show_error(self, msg):
+		self.set_text(msg)
+		self.replace_class("error-text")
+
+	def show_warning(self, msg):
+		self.set_text(msg)
+		self.replace_class("warn-text")
+
+	def show_info(self, msg):
+		self.set_text(msg)
+		self.replace_class("info-text")

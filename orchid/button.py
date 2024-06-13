@@ -37,6 +37,10 @@ class AbstractButton(Component, EnableObserver):
 				help=help
 			)
 
+	def finalize(self, page):
+		Component.finalize(self, page)
+		self.action.set_context(self)
+
 	def show(self):
 		self.action.add_observer(self)
 		if not self.action.is_enabled():
@@ -52,7 +56,7 @@ class AbstractButton(Component, EnableObserver):
 		self.set_attr("disabled", None)
 
 	def is_enabled(self):
-		return self.action.is_enabled()
+		return self.action.is_enabled(self)
 
 
 BUTTON_MODEL = Model("button-model")
@@ -96,7 +100,7 @@ class Button(AbstractButton):
 			self.set_attr("title", self.action.help)
 
 	def finalize(self, page):
-		Component.finalize(self, page)
+		AbstractButton.finalize(self, page)
 		if self.action.icon != None:
 			self.action.icon.finalize(page)
 		if self.label is not None:
@@ -105,8 +109,6 @@ class Button(AbstractButton):
 	def gen(self, out):
 		out.write('<button')
 		self.gen_attrs(out)
-		#if not self.is_enabled():
-		#	out.write(" disabled")
 		out.write(' onclick="ui_onclick(\'%s\');">' % self.get_id())
 		if self.action.icon is not None:
 			self.action.icon.gen(out, self.parent.get_context())

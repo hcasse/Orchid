@@ -15,6 +15,9 @@
 	--error-back: #FF7F7F;
 	--warn-back: #fe7339ff;
 	--info-back: #add8e6;
+	--error-text: var(--myred);
+	--warn-text: var(--myorange);
+	--info-text: black;
 	--select: var(--myorange);
 }
 
@@ -58,6 +61,30 @@ body {
 #tail {
 	flex: 0 1 auto;
 	margin: 0 8px 8px 8px;
+}
+
+.error-back {
+	background-color: var(--error-back);
+}
+
+.warn-back {
+	background-color: var(--warn-back);
+}
+
+.info-back {
+	background-color: var(--info-back);
+}
+
+.error-text {
+	color: var(--error-text);
+}
+
+.warn-text {
+	color: var(--warn-text);
+}
+
+.info-text {
+	color: var(--info-text);
 }
 
 
@@ -158,18 +185,6 @@ div.field label {
 
 .message {
 	padding: 8px;
-}
-
-.error-back {
-	background-color: var(--error-back);
-}
-
-.warn-back {
-	background-color: var(--warn-back);
-}
-
-.info-back {
-	background-color: var(--info-back);
 }
 
 
