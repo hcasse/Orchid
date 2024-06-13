@@ -12,18 +12,17 @@ class MyPage(Page):
 		self.repwd = Var("", label="Retype")
 		self.email = Var("", label="EMail")
 		self.message = MessageLabel("")
+		apply_enable = \
+			if_error(not_null(self.login), "Login required!") & \
+			if_error(is_password(self.pwd), "Password must contains at least 8 character, 1 uppercase, 1 lower case and 1 digit.") & \
+			if_error(equals(self.pwd, self.repwd), "Password and re-typed different!") & \
+			if_error(not_null(self.email), "EMail required!")
 
 		apply_action = Action(
 			label="Apply",
 			fun = self.apply,
-			enable =
-				and_(
-					if_error(not_null(self.login), "Login required!"),
-					if_error(is_password(self.pwd), "Password must contains at least 8 character, 1 uppercase, 1 lower case and 1 digit."),
-					if_error(equals(self.pwd, self.repwd), "Password and re-typed different!"),
-					if_error(not_null(self.email), "EMail required!")
-				)
-			)
+			enable = apply_enable
+		)
 
 		Page.__init__(
 			self,

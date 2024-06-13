@@ -85,6 +85,16 @@ class Var(Subject, Entity):
 	def __str__(self):
 		return "var(%s: %s)" % (self.value, self.type)
 
+	def __invert__(self):
+		"""Get the value of the variable."""
+		return self.value
+
+	def __and__(self, x):
+		return and_(not_null(self), x)
+
+	def __or__(self, x):
+		return or_(not_null(self), x)
+
 
 class EnableSubject(Subject):
 	"""A subject that calls enable() or disable() if there is or not observers."""
@@ -211,6 +221,19 @@ class AbstractPredicate:
 			self.handler = PredicateHandler(self)
 			return self.handler
 
+	def __and__(self, x):
+		if isinstance(x, Var):
+			x = not_null(x)
+		return and_(self, x)
+
+	def __or__(self, x):
+		if isinstance(x, Var):
+			x = not_null(x)
+		return or_(self, x)
+
+	def __invert__(self):
+		return not_(self)
+
 
 class Predicate(AbstractPredicate):
 	"""A predicate that lsiten to a set of variables and check with a function."""
@@ -225,6 +248,7 @@ class Predicate(AbstractPredicate):
 
 	def check(self, handler):
 		return self.fun()
+
 
 TRUE = AbstractPredicate()
 
@@ -289,13 +313,13 @@ class Action(AbstractAction, Observer):
 
 def get_value(x):
 	if isinstance(x, Var):
-		return x.get()
+		return ~x
 	else:
 		return x
 
 def not_null(var):
 	"""Generate a predicate that test if the variable is not None, 0, empty text, empty list, etc."""
-	return Predicate(vars=[var], fun=lambda: bool(var.get()))
+	return Predicate(vars=[var], fun=lambda: bool(~var))
 
 def equals(x, y):
 	"""Predicate testing if x = y. x and y may be any value and specially variables that will be observed."""
@@ -344,11 +368,11 @@ def is_password(var, size=8, lower=1, upper=1, digit=1, other=1):
 			c += 1
 		return c
 	return Predicate([var], fun=lambda:
-		len(var.get()) >= size and \
-		count(filter(str.islower, var.get())) >= lower and \
-		count(filter(str.isupper, var.get())) >= upper and \
-		count(filter(str.isdigit, var.get())) >= digit and \
-		count(filter(is_other, var.get())) >= other
+		len(~var) >= size and \
+		count(filter(str.islower, ~var)) >= lower and \
+		count(filter(str.isupper, ~var)) >= upper and \
+		count(filter(str.isdigit, ~var)) >= digit and \
+		count(filter(is_other, ~var)) >= other
 	)
 
 def if_error(pred, msg):
