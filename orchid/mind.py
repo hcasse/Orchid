@@ -24,6 +24,77 @@ An application, and its different views, can be seen as a set of data on which a
 from orchid.base import Subject, Observer, AbstractComponent
 from orchid.util import STANDARD_CONSOLE
 
+def is_python_type(t):
+	return isinstance(t, type)
+
+class Type:
+	"""Represent a type."""
+	MAP = {}
+
+	def __init__(self):
+		self.type = None
+		self.null = None
+
+	def record(type, object):
+		Type.MAP[type] = object
+
+	def find(type):
+		try:
+			return Type.MAP[type]
+		except KeyError:
+			return None
+
+class BaseType(Type):
+	"""Type for Python base types."""
+
+	def __init__(self, type, null):
+		self.type = type
+		self.null = null
+
+BOOL_TYPE = BaseType(bool, False)
+INT_TYPE = BaseType(int, 0)
+FLOAT_TYPE = BaseType(float, 0.)
+STR_TYPE = BaseType(str, "")
+
+Type.record(bool, BOOL_TYPE)
+Type.record(int, INT_TYPE)
+Type.record(float, FLOAT_TYPE)
+Type.record(str, STR_TYPE)
+
+class EnumType(Type):
+	"""Type for enumerated values."""
+
+	def __init__(self, values, null=None):
+		assert len(values) >= 1
+		self.values = values
+		self.type = int
+		if null is None:
+			null = values[0]
+		self.null = 0
+
+	def labelFor(self, i):
+		return self.values[i]
+
+	def indexOf(self, value):
+		return self.values.index(value)
+
+	def get_values(self):
+		return self.values
+
+
+class RangeType(Type):
+	"""Type for a range."""
+
+	def __init__(self, min, max, null=None):
+		assert min <= max
+		self.min = min
+		self.max = max
+		self.type = int
+		if null is None:
+			null = min
+		self.null = null
+
+
 class Entity:
 	"""An entity is an object (action, variable) of an application
 	that may be displayed or used by the human user. It is defined
@@ -66,9 +137,14 @@ class Var(Subject, Entity):
 		Entity.__init__(self, **args)
 		self.value = value
 		if type is None:
-			self.type = value.__class__
-		else:
+			type = value.__class__
+		if isinstance(type, Type):
 			self.type = type
+		else:
+			self.type = Type.find(type)
+
+	def get_type(self):
+		return self.type
 
 	def get(self):
 		"""Get the current value."""

@@ -1,10 +1,39 @@
+#
+#	This file is part of Orchid.
+#
+#    Orchid is free software: you can redistribute it and/or modify
+#	it under the terms of the GNU Lesser General Public License as
+#	published by the Free Software Foundation, either version 3 of the
+#	License, or (at your option) any later version.
+#
+#	Orchid is distributed in the hope that it will be useful, but
+#	WITHOUT ANY WARRANTY; without even the implied warranty of
+#	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+#	GNU Lesser General Public License for more details.
+#
+#	You should have received a copy of the GNU Lesser General Public
+#	License along with Orchid. If not, see <https://www.gnu.org/licenses/>.
+#
+
 """Field components."""
 
 import re
 from orchid.base import *
-from orchid.group import VGroup
+from orchid.group import VGroup, Group
 from orchid.label import Label
-from orchid.mind import Var, Entity
+from orchid.mind import Var, Entity, EnumType
+
+
+class LabelledField:
+	"""A field with separated label and input."""
+
+	def gen_field(self, out, with_label=True):
+		"""Generate the field itself with or without label."""
+		pass
+
+	def gen_label(self, out):
+		"""Generate the label only."""
+		pass
 
 
 FIELD_MODEL = Model(
@@ -17,7 +46,7 @@ function field_change(id, value) {
 )
 
 
-class Field(Component):
+class Field(Component, LabelledField):
 	"""Represents a field where a user can enter a value. The field can then
 	be obtained by the application. The following parameters are available
 	for the construction:
@@ -51,8 +80,8 @@ class Field(Component):
 		# var construction
 		if var is None:
 			self.var = self.make_var(init,
-				label=self.label,
-				help=self.help)
+				label=label,
+				help=help)
 		else:
 			self.var = var
 
@@ -158,13 +187,17 @@ class Field(Component):
 		self.gen_custom_content(out)
 		out.write('</input>')
 
-	def gen(self, out):
+	def gen_field(self, out, with_label=True):
 		out.write("<div ")
 		self.gen_attrs(out)
 		out.write(">")
-		self.gen_label(out)
+		if with_label:
+			self.gen_label(out)
 		self.gen_input(out)
 		out.write("</div>")
+
+	def gen(self, out):
+		self.gen_field(out)
 
 	def set_validity(self, valid):
 		"""Mark the field as valid or invalid."""
@@ -270,11 +303,11 @@ class RangeField(Field):
 		self.max = max
 		Field.__init__(self, validate=as_natural, **args)
 
-	def make_var(self, init):
+	def make_var(self, init, **args):
 		if init == None:
-			return Var(None, type=int)
+			return Var(None, type=int, **args)
 		else:
-			return Var(init)
+			return Var(init, **args)
 
 	def gen_custom(self, out):
 		self.gen_attr(out, "type", "range")
@@ -296,18 +329,25 @@ function select_on_choose(elt) {
 """
 	)
 
-class Select(Component):
+class Select(Component, LabelledField):
 	"""Field to select from a list."""
 
-	def __init__(self, choices, choice=0, label=None, enabled=True, size=None, help=None):
+	def __init__(self, choices, choice=0, label=None, enabled=True, size=None, help=None, var=None):
 		Component.__init__(self, SELECT_MODEL)
-		self.choices = choices
-		self.choice = choice
+		if var is not None:
+			assert isinstance(var.type, EnumType)
+			assert 0 <= choice and choice < len(var.type.values)
+			self.var = var
+		else:
+			assert 0 <= choice and choice < len(choices)
+			self.var = Var(choice, EnumType(choices),
+				label=label,
+				help=help
+			)
+		self.choices = self.var.get_type().get_values()
 		self.enabled = None
 		self.set_enabled(enabled)
 		self.size = size
-		self.label = label
-		self.help = help
 		self.set_attr("onchange", 'select_on_choose(this);')
 
 	def set_enabled(self, enabled):
@@ -330,37 +370,47 @@ class Select(Component):
 
 	def get_choice(self):
 		"""Get the current choice number."""
-		return self.choice
+		return ~self.var
 
 	def set_choice(self, choice):
 		"""Set the current choice."""
-		if self.choice != choice:
-			self.choice = choice
+		if ~self.var != choice:
+			self.var.set(choice)
 			self.call("select_choose", {"id": self.get_id(), "idx": self.choice})
 
 	def receive(self, m, h):
 		if m["action"] == "choose":
-			self.choice = m["idx"]
+			self.var.set(m["idx"])
 		else:
 			Component.receive(self, m, h)
 
-	def gen(self, out):
+	def gen_label(self, out):
+		if self.var.label is not None:
+			out.write('<label for="%s">%s</label>' % (self.get_id(), self.var.label))
+
+	def gen_field(self, out, with_label=True):
 		out.write("<div>")
-		if self.label is not None:
-			out.write('<label for="%s">%s</label>' % (self.get_id(), self.label))
+		if with_label:
+			self.gen_label(out)
 		out.write('<select')
 		self.gen_attrs(out)
-		if self.label is not None:
-			out.write(' name="%s"' % self.get_id())
-		if self.help is not None:
-			self.gen_attr(out, "title", self.help)
+		out.write(' name="%s"' % self.get_id())
+		if self.var.help is not None:
+			self.gen_attr(out, "title", self.var.help)
 		out.write('>')
 		self.gen_options(out)
 		out.write('</select>')
 		out.write("</div>")
 
+	def gen(self, out):
+		self.gen_field(out)
+
 	def gen_option(self, i, out):
-		out.write('<option value="%s">%s</option>' % (i, self.choices[i]))
+		out.write('<option value="%s"%s>%s</option>' % (
+			i,
+			" selected" if i == ~self.var else "",
+			self.choices[i])
+	)
 
 	def gen_options(self, out):
 		for i in range(0, len(self.choices)):
@@ -416,6 +466,7 @@ PROPOSAL_MODEL = Model(
 """,
 
 	script = """
+var proposal_id = null;
 var proposal_pos = null;
 var proposal_props = null;
 var proposal_input = null;
@@ -432,9 +483,10 @@ function proposal_hide() {
 }
 
 function proposal_show(m) {
+	proposal_id = m.input;
 	proposal_props = document.getElementById(m.props);
 	proposal_props.style.display = "flex";
-	proposal_input = document.getElementById(m.input);
+	proposal_input = document.getElementById(`${proposal_id}-field`);
 	proposal_pos = null;
 }
 
@@ -466,7 +518,7 @@ function proposal_on_key_down(evt) {
 		let value = proposal_pos.innerHTML;
 		proposal_input.value = value;
 		proposal_hide();
-		ui_send({id: id_input, action: "select", value: value});
+		ui_send({id: proposal_id, action: "select", value: value});
 	}
 	else if(evt.key == "Escape") {
 		proposal_hide();
@@ -479,7 +531,8 @@ function proposal_on_key_down(evt) {
 
 class ProposalField(Field):
 	"""Like a field but also with the possibility to provides, with a menu,
-	proposals to the user to shorten the typing effort."""
+	proposals to the user to shorten the typing effort. The propose function takes as input the current content of the field and returns a list of proposals
+	as a list of strings."""
 
 	def __init__(self, propose = lambda x: [], **args):
 		Field.__init__(self, model=PROPOSAL_MODEL, **args)
@@ -490,11 +543,12 @@ class ProposalField(Field):
 		self.group.set_style("display", "none")
 		self.add_class("proposal-field")
 
-	def gen(self, out):
+	def gen_field(self, out, with_label=True):
 		out.write("<div ")
 		self.gen_attrs(out)
 		out.write(">")
-		self.gen_label(out)
+		if with_label:
+			self.gen_label(out)
 		out.write("<div>")
 		self.gen_input(out)
 		self.group.gen(out)
@@ -509,34 +563,34 @@ class ProposalField(Field):
 		self.group.finalize(page)
 		self.set_attr("onkeydown", 'proposal_on_key_down(event);')
 
-	def show(self):
+	def show_props(self):
 		self.call("proposal_show",
-			{"props": self.group.get_id(), "input": "%s-field" % self.get_id()})
+			{"props": self.group.get_id(), "input": self.get_id()})
 
-	def hide(self):
+	def hide_props(self):
 		self.call("proposal_hide")
 
 	def receive(self, m, h):
 		if m["action"] == "change":
-			#print("DEBUG: change ", m["value"])
 			value = m["value"]
 			if value == "":
-				self.hide()
+				self.hide_props()
 				self.prev = []
 			else:
 				props = self.propose(value)
 				if props != self.prev:
 					self.prev = props
 					if props == [] or (len(props) == 1 and props[0] == value):
-						self.hide()
+						self.hide_props()
 					else:
 						labs = [Label(prop) for prop in props]
 						self.group.replace_children(labs)
-						self.show()
+						self.show_props()
 		elif m["action"] == "select":
-			print("DEBUG: select ", m["value"])
+			self.prev = []
 			self.check(m["value"])
-		Field.receive(self, m, h)
+		else:
+			Field.receive(self, m, h)
 
 
 def as_natural(x):
@@ -552,3 +606,35 @@ def as_re(r):
 	def check(x):
 		return x if cre.fullmatch(x) != None else None
 	return check
+
+
+FORM_MODEL = Model(
+	"form",
+	style = """
+table.form tr td:first-child {
+	text-align: right;
+	padding-right: 1em;
+	vertical-align: top;
+}
+"""
+)
+
+class Form(Group):
+	"""A form is a list of fields with labels aligned for good looking.
+	Its component extends LabelledField."""
+
+	def __init__(self, fields):
+		Group.__init__(self, FORM_MODEL, fields)
+		self.add_class("form")
+
+	def gen(self, out):
+		out.write("<table")
+		self.gen_attrs(out)
+		out.write(">")
+		for field in self.get_children():
+			out.write("<tr><td>")
+			field.gen_label(out)
+			out.write("</td><td>")
+			field.gen_field(out, False)
+			out.write("</td></tr>")
+		out.write("</table>")
