@@ -143,10 +143,27 @@ class Field(Component, LabelledField):
 
 	def set_value(self, val):
 		"""Set the current value."""
+		self.updating = True
+		self.var.set(val)
+		self.update_remote()
+		self.set_validity(self.validate(str(~self.var)) is not None)
+		self.updating = False
+
+	def show(self):
+		self.var.add_observer(self)
+		self.updating = False
+
+	def hide(self):
+		self.var.remove_observer(self)
+
+	def update_remote(self):
 		if self.online():
-			self.get_page().set_direct_attr(\
-				"%s-field" % self.get_id(), "value", str(val))
-		self.check(val)
+			self.get_page().set_direct_attr("%s-field" % self.get_id(), "value", str(~self.var))
+
+	def update(self, subject):
+		if not self.updating:
+			self.update_remote()
+			self.set_validity(self.validate(str(~self.var)) is not None)
 
 	def gen_custom(self, out):
 		"""Called to generate custom attributes (used for specialization).
@@ -214,6 +231,11 @@ class Field(Component, LabelledField):
 		"""Test if the field is valid or invalid."""
 		return self.valid
 
+	def update_value(self, value):
+		self.updating = True
+		self.var.set(value)
+		self.updating = False
+
 	def check(self, content):
 		"""Check the current value."""
 		if content is None:
@@ -223,8 +245,7 @@ class Field(Component, LabelledField):
 			self.set_validity(False)
 		else:
 			if self.var.get() != content:
-				self.var.set(content)
-				self.update_observers()
+				self.update_value(content)
 			self.set_validity(True)
 
 	def receive(self, m, h):
@@ -350,6 +371,13 @@ class Select(Component, LabelledField):
 		self.size = size
 		self.set_attr("onchange", 'select_on_choose(this);')
 
+	def show(self):
+		self.var.add_observer(self)
+		self.updating = False
+
+	def hide(self):
+		self.var.remove_observer(self)
+
 	def set_enabled(self, enabled):
 		"""Set the enabled state."""
 		if enabled != self.enabled:
@@ -368,6 +396,14 @@ class Select(Component, LabelledField):
 		self.add_attr("disabled")
 		self.enabled = True
 
+	def record_var(self, value):
+		self.updating = True
+		self.var.set(value)
+		self.updating = False
+
+	def update_remote(self):
+		self.call("select_choose", {"id": self.get_id(), "idx": self.get_choice()})
+
 	def get_choice(self):
 		"""Get the current choice number."""
 		return ~self.var
@@ -375,14 +411,18 @@ class Select(Component, LabelledField):
 	def set_choice(self, choice):
 		"""Set the current choice."""
 		if ~self.var != choice:
-			self.var.set(choice)
-			self.call("select_choose", {"id": self.get_id(), "idx": self.choice})
+			self.record_var(choice)
+			self.update_remote()
 
 	def receive(self, m, h):
 		if m["action"] == "choose":
-			self.var.set(m["idx"])
+			self.record_var(m["idx"])
 		else:
 			Component.receive(self, m, h)
+
+	def update(self, subject):
+		if not self.updating:
+			self.update_remote()
 
 	def gen_label(self, out):
 		if self.var.label is not None:

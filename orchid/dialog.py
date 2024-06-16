@@ -39,11 +39,12 @@ function dialog_hide(args) {
 
 class Base(Component):
 
-	def __init__(self, page, main, model = MODEL):
+	def __init__(self, page, main, model=MODEL):
 		Component.__init__(self, model)
 		self.main = main
 		main.parent = self
 		page.add_hidden(self)
+		self.console = None
 
 	def finalize(self, page):
 		Component.finalize(self, page)
@@ -72,6 +73,15 @@ class Base(Component):
 	def make_message(self, message):
 		"""Transform message to be displayed in dialog."""
 		return Label(message.replace("\n", "<br>"))
+
+	def get_console(self):
+		if self.console is None:
+			return self.parent.get_console()
+		else:
+			return self.console
+
+	def set_console(self, console):
+		self.console = console
 
 
 def default_answer(dialog, answer):

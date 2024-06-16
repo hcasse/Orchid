@@ -151,7 +151,7 @@ function check_box_set(args) {
 class CheckBox(Component, LabelledField):
 	"""Implements a check box representing a boolean value."""
 
-	def __init__(self, label="", value=False, enabled=True, help=None, on_change=lambda x: None, var=None):
+	def __init__(self, label="", value=False, enabled=True, help=None, var=None):
 		Component.__init__(self, CHECK_BOX_MODEL)
 		if var is not None:
 			self.var = var
@@ -161,20 +161,38 @@ class CheckBox(Component, LabelledField):
 		self.set_value(value)
 		self.set_attr("onchange",
 			"check_box_on_change('%s', event);" % self.get_id())
-		self.on_change = on_change
 		self.enabled = True
 		self.set_enabled(enabled)
+
+	def show(self):
+		self.var.add_observer(self)
+		self.updating = True
+
+	def hide(self):
+		self.varr.remove_observer(self)
+
+	def update_remote(self):
+		self.call("check_box_set",
+			{"id": self.get_id(), "checked": value})
+
+	def record_var(self, value):
+		self.updating = True
+		self.var.set(value)
+		self.updating = False
 
 	def set_value(self, value):
 		"""Change the value of the checkbox."""
 		if value != ~self.var:
-			self.var.set(value)
-			self.call("check_box_set",
-				{"id": self.get_id(), "checked": value})
+			self.record_var(value)
+			self.update_remote()
 
 	def get_value(self):
 		"""Get the value of the checkbox."""
 		return ~self.var
+
+	def update(self, subject):
+		if not self.updating:
+			self.update_remote()
 
 	def gen_label(self, out):
 		if self.var.label is not None:
@@ -196,11 +214,9 @@ class CheckBox(Component, LabelledField):
 	def receive(self, msg, handler):
 		action = msg['action']
 		if action == 'check':
-			self.value = True
-			self.on_change(self.value)
+			self.record_var(True)
 		elif action == 'uncheck':
-			self.value = False
-			self.on_change(self.value)
+			self.record_var(False)
 		else:
 			AbstractButton.receive(self, msg, handler)
 
@@ -239,7 +255,7 @@ function radio_button_set(args) {
 class RadioButton(Component, LabelledField):
 	"""List of exclusive buttons."""
 
-	def __init__(self, options, choice=0, label=None, help=None, on_change=lambda n: None, horizontal=False, var=None):
+	def __init__(self, options, choice=0, label=None, help=None, horizontal=False, var=None):
 		Component.__init__(self, RADIO_BUTTON_MODEL)
 		if var is not None:
 			assert isinstance(var.get_type(), EnumType)
@@ -251,22 +267,35 @@ class RadioButton(Component, LabelledField):
 				  help=help)
 		self.options = self.var.get_type().get_values()
 		assert 0 <= choice and choice < len(self.options)
-		self.on_change = on_change
 		self.horizontal = horizontal
 
 	def get_option_id(self, n):
 		return "%s-%d" % (self.get_id(), n)
 
+	def show(self):
+		self.var.add_observer(self)
+		self.updating = False
+
+	def hide(self):
+		self.var.remove_observer(self)
+
+	def record_var(self, value):
+		assert 0 <= n and n < (self.options)
+		self.updating = True
+		self.var.set(n)
+		self.updating = False
+
 	def set_choice(self, n):
 		"""Set the current choice with n in [0, number of options-1]."""
 		if ~self.var != n:
-			assert 0 <= n and n < (self.options)
-			self.var.set(n)
-			self.call("radio_button_set", {"id": self.get_option_id(n)})
+			self.record_var(n)
 
 	def get_choice(self):
 		"""Get the current choosen option. Return is in [0, number of options-1]."""
 		return ~self.var
+
+	def update_remote(self):
+		self.call("radio_button_set", {"id": self.get_option_id(self.get_choice())})
 
 	def gen_label(self, out):
 		if self.var.label is not None:
@@ -293,7 +322,10 @@ class RadioButton(Component, LabelledField):
 	def receive(self, msg, handler):
 		action = msg['action']
 		if action == 'choose':
-			self.var.set(int(msg['choice']))
-			self.on_change(~self.var)
+			self.record_var(int(msg['choice']))
 		else:
 			Component.receive(self, msg, handler)
+
+	def update(self):
+		if not self.updating:
+			self.update_remote()

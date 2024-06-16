@@ -241,6 +241,7 @@ class AbstractComponent(Displayable, Subject):
 
 	def get_console(self):
 		"""Get the console to communicate with user."""
+		print("DEBUG:", self.parent, self.__class__)
 		return self.parent.get_console()
 
 	def set_console(self, console):
@@ -565,7 +566,7 @@ class Page(AbstractComponent):
 	"""Implements a page ready to be displayed."""
 
 	def __init__(self, main = None, parent = None,
-	app = None, title = None, style = "default.css", theme = "basic", console=StandardConsole):
+	app = None, title = None, style = "default.css", theme = "basic", console=STANDARD_CONSOLE):
 		AbstractComponent.__init__(self)
 		self.messages = []
 		self.is_online = False
@@ -578,7 +579,7 @@ class Page(AbstractComponent):
 		self.hidden = []
 		self.set_attr("onbeforeunload", "ui_close();")
 		self.set_attr("onclick", "ui_complete();")
-		self.console=console
+		self.console = console
 
 		# prepare the theme
 		if isinstance(theme, str):
@@ -599,11 +600,9 @@ class Page(AbstractComponent):
 		return self.theme
 
 	def get_console(self):
-		"""Get the current console."""
 		return self.console
 
 	def set_console(self, console):
-		"""Change the console."""
 		self.console = console
 
 	def online(self):
