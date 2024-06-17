@@ -48,3 +48,9 @@ function list_set(args) {
 	let item = list.childNodes[args.index];
 	item.innerHTML = args.content;
 }
+
+function list_clear(args) {
+	let list = window.document.getElementById(args.id);
+	while(list.firstChild != null)
+		list.firstChild.remove();
+}

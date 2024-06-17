@@ -39,12 +39,19 @@ function dialog_hide(args) {
 
 class Base(Component):
 
-	def __init__(self, page, main, model=MODEL):
+	def __init__(self, page, main, title=None, no_pad=False, model=MODEL):
 		Component.__init__(self, model)
+		if not no_pad:
+			main.add_class("dialog-content")
+		if title is not None:
+			main = VGroup([
+				self.make_title(title),
+				main
+			])
 		self.main = main
 		main.parent = self
-		page.add_hidden(self)
 		self.console = None
+		page.add_hidden(self)
 
 	def finalize(self, page):
 		Component.finalize(self, page)
@@ -59,8 +66,10 @@ class Base(Component):
 
 	def show(self):
 		self.call("dialog_show", {"id": self.get_id()})
+		self.main.show()
 
 	def hide(self):
+		self.main.hide()
 		self.call("dialog_hide", {"id": self.get_id()})
 
 	def make_title(self, title):
@@ -99,11 +108,6 @@ class Answer(Base):
 		parameter (dialog, answer) with answer the index of the clicked answer button (starting from 0)."""
 		content = []
 
-		# process title
-		if title != None:
-			self.title = self.make_title(title)
-			content.append(self.title)
-
 		# add message
 		if not isinstance(message, Component):
 			message = Label(message)
@@ -127,7 +131,7 @@ class Answer(Base):
 		content.append(self.buttons)
 
 		# initialize the parent
-		Base.__init__(self, page, VGroup(content))
+		Base.__init__(self, page, VGroup(content), title=title)
 		self.on_close = on_close
 		self.add_class("dialog-answer")
 
@@ -152,8 +156,6 @@ class Message(Base):
 
 	def __init__(self, page, message, title=None, type=None, on_close=lambda: None):
 		content = []
-		if title != None:
-			content.append(self.make_title(title))
 		message = self.make_message(message)
 		message.add_class("dialog-message-text")
 		icon = page.get_theme().get_dialog_icon(type)
@@ -172,7 +174,7 @@ class Message(Base):
 		])
 		buttons.add_class("dialog-buttons")
 		content.append(buttons)
-		Base.__init__(self, page, VGroup(content))
+		Base.__init__(self, page, VGroup(content), title=title)
 		if type != None and type in MESSAGES:
 			self.add_class(type)
 		self.on_close = on_close
@@ -202,9 +204,9 @@ class About(Base):
 		title = app.name
 		if app.version != None:
 			title = "%s V%s" % (title, app.version)
-		title = Label(title)
-		title.add_class("dialog-about-title")
-		text.append(title)
+		#title = Label(title)
+		#title.add_class("dialog-about-title")
+		#text.append(title)
 		if app.description is not None:
 			text.append(Plain(app.description, in_tag="p"))
 		if app.website is not None:
@@ -221,12 +223,12 @@ class About(Base):
 		buttons = HGroup([
 			Spring(hexpand=True),
 			Button("Ok", on_click=self.hide)
-		])
+		], align=ALIGN_CENTER)
 		buttons.add_class("dialog-buttons")
 		all.append(buttons)
 
 		# build the dialog
-		Base.__init__(self, page, VGroup(all))
+		Base.__init__(self, page, VGroup(all), title=title)
 		self.add_class("dialog-about")
 
 

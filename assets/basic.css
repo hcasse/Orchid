@@ -3,7 +3,6 @@
 
 :root {
 	--sequence-separation-fill: lightcyan;
-	/*--select: purple;*/
 	--mydarkorange: #d64832ff;
 	--myorange: #f65a16ff;
 	--mylightorange: #fe7339ff;
@@ -330,10 +329,16 @@ dialog {
 	border-color: var(--select);
 	border-radius: 8px;
 	border-width: 2px;
+	padding: 0;
 }
+
 
 .dialog-answer, .dialog-message, .dialog-about {
 	padding: 0;	
+}
+
+.dialog-content {
+	padding: 8px;
 }
 
 .dialog-title {
@@ -354,8 +359,17 @@ dialog {
 	margin-right: 4px;
 }
 
-.dialog-buttons, .dialog-icon, .dialog-about-icon {
-	padding: 8px;
+.dialog-buttons {
+	padding-top: 4px;
+}
+
+.dialog-icon {
+
+}
+
+.dialog-about-icon {
+	display: flex;
+	justify-content: center;
 }
 
 .dialog-about-title {

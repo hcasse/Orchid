@@ -285,6 +285,15 @@ class Spring(ExpandableComponent):
 		out.write("></div>\n")
 
 
+def hspring():
+	"""Creates an horizontal spring."""
+	return Spring(hexpand=True)
+
+def vspring():
+	"""Creates an horizontal spring."""
+	return Spring(vexpand=True)
+
+
 LAYERED_PANE_MODEL = Model(
 	style = """
 .layered-parent {

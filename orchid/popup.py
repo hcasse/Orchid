@@ -49,7 +49,7 @@ class Menu(VGroup):
 
 	def receive(self, msg, handler):
 		if msg['action'] == 'hide':
-			self.hide()
+			self.hide_menu()
 		else:
 			VGroup.receive(self, msg, handler)
 
@@ -57,8 +57,15 @@ class Menu(VGroup):
 		"""Get the on-click code."""
 		return "popup_menu_top_click('%s');" % self.get_id()
 
-	def show(self, ref, index = None):
+	def show(self):
+		pass
+
+	def hide(self):
+		pass
+
+	def show_menu(self, ref, index = None):
 		"""Show the menu."""
+		VGroup.show(self)
 		code = self.get_onclick()
 		onclick = self.page.get_attr("onclick")
 		if code not in onclick:
@@ -75,7 +82,7 @@ class Menu(VGroup):
 				"index": index
 			})
 
-	def hide(self):
+	def hide_menu(self):
 		"""Hide the menu."""
 		code = self.get_onclick()
 		onclick = self.page.get_attr("onclick")
@@ -85,6 +92,7 @@ class Menu(VGroup):
 		except ValueError:
 			pass
 		self.call("popup_menu_hide", {"id": self.get_id()})
+		VGroup.hide(self)
 
 
 class MenuButton(Button):
@@ -111,11 +119,11 @@ class MenuButton(Button):
 		out.write("</div>")
 
 	def on_click(self):
-		self.show()
+		self.show_menu()
 
-	def show(self):
+	def show_menu(self):
 		"""Show the current menu."""
-		self.menu.show(self)
+		self.menu.show_menu(self)
 
-	def hide(self):
-		self.menu.hide()
+	def hide_menu(self):
+		self.menu.hide_menu()

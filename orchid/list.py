@@ -19,6 +19,7 @@
 
 from orchid import buffer
 from orchid.base import *
+from orchid.models import ListVar
 
 SELECT_NONE = 0
 SELECT_SINGLE = 1
@@ -28,97 +29,6 @@ MODEL = Model(
 	script_paths = [ "list.js" ],
 )
 
-class Observer:
-	"""Observer of a list model."""
-
-	def on_set(self, i, x):
-		"""Called when a value of the list is changed."""
-		pass
-
-	def on_append(self, x):
-		"""Called when an item is appended."""
-		pass
-
-	def on_remove(self, i):
-		"""Called when an item is removed."""
-		pass
-
-	def on_insert(self, i, x):
-		"""Called when item is inserted at position i."""
-		pass
-
-
-class Model(Subject):
-	"""Model used to display a list."""
-
-	def __init__(self):
-		Subject.__init__(self)
-
-	def size(self):
-		"""Get the size of the list."""
-		return 0
-
-	def index(self, x):
-		"""Get the index of a value."""
-		raise ValueError()
-
-	def get(self, index):
-		"""Get the value at the given index."""
-		return None
-
-	def append(self, x):
-		"""Append a value."""
-		for obs in self.filter_observers(Observer):
-			obs.on_append(x)
-
-	def insert(self, i, x):
-		""""Insert an element at given position."""
-		for obs in self.filter_observers(Observer):
-			obs.on_insert(i, x)
-
-	def remove(self, x):
-		"""Remove the given element."""
-		for obs in self.filter_observers(Observer):
-			obs.on_remove(x)
-
-	def set(self, i, x):
-		"""Change the value of an element."""
-		for obs in self.filter_observers(Observer):
-			obs.on_set(i, x)		
-
-
-class ListModel(Model):
-	"""Model based on Python's lists."""
-
-	def __init__(self, list):
-		Model.__init__(self)
-		self.list = list
-
-	def size(self):
-		return len(self.list)
-
-	def get(self, index):
-		return self.list[index]
-
-	def append(self, x):
-		self.list.append(x)
-		Model.append(self, x)
-
-	def insert(self, i, x):
-		self.list.insert(i, x)
-		Model.insert(self, i, x)
-
-	def remove(self, x):
-		Model.remove(self, x)
-		self.list.remove(x)
-
-	def index(self, x):
-		return self.list.index(x)
-
-	def set(self, i, x):
-		self.list[i] = x
-		Model.set(self, i, x)
-
 
 class View(Component, Observer):
 	"""Vertical list of items."""
@@ -127,16 +37,15 @@ class View(Component, Observer):
 		items = [],
 		selection = [],
 		select_mode = SELECT_SINGLE,
+		context_menu = None,
 		model = MODEL,
-		context_menu = None
 	):
 		Component.__init__(self, model)
 		self.add_class("list")
 		if isinstance(items, list):
-			self.items = ListModel(items)
+			self.items = ListVar(items)
 		else:
 			self.items = items
-		self.items.add_observer(self)
 		self.children = None
 		self.select_mode = select_mode
 		self.selection = selection
@@ -153,6 +62,12 @@ class View(Component, Observer):
 		if self.context_menu != None:
 			self.context_menu.finalize(page)
 			page.add_hidden(self.context_menu)
+
+	def show(self):
+		self.items.add_observer(self)
+
+	def hide(self):
+		self.items.remove_observer(self)
 
 	def get_items(self):
 		"""Get the model of items."""
@@ -225,6 +140,11 @@ class View(Component, Observer):
 				"index": i,
 				"content": buffer(item.gen)
 			});
+
+	def on_reset(self):
+		children = []
+		if self.online():
+			self.call("list_clear", {"id": self.get_id()})
 
 	def get_children(self):
 		if self.children == None:

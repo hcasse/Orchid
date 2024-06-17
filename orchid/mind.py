@@ -21,6 +21,8 @@ concept as first-class citizen and then build around it the UI.
 It defines variables that can be obserbed, action instead of buttons, etc.
 An application, and its different views, can be seen as a set of data on which actions applies. This structure may also be used to provide external interface to the application."""
 
+import re
+
 from orchid.base import Subject, Observer, AbstractComponent
 from orchid.util import STANDARD_CONSOLE
 
@@ -61,6 +63,16 @@ Type.record(int, INT_TYPE)
 Type.record(float, FLOAT_TYPE)
 Type.record(str, STR_TYPE)
 
+
+class ListType(Type):
+	"""Type for lists."""
+
+	def __init__(self, type):
+		self.type = list
+		self.null = []
+		self.item_type = type
+
+
 class EnumType(Type):
 	"""Type for enumerated values."""
 
@@ -93,6 +105,23 @@ class RangeType(Type):
 		if null is None:
 			null = min
 		self.null = null
+
+
+def type_of_data(data):
+	if isinstance(data, list):
+		if len(data) == 0:
+			return ListType(Type.find(str))
+		else:
+			return ListType(type_of_data(data[0]))
+	else:
+		return Type.find(data.__class__)
+
+
+def make_type(type):
+	if isinstance(type, Type):
+		return type
+	else:
+		return Type.find(type)
 
 
 class Entity:
@@ -137,8 +166,8 @@ class Var(Subject, Entity):
 		Entity.__init__(self, **args)
 		self.value = value
 		if type is None:
-			type = value.__class__
-		if isinstance(type, Type):
+			type = type_of_data(value)
+		elif isinstance(type, Type):
 			self.type = type
 		else:
 			self.type = Type.find(type)
@@ -469,5 +498,16 @@ def if_error(pred, msg):
 					self.displayed = True
 			return res
 	return IfError()
+
+
+def matches(var, expr):
+	"""Check if the variable matches the given regular expression."""
+	r = re.compile(expr)
+	class Match(Predicate):
+		def check(self, context):
+			return r.fullmatch(~var) != None
+	return Match()
+
+
 
 

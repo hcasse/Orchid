@@ -141,13 +141,16 @@ class Field(Component, LabelledField):
 		else:
 			return None
 
+	def record_var(self, value):
+		self.updating = True
+		self.var.set(value)
+		self.updating = False
+
 	def set_value(self, val):
 		"""Set the current value."""
-		self.updating = True
-		self.var.set(val)
+		self.record_var(val)
 		self.update_remote()
-		self.set_validity(self.validate(str(~self.var)) is not None)
-		self.updating = False
+		self.set_validity(self.validate(str(val)) is not None)
 
 	def show(self):
 		self.var.add_observer(self)
@@ -231,11 +234,6 @@ class Field(Component, LabelledField):
 		"""Test if the field is valid or invalid."""
 		return self.valid
 
-	def update_value(self, value):
-		self.updating = True
-		self.var.set(value)
-		self.updating = False
-
 	def check(self, content):
 		"""Check the current value."""
 		if content is None:
@@ -245,7 +243,7 @@ class Field(Component, LabelledField):
 			self.set_validity(False)
 		else:
 			if self.var.get() != content:
-				self.update_value(content)
+				self.record_var(content)
 			self.set_validity(True)
 
 	def receive(self, m, h):

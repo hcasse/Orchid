@@ -83,7 +83,9 @@ class Button(AbstractButton):
 		* enabled - enable/disable the button,
 		* action - orchid.mind action to use,
 		* help - plain text displayed to get help from the button (usually )"""
-		if action is not None:
+		if isinstance(label, AbstractAction):
+			AbstractButton.__init__(self, model, action=label)
+		elif action is not None:
 			AbstractButton.__init__(self, model, action=action)
 		else:
 			AbstractButton.__init__(self, model, action=ButtonAction(

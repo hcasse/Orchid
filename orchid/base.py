@@ -241,7 +241,6 @@ class AbstractComponent(Displayable, Subject):
 
 	def get_console(self):
 		"""Get the console to communicate with user."""
-		print("DEBUG:", self.parent, self.__class__)
 		return self.parent.get_console()
 
 	def set_console(self, console):
@@ -659,6 +658,7 @@ class Page(AbstractComponent):
 	def add_hidden(self, comp):
 		"""Add an hidden component (typically dialog or popup)."""
 		self.hidden.append(comp)
+		comp.parent = self
 		comp.finalize(self)
 		if self.online():
 			buf = Buffer()
