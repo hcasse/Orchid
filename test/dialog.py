@@ -3,6 +3,24 @@
 from orchid import *
 from orchid import dialog
 from orchid.group import VGroup
+from orchid.list import *
+from orchid.console import *
+
+class CustomDialog(dialog.Base):
+
+	def __init__(self, page):
+		main = VGroup([
+			Label("Custom list"),
+			ListView(["one", "two", "three"]),
+			Button("Close", on_click=self.close)
+		])
+		dialog.Base.__init__(self, page, main, title="Custom")
+		self.set_style("min-width", "400px")
+		self.set_style("min-height", "300px")
+
+	def close(self):
+		self.hide()
+
 
 class MyPage(Page):
 
@@ -13,7 +31,8 @@ class MyPage(Page):
 			VGroup([
 				HGroup([
 					Button("Show base", on_click=self.open),
-					Button("Show answer", on_click=self.open2)
+					Button("Show answer", on_click=self.open2),
+					Button("Show custom", on_click=self.open3)
 				]),
 				self.console
 			]),
@@ -36,11 +55,18 @@ class MyPage(Page):
 			on_close=self.on_close2
 		)
 
+		self.dialog3 = None
+
 	def open(self):
 		self.dialog.show()
 
 	def open2(self):
 		self.dialog2.show()
+
+	def open3(self):
+		if self.dialog3 is None:
+			self.dialog3 = CustomDialog(self)
+		self.dialog3.show()
 
 	def on_close2(self, dialog, i):
 		print("DEBUG: got", i, "from", dialog)

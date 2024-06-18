@@ -25,14 +25,26 @@ from orchid import *
 MODEL = Model(
 	name = "orchid.dialog.Base",
 	script = """
+var dialog_display = null;
 function dialog_show(args) {
 	const dialog = window.document.getElementById(args.id);
 	dialog.showModal();
+	dialog_display = dialog.style.display;
+	dialog.style.display = "flex";
 }
 
 function dialog_hide(args) {
 	const dialog = window.document.getElementById(args.id);
+	dialog.style.display = dialog_display;
 	dialog.close();
+}
+""",
+	style = """
+dialog {
+	justify-content: stretch;
+}
+.dialog-flex {
+	flex-grow: 1;
 }
 """
 )
@@ -50,6 +62,7 @@ class Base(Component):
 			])
 		self.main = main
 		main.parent = self
+		main.add_class("dialog-flex")
 		self.console = None
 		page.add_hidden(self)
 

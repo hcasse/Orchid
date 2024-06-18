@@ -126,13 +126,15 @@ ui_http.onreadystatechange = function() {
 						elem.innerHTML = a["style"];
 						document.head.appendChild(elem);
 					}
-					for(let path in a["style_paths"]) {
+					for(const path of a["style_paths"]) {
 						elem = document.createElement("link");
 						elem.setAttribute("rel", "stylesheet");
 						elem.setAttribute("href", path);
 						document.head.appendChild(elem);
 					}
-					for(let path in a["script_paths"]) {
+					console.log("paths = " + a["script_paths"]);
+					for(const path of a["script_paths"]) {
+						console.log("path = " + path);
 						elem = document.createElement("script");
 						elem.setAttribute("src", path);
 						document.head.appendChild(elem);

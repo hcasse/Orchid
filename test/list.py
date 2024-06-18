@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 
 from orchid import *
-import orchid.list as list
+from orchid.list import *
 import orchid.group as group
 from orchid import popup
 
@@ -38,7 +38,7 @@ class MyPage(Page):
 				Button("Menu 2", on_click=self.menu2)
 			])
 
-		self.component = list.View(my_list,
+		self.component = ListView(my_list,
 			selection = self.selection,
 			context_menu = self.menu)
 		self.items = self.component.get_items()

@@ -27,10 +27,15 @@ SELECT_MUTLI = 2
 
 MODEL = Model(
 	script_paths = [ "list.js" ],
+	style = """
+.list {
+	cursor: default;
+}
+"""
 )
 
 
-class View(Component, Observer):
+class ListView(Component, Observer):
 	"""Vertical list of items."""
 
 	def __init__(self,
@@ -38,7 +43,7 @@ class View(Component, Observer):
 		selection = [],
 		select_mode = SELECT_SINGLE,
 		context_menu = None,
-		model = MODEL,
+		model = MODEL
 	):
 		Component.__init__(self, model)
 		self.add_class("list")
@@ -48,7 +53,10 @@ class View(Component, Observer):
 			self.items = items
 		self.children = None
 		self.select_mode = select_mode
-		self.selection = selection
+		if isinstance(selection, ListVar):
+			self.selection = selection
+		else:
+			self.selection = ListVar(selection)
 		self.context_menu = context_menu
 		if select_mode != SELECT_NONE:
 			self.set_attr('onclick',

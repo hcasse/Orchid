@@ -38,8 +38,8 @@ class ListObserver:
 		"""Called when item is inserted at position i."""
 		pass
 
-	def on_reset(self):
-		"""Called when the list is reset."""
+	def on_clear(self):
+		"""Called when the list is cleared."""
 		pass
 
 
@@ -81,8 +81,8 @@ class ListModel(Subject):
 		for obs in self.filter_observers(Observer):
 			obs.on_set(i, x)
 
-	def reset(self):
-		"""Reset the list."""
+	def clear(self):
+		"""Clear the list."""
 		for obs in self.filter_observers(Observer):
 			obs.on_reset()
 
@@ -123,6 +123,12 @@ class ListVar(Var, ListModel):
 		(~self)[i] = x
 		ListModel.set(self, i, x)
 
-	def on_reset(self):
+	def clear(self):
 		(~self).clear()
-		ListModel.reset(self)
+		ListModel.clear(self)
+
+	def __iter__(self):
+		return iter(~self)
+
+	def __len__(self):
+		return len(~self)
