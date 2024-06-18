@@ -239,14 +239,14 @@ class AbstractComponent(Displayable, Subject):
 		Must be implemented by each extension class."""
 		return None
 
-	def get_console(self):
-		"""Get the console to communicate with user."""
-		return self.parent.get_console()
+	def get_interface(self):
+		"""Get the interface to communicate with user."""
+		return self.parent.get_interface()
 
-	def set_console(self, console):
-		"""Define the console for the current component. Usually go up in theme
+	def set_interface(self, interface):
+		"""Define the interface for the current component. Usually go up in theme
 		component hierarchy to find a context supporting it (ultimately the page)."""
-		self.parent.set_console(console)
+		self.parent.set_interface(interface)
 
 	def send(self, msg):
 		"""Send a message to the UI.
@@ -565,7 +565,7 @@ class Page(AbstractComponent):
 	"""Implements a page ready to be displayed."""
 
 	def __init__(self, main = None, parent = None,
-	app = None, title = None, style = "default.css", theme = "basic", console=STANDARD_CONSOLE):
+	app = None, title = None, style = "default.css", theme = "basic", interface=STANDARD_INTERFACE):
 		AbstractComponent.__init__(self)
 		self.messages = []
 		self.is_online = False
@@ -578,7 +578,7 @@ class Page(AbstractComponent):
 		self.hidden = []
 		self.set_attr("onbeforeunload", "ui_close();")
 		self.set_attr("onclick", "ui_complete();")
-		self.console = console
+		self.interface = interface
 
 		# prepare the theme
 		if isinstance(theme, str):
@@ -598,11 +598,11 @@ class Page(AbstractComponent):
 		"""Get the current theme of the page."""
 		return self.theme
 
-	def get_console(self):
-		return self.console
+	def get_interface(self):
+		return self.interface
 
-	def set_console(self, console):
-		self.console = console
+	def set_interface(self, interface):
+		self.interface = interface
 
 	def online(self):
 		"""Test if the current page is online.

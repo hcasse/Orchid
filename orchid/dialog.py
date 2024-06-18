@@ -63,7 +63,7 @@ class Base(Component):
 		self.main = main
 		main.parent = self
 		main.add_class("dialog-flex")
-		self.console = None
+		self.interface = None
 		page.add_hidden(self)
 
 	def finalize(self, page):
@@ -96,14 +96,14 @@ class Base(Component):
 		"""Transform message to be displayed in dialog."""
 		return Label(message.replace("\n", "<br>"))
 
-	def get_console(self):
-		if self.console is None:
-			return self.parent.get_console()
+	def get_interface(self):
+		if self.interface is None:
+			return self.parent.get_interface()
 		else:
-			return self.console
+			return self.interface
 
-	def set_console(self, console):
-		self.console = console
+	def set_interface(self, interface):
+		self.interface = interface
 
 
 def default_answer(dialog, answer):

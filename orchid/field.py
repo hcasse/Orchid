@@ -529,7 +529,7 @@ function proposal_show(m) {
 }
 
 function proposal_on_key_down(evt) {
-	console.log("Key = " + evt.key);
+	//console.log("Key = " + evt.key);
 	if(evt.key == "ArrowDown") {
 		if(proposal_pos != null) {
 			proposal_pos.classList.remove("proposal-selected");

@@ -37,7 +37,7 @@ class MyPage(Page):
 			app = app
 		)
 
-	def apply(self, console):
+	def apply(self, interface):
 		print("DEBUG: create user", self.login.get(), self.pwd.get(), self.email.get())
 
 

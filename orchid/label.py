@@ -1,7 +1,7 @@
 """Label component."""
 
 from orchid.base import *
-from orchid.util import ProxyConsole, STANDARD_CONSOLE
+from orchid.util import ProxyInterface, STANDARD_INTERFACE
 
 LABEL_MODEL = Model()
 
@@ -62,17 +62,17 @@ class Banner(ExpandableComponent):
 		out.write('</div>\n')
 
 
-class MessageLabel(Label, ProxyConsole):
+class MessageLabel(Label, ProxyInterface):
 
-	def __init__(self, content, console = STANDARD_CONSOLE):
+	def __init__(self, content, interface = STANDARD_INTERFACE):
 		Label.__init__(self, content)
-		ProxyConsole.__init__(self, console)
+		ProxyInterface.__init__(self, interface)
 		self.last_cls = None
 
 	def finalize(self, page):
 		Label.finalize(self, page)
-		self.set_proxy(self.get_console())
-		self.set_console(self)
+		self.set_proxy(self.get_interface())
+		self.set_interface(self)
 
 	def clear_class(self):
 		if self.last_cls is not None:

@@ -18,7 +18,7 @@ class ButtonAction(AbstractAction):
 	def is_enabled(self):
 		return self.enabled
 
-	def perform(self, console):
+	def perform(self, interface):
 		if self.on_click is not None:
 			self.on_click()
 

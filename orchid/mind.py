@@ -24,7 +24,7 @@ An application, and its different views, can be seen as a set of data on which a
 import re
 
 from orchid.base import Subject, Observer, AbstractComponent
-from orchid.util import STANDARD_CONSOLE
+from orchid.util import STANDARD_INTERFACE
 
 def is_python_type(t):
 	return isinstance(t, type)
@@ -242,12 +242,12 @@ class AbstractAction(EnableSubject, Entity):
 		"""Set the context of the action (component using it)."""
 		self.context = context
 
-	def get_console(self):
-		"""Get the console for the action."""
+	def get_interface(self):
+		"""Get the interface for the action."""
 		if self.context == None:
-			return STANDARD_CONSOLE
+			return STANDARD_INTERFACE
 		else:
-			return self.context.get_console()
+			return self.context.get_interface()
 
 	def is_enabled(self):
 		"""Test if the action is enabled. Default implementation returns
@@ -294,14 +294,14 @@ class PredicateHandler(EnableSubject, Observer):
 			self.update_observers()
 
 	def set_context(self, context):
-		"""Connect the handler to the given component (typically to benefit from the component context information like console)."""
+		"""Connect the handler to the given component (typically to benefit from the component context information like interface)."""
 		self.context = context
 
-	def get_console(self):
+	def get_interface(self):
 		if self.context == None:
-			return STANDARD_CONSOLE
+			return STANDARD_INTERFACE
 		else:
-			return self.context.get_console()
+			return self.context.get_interface()
 
 
 class AbstractPredicate:
@@ -413,8 +413,8 @@ class Action(AbstractAction, Observer):
 	def is_enabled(self):
 		return self.enable_pred.get()
 
-	def perform(self, console):
-		self.fun(console)
+	def perform(self, interface):
+		self.fun(interface)
 
 def get_value(x):
 	if isinstance(x, Var):
@@ -490,11 +490,11 @@ def if_error(pred, msg):
 			res = pred.check(context)
 			if res:
 				if self.displayed:
-					context.get_console().clear_message()
+					context.get_interface().clear_message()
 					self.displayed = False
 			else:
 				if not self.displayed:
-					context.get_console().show_error(msg)
+					context.get_interface().show_error(msg)
 					self.displayed = True
 			return res
 	return IfError()

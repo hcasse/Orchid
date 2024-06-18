@@ -37,8 +37,8 @@ def buffer(fun):
 	return str(buf)
 
 
-class Console:
-	"""A console is the abstraction of an interface of the user. It
+class Interface:
+	"""An interface is the abstraction of an interface of the user. It
 	allows to display messages and to ask the user for information.
 	The way these information is really implemented depends on the
 	application itself."""
@@ -79,7 +79,7 @@ class Console:
 		pass
 
 
-class StandardConsole(Console):
+class StandardInterface(Interface):
 	"""Console using standard input/output."""
 
 	def show_info(self, msg):
@@ -91,43 +91,43 @@ class StandardConsole(Console):
 	def show_error(self, msg):
 		sys.stderr.write("ERROR: %s\n" % msg)
 
-STANDARD_CONSOLE = StandardConsole()
+STANDARD_INTERFACE = StandardInterface()
 
-class ProxyConsole(Console):
-	"""Console redirecting the calls to anotehr console. Useful to specialize
-	some methods of the console. """
+class ProxyInterface(Interface):
+	"""Interface redirecting the calls to another interface. Useful to specialize
+	some methods of the interface. """
 
-	def __init__(self, console = STANDARD_CONSOLE):
-		self.console = console
+	def __init__(self, interface = STANDARD_INTERFACE):
+		self.interface = interface
 
 	def get_proxy(self):
-		"""Get the proxy console."""
-		return self.console
+		"""Get the proxy interface."""
+		return self.interface
 
-	def set_proxy(self, console):
-		"""Change the proxy console."""
-		self.console = console
+	def set_proxy(self, interface):
+		"""Change the proxy interface."""
+		self.interface = interface
 
 	def clear_message(self):
-		self.console.clear_message()
+		self.interface.clear_message()
 
 	def show_info(self, message):
-		self.console.show_info(message)
+		self.interface.show_info(message)
 
 	def show_warning(self, message):
-		self.console.show_warning(message)
+		self.interface.show_warning(message)
 
 	def show_error(self, message):
-		self.console.show_error(message)
+		self.interface.show_error(message)
 
 	def ask_yes_or_no(self, message):
-		self.console.ask_yes_or_no(message)
+		self.interface.ask_yes_or_no(message)
 
 	def start_process(self, message):
-		self.console.process(message)
+		self.interface.process(message)
 
 	def complete_process(self):
-		self.console.complete_process()
+		self.interface.complete_process()
 
 	def set_process(self, percent):
-		self.console.set_process(percent)
+		self.interface.set_process(percent)
