@@ -127,9 +127,16 @@ class TabbedPane(VGroup):
 
 	def insert(self, tab, i = -1):
 		if i < 0:
-			self.tabs.append(tab)
+			self.append(tab)
 		else:
-			self.tabs.insert(tab, i)
+			self.tabs.insert(i, tab)
+			self.complete_tab(i, tab)
+
+	def append(self, tab):
+		self.tabs.append(tab)
+		self.complete_tab(len(self.tabs)-1, tab)
+
+	def complete_tab(self, i, tab):
 		self.labs.insert(self.make_label(tab), i)
 		self.panes.insert(tab.get_component(), i)
 		if len(self.tabs) == 1:

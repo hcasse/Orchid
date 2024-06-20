@@ -63,28 +63,43 @@ class ListModel(Subject):
 
 	def append(self, x):
 		"""Append a value."""
-		for obs in self.filter_observers(Observer):
-			obs.on_append(x)
+		for obs in self.get_observers():
+			if isinstance(obs, ListObserver):
+				obs.on_appennd(x)
+			else:
+				obs.update(self)
 
 	def insert(self, i, x):
 		""""Insert an element at given position."""
-		for obs in self.filter_observers(Observer):
-			obs.on_insert(i, x)
+		for obs in self.get_observers():
+			if isinstance(obs, ListObserver):
+				obs.on_insert(i, x)
+			else:
+				obs.update(self)
 
 	def remove(self, x):
 		"""Remove the given element."""
-		for obs in self.filter_observers(Observer):
-			obs.on_remove(x)
+		for obs in self.filter_observers(ListObserver):
+			if isinstance(obs, ListObserver):
+				obs.on_remove(x)
+			else:
+				obs.update(self)
 
 	def set(self, i, x):
 		"""Change the value of an element."""
-		for obs in self.filter_observers(Observer):
-			obs.on_set(i, x)
+		for obs in self.filter_observers(ListObserver):
+			if isinstance(obs, ListObserver):
+				obs.on_set(i, x)
+			else:
+				obs.update(self)
 
 	def clear(self):
 		"""Clear the list."""
-		for obs in self.filter_observers(Observer):
-			obs.on_reset()
+		for obs in self.filter_observers(ListObserver):
+			if isinstance(obs, ListObserver):
+				obs.clear(i, x)
+			else:
+				obs.update(self)
 
 
 class ListVar(Var, ListModel):
@@ -132,3 +147,10 @@ class ListVar(Var, ListModel):
 
 	def __len__(self):
 		return len(~self)
+
+	def __getitem__(self, i):
+		return self.get(i)
+
+	def __setitem__(self, i, x):
+		self.set(i, x)
+

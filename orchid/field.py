@@ -78,7 +78,9 @@ class Field(Component, LabelledField):
 		Component.__init__(self, model)
 
 		# var construction
-		if var is None:
+		if isinstance(label, Var):
+			self.var = label
+		elif var is None:
 			self.var = self.make_var(init,
 				label=label,
 				help=help)

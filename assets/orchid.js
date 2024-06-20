@@ -54,7 +54,7 @@ ui_http.onreadystatechange = function() {
 				case "set-class":
 					component = document.getElementById(a["id"]);
 					component.className = a["classes"];
-					console.log("set-class " + a["classes"] + " to " + a["id"]);
+					//console.log("set-class " + a["classes"] + " to " + a["id"]);
 					break;
 				case "set-attr":
 					component = document.getElementById(a["id"]);
@@ -65,6 +65,7 @@ ui_http.onreadystatechange = function() {
 					component.removeAttribute(a["attr"]);
 					break;
 				case 'set-content':
+					console.log("set-content " + a["id"] + ": " + a["content"]);
 					component = document.getElementById(a["id"]);
 					component.innerHTML = a["content"];
 					break;
