@@ -577,7 +577,7 @@ class Page(AbstractComponent):
 		self.base_style = style
 		self.hidden = []
 		self.set_attr("onbeforeunload", "ui_close();")
-		self.set_attr("onclick", "ui_complete();")
+		#self.set_attr("onclick", "ui_complete();")
 		self.interface = interface
 
 		# prepare the theme
@@ -760,6 +760,9 @@ class Page(AbstractComponent):
 		a = msg["action"]
 		if a == "close":
 			self.on_close()
+		elif a == "hi":
+			print("DEBUG: hi!")
+			pass
 		else:
 			handler.log_error("unknown action: %s" % a)
 
@@ -832,6 +835,7 @@ class Page(AbstractComponent):
 		self.gen_attrs(out)
 		out.write(">\n")
 		self.gen_content(out)
+		out.write('<script>ui_send({ id: "0", action: "hi" });</script>')
 		out.write('</body>')
 		out.write('</html>')
 

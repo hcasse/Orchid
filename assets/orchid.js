@@ -4,6 +4,7 @@
 
 var ui_messages = [];
 var ui_http = new XMLHttpRequest();
+var ui_busy = false;
 var converter = document.createElement('div')
 
 function download() {
@@ -13,7 +14,7 @@ function download() {
 			node.innerHTML = this.responseText;
 		}
 		else
-			console.log("failed downloading.");
+			console.error("failed downloading.");
 	}
 }
 
@@ -38,10 +39,8 @@ ui_http.onreadystatechange = function() {
 			console.error("HTTP error: " + this.status);
 		}
 		else {
-			//console.log("answer: " + this.responseText)
 			ans = JSON.parse(this.responseText);
 			for(const a of ans["answers"]) {
-				//console.info("DEBUG:" + a);
 				switch(a["type"]) {
 				case "call":
 					var f = window[a["fun"]];
@@ -54,7 +53,6 @@ ui_http.onreadystatechange = function() {
 				case "set-class":
 					component = document.getElementById(a["id"]);
 					component.className = a["classes"];
-					//console.log("set-class " + a["classes"] + " to " + a["id"]);
 					break;
 				case "set-attr":
 					component = document.getElementById(a["id"]);
@@ -65,7 +63,6 @@ ui_http.onreadystatechange = function() {
 					component.removeAttribute(a["attr"]);
 					break;
 				case 'set-content':
-					console.log("set-content " + a["id"] + ": " + a["content"]);
 					component = document.getElementById(a["id"]);
 					component.innerHTML = a["content"];
 					break;
@@ -133,9 +130,7 @@ ui_http.onreadystatechange = function() {
 						elem.setAttribute("href", path);
 						document.head.appendChild(elem);
 					}
-					console.log("paths = " + a["script_paths"]);
 					for(const path of a["script_paths"]) {
-						console.log("path = " + path);
 						elem = document.createElement("script");
 						elem.setAttribute("src", path);
 						document.head.appendChild(elem);
@@ -146,8 +141,7 @@ ui_http.onreadystatechange = function() {
 					break;
 				}
 			}
-			if(ui_messages.length != 0)
-				ui_complete();					
+			ui_release();
 		}
 	}
 }
@@ -157,22 +151,34 @@ function ui_post(obj) {
 }
 
 function ui_complete() {
-	//console.log('DEBUG: complete');
 	if(ui_messages.length == 0)
 		return;
+	ui_busy = true;
 	ui_http.open("POST", "ui", true);
-	messages = ui_messages;
+	let messages = ui_messages;
 	ui_messages = [];
+	//console.log("UI sending");
 	ui_http.send(JSON.stringify({
 		page: ui_page,
 		messages: messages
 	}));
 }
 
+function ui_release() {
+	if(ui_messages.length != 0)
+		ui_complete();
+	else {
+		ui_busy = false;
+		//console.log("UI released!");
+	}
+}
+
 function ui_send(obj) {
-	//console.log("DEBUG: send " + obj.id + " " + obj.action);
 	ui_post(obj);
-	ui_complete();
+	if(!ui_busy)
+		ui_complete();
+	/*else
+		console.log("UI busy: " + obj);*/
 }
 
 // Main actions
@@ -188,8 +194,7 @@ function ui_close() {
 }
 
 function ui_onclick(id) {
-	//console.log('DEBUG: ui_onclick()');
-	ui_post({id: id, action: "click"});
+	ui_send({id: id, action: "click"});
 }
 
 
