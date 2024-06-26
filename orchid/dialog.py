@@ -19,8 +19,11 @@
 
 # https://css-tricks.com/some-hands-on-with-the-html-dialog-element/
 
-from functools import partial
-from orchid import *
+from orchid.base import Model, Component, Plain, ALIGN_CENTER
+from orchid.button import Button
+from orchid.label import Label
+from orchid.group import VGroup, HGroup, Spring
+from orchid.image import AssetImage
 
 MODEL = Model(
 	name = "orchid.dialog.Base",
@@ -125,13 +128,15 @@ class Answer(Base):
 	"""Answer dialog: provides information to the user and wait
 	for its answer."""
 
-	def __init__(self, page, message, buttons = ["Okay"], title = None, on_close = default_answer):
+	def __init__(self, page, message, buttons = None, title = None, on_close = default_answer):
 		"""Build the dialog displaying the given message optionally with a title.
 		It displays the given list of button (may be Orchid button or simple strings).
 		The on_close is function is called when the dialog is close and takes as
 		parameter (dialog, answer) with answer the index of the clicked answer button (starting from 0).
 
 		If you want to provide a custom button, use the dialog on_click() function to close the dialog."""
+		if buttons is None:
+			buttons = ["Okay"]
 		content = []
 
 		# add message
@@ -162,8 +167,8 @@ class Answer(Base):
 		self.add_class("dialog-answer")
 
 		# capture button click
-		for n in range(0, len(self.buttons)):
-			self.buttons[n].set_attr('onclick', 'dialog_answer_choose("%s", %d);' % (self.get_id(), n))
+		for (n, button) in enumerate(self.buttons):
+			button.set_attr('onclick', f'dialog_answer_choose("{self.get_id()}", {n});')
 
 	def select(self, n):
 		"""Called when a button number n is choosed/"""
@@ -171,11 +176,11 @@ class Answer(Base):
 		self.on_close(self, n)
 		self.buttons[n].click()
 
-	def receive(self, msg, hnd):
+	def receive(self, msg, handler):
 		if msg['action'] == 'choose':
 			self.select(msg['n'])
 		else:
-			Base.receive(self, msg, hnd)
+			Base.receive(self, msg, handler)
 
 
 MESSAGES = {
@@ -213,7 +218,7 @@ class Message(Base):
 		buttons.add_class("dialog-buttons")
 		content.append(buttons)
 		Base.__init__(self, page, VGroup(content), title=title)
-		if type != None and type in MESSAGES:
+		if type is not None and type in MESSAGES:
 			self.add_class(type)
 		self.on_close = on_close
 		self.add_class("dialog-message")
@@ -231,7 +236,6 @@ class About(Base):
 		all = []
 
 		# prepare the icon if any
-		content = []
 		if app.icon is not None:
 			label = Label(AssetImage(app.icon, width=96))
 			label.add_class("dialog-about-icon")
@@ -240,19 +244,19 @@ class About(Base):
 		# prepare the text
 		text = []
 		title = app.name
-		if app.version != None:
-			title = "%s V%s" % (title, app.version)
+		if app.version is not None:
+			title = f"{title} V{app.version}"
 		#title = Label(title)
 		#title.add_class("dialog-about-title")
 		#text.append(title)
 		if app.description is not None:
 			text.append(Plain(app.description, in_tag="p"))
 		if app.website is not None:
-			text.append(Plain('<a href="%s">%s</a>' % (app.website, app.website), in_tag="p"))
+			text.append(Plain(f'<a href="{app.website}">{app.website}</a>', in_tag="p"))
 		if app.license is not None:
-			text.append(Plain("<b>License:</b> %s" % app.license, in_tag="p"))
+			text.append(Plain(f"<b>License:</b> {app.License}", in_tag="p"))
 		if app.copyright is not None:
-			text.append(Plain("<i>%s</i>" % app.copyright, in_tag="center"))
+			text.append(Plain(f"<i>{app.copyright}</i>", in_tag="center"))
 		text = VGroup(text)
 		text.add_class("dialog-text")
 		all.append(text)
