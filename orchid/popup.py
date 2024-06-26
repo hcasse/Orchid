@@ -17,8 +17,9 @@
 
 """This module manage popups: menus."""
 
-from orchid import *
-from orchid import group
+from orchid.base import ICON_MENU, Model, CONTEXT_MENU
+from orchid.group import VGroup
+from orchid.button import Button
 import orchid.image
 
 BELOW = 0
@@ -55,7 +56,7 @@ class Menu(VGroup):
 
 	def get_onclick(self):
 		"""Get the on-click code."""
-		return "popup_menu_top_click('%s');" % self.get_id()
+		return f"popup_menu_top_click('{self.get_id()}');"
 
 	def show(self):
 		pass
@@ -99,8 +100,8 @@ class MenuButton(Button):
 	"""Button that is able to display a menu."""
 
 	def __init__(self, menu, label = None, image = None, enabled = True):
-		if image == None:
-			image = orchid.image.Icon(orchid.image.ICON_MENU)
+		if image is None:
+			image = orchid.image.Icon(ICON_MENU)
 		Button.__init__(self,
 			label=label,
 			image=image,
