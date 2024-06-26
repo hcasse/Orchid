@@ -17,8 +17,8 @@
 
 """Definition of basic theme."""
 
-import orchid
-from orchid.image import AssetImage
+from orchid.base import Model, CONTEXT_HEADERBAR, CONTEXT_TOOLBAR, Theme
+from orchid.image import AssetImage, Image
 
 MESSAGES = {
 	"warning": "basic/warning.svg",
@@ -144,7 +144,6 @@ BOOTSTRAP_ICONS = {
 	"pencil": "pencil", #!
 	"person": "person-fill",
 	"piece": "puzzle",
-	"pin": "pin-angle-fill",	#!
 	"plug": "plug",		#!
 	"point": "geo-alt-fill",
 	"stack": "stack",	#!
@@ -184,24 +183,24 @@ BOOTSTRAP_ICONS = {
 
 ICONS = BOOTSTRAP_ICONS
 
-ICON_MODEL = orchid.Model("basic.icon-model")
+ICON_MODEL = Model("basic.icon-model")
 
-class Icon(orchid.Image):
+class Icon(Image):
 	"""An image using standard icons as defined in the documentation.
 	If the icon name starts with "!", the named is looked in the
 	current icon collection (https://icons.getbootstrap.com/)."""
 
 	CONTEXT = {
-		orchid.CONTEXT_HEADERBAR: " headerbar-icon",
-		orchid.CONTEXT_TOOLBAR: " toolbar-icon",
+		CONTEXT_HEADERBAR: " headerbar-icon",
+		CONTEXT_TOOLBAR: " toolbar-icon",
 	}
 
 	def __init__(self, name, color = None):
-		orchid.Image.__init__(self, ICON_MODEL)
+		Image.__init__(self, ICON_MODEL)
 		self.name = name
 		self.color = color
 
-	def gen(self, out, context):
+	def gen(self, out):
 		if self.name.startswith("!"):
 			icon = self.name[1:]
 		else:
@@ -209,21 +208,21 @@ class Icon(orchid.Image):
 				icon = ICONS[self.name]
 			except KeyError:
 				icon = ICONS["image"]
-		out.write('<i class="bi bi-%s' % icon)
+		out.write(f'<i class="bi bi-{icon}')
 		try:
-			out.write(Icon.CONTEXT[context])
+			out.write(Icon.CONTEXT[self.get_context()])
 		except KeyError:
 			pass
 		out.write('"')
-		if self.color != None:
-			out.write(' style="color: %s"' % self.color)
+		if self.color is not None:
+			out.write(f' style="color: {self.color}"')
 		out.write('"></i>')
 
 
-class Theme(orchid.Theme):
+class BasicTheme(Theme):
 
 	def __init__(self):
-		orchid.Theme.__init__(self, "basic", style_paths=[
+		Theme.__init__(self, "basic", style_paths=[
 			"basic.css",
 			"bootstrap-icons/bootstrap-icons.css"
 		])
@@ -240,4 +239,4 @@ class Theme(orchid.Theme):
 
 def get():
 	"""Get an instance of this theme."""
-	return Theme()
+	return BasicTheme()

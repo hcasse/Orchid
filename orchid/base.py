@@ -1124,7 +1124,7 @@ class Theme(Model):
 		"""Get an icon by name. Possibly with a color if the icon is monochrom."""
 		return None
 
-	def get_dialog_icon(self, type):
+	def get_dialog_icon(self, type, size=32):
 		"""Get the icon for a dialog. type must be one of MSG_XXX constant.
 		May return None if the type is not supported."""
 		return None

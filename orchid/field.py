@@ -120,13 +120,13 @@ class Field(Component, LabelledField):
 		"""Get the variable containing the value of the field."""
 		return self.var
 
-	def set_enabled(self, enabled=True):
-		"""Set enabled state."""
-		if self.enabled != enabled:
-			if enabled:
-				self.enable()
-			else:
-				self.disable()
+	#def set_enabled(self, enabled=True):
+	#	"""Set enabled state."""
+	#	if self.enabled != enabled:
+	#		if enabled:
+	#			self.enable()
+	#		else:
+	#			self.disable()
 
 	def enable(self):
 		"""Enable the field."""

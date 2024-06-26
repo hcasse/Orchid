@@ -18,7 +18,7 @@
 """Provide TabbedPane component.q"""
 
 from orchid.base import Model
-import orchid
+from orchid.button import Button
 from orchid.group import VGroup, HGroup, VGROUP_MODEL, LayeredPane
 
 MODEL = Model(
@@ -86,7 +86,7 @@ class TabbedPane(VGroup):
 		return self.tabs
 
 	def make_label(self, tab):
-		but = orchid.Button(
+		but = Button(
 			tab.get_label(),
 			on_click=lambda: self.select(tab))
 		but.add_class("tabbed-label")
@@ -169,10 +169,10 @@ class TabbedPane(VGroup):
 		self.panes.remove(i)
 		tab.on_release()
 
-	def gen(self, out):
-		out.write('<div ')
-		self.gen_attrs(out)
-		out.write('>\n')
-		for c in self.children:
-			c.gen(out)
-		out.write('</div>\n')
+	#def gen(self, out):
+	#	out.write('<div ')
+	#	self.gen_attrs(out)
+	#	out.write('>\n')
+	#	for c in self.children:
+	#		c.gen(out)
+	#	out.write('</div>\n')

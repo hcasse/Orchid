@@ -17,7 +17,7 @@
 
 """Group components."""
 
-import orchid as orc
+import orchid.base as orc
 from orchid.base import Model, Component, ExpandableComponent
 
 class Group(Component):
