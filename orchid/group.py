@@ -17,8 +17,8 @@
 
 """Group components."""
 
-import orchid
-from orchid.base import *
+import orchid as orc
+from orchid.base import Model, Component, ExpandableComponent
 
 class Group(Component):
 	"""Groups allows to display several components together. The place
@@ -36,7 +36,7 @@ class Group(Component):
 		"""Re-build the mapping of children."""
 		self.weight = (0, 0)
 		for c in self.children:
-			self.map_child(c)	
+			self.map_child(c)
 
 	def map_child(self, child):
 		"""Map the child in the group."""
@@ -44,10 +44,10 @@ class Group(Component):
 		child.parent = self
 		if child.expands_horizontal():
 			self.expandh = True
-			hw = 1;
+			hw = 1
 		if child.expands_vertical():
 			self.expandv = True
-			vw = 1;
+			vw = 1
 		if (hw, vw) != self.weight:
 			self.weight = (hw, vw)
 
@@ -105,7 +105,7 @@ class Group(Component):
 
 	def get_context(self):
 		"""Get the group context (one of CONTEXT_* constants)."""
-		return CONTEXT_NONE
+		return orc.CONTEXT_NONE
 
 	def finalize(self, page):
 		Component.finalize(self, page)
@@ -149,14 +149,16 @@ class HGroup(Group):
 	* align: vertival alignment of model (one of ALIGN_ constant)."""
 
 	ALIGNS = {
-		ALIGN_NONE: None,
-		ALIGN_TOP: "start",
-		ALIGN_BOTTOM: "end",
-		ALIGN_CENTER: "center",
-		ALIGN_JUSTIFY: "stretch"
+		orc.ALIGN_NONE: None,
+		orc.ALIGN_TOP: "start",
+		orc.ALIGN_BOTTOM: "end",
+		orc.ALIGN_CENTER: "center",
+		orc.ALIGN_JUSTIFY: "stretch"
 	}
 
-	def __init__(self, comps = [], model = HGROUP_MODEL, align = ALIGN_LEFT):
+	def __init__(self, comps = None, model = HGROUP_MODEL, align = orc.ALIGN_LEFT):
+		if comps is None:
+			comps = []
 		Group.__init__(self, model, comps)
 		self.add_class("hgroup")
 		align = HGroup.ALIGNS[align]
@@ -180,7 +182,7 @@ class HGroup(Group):
 		out.write('>\n')
 		for c in self.children:
 			c.gen(out)
-		out.write('</div>\n')	
+		out.write('</div>\n')
 
 
 # VGroup class
@@ -219,14 +221,14 @@ class VGroup(Group):
 	* align: horizontal alignment of components (one of ALIGN_ constant)."""
 
 	ALIGNS = {
-		ALIGN_NONE: None,
-		ALIGN_LEFT: "start",
-		ALIGN_RIGHT: "end",
-		ALIGN_CENTER: "center",
-		ALIGN_JUSTIFY: "stretch"
+		orc.ALIGN_NONE: None,
+		orc.ALIGN_LEFT: "start",
+		orc.ALIGN_RIGHT: "end",
+		orc.ALIGN_CENTER: "center",
+		orc.ALIGN_JUSTIFY: "stretch"
 	}
 
-	def __init__(self, comps, model = VGROUP_MODEL, align = ALIGN_NONE):
+	def __init__(self, comps, model = VGROUP_MODEL, align = orc.ALIGN_NONE):
 		Group.__init__(self, model, comps)
 		self.add_class("vgroup")
 		align = VGroup.ALIGNS[align]
@@ -349,17 +351,17 @@ class LayeredPane(Group):
 			self.current = -1
 
 	def expands_horizontal(self):
-		if self.hexpand == None:
+		if self.hexpand is None:
 			self.hexpand = \
-				any([c.expands_horizontal for c in self.children])
+				any(c.expands_horizontal for c in self.children)
 		return self.hexpand
 
 	def expands_vertical(self):
-		if self.vexpand == None:
+		if self.vexpand is None:
 			self.vexpand = \
-				any([c.expands_vertical for c in self.children])
+				any(c.expands_vertical for c in self.children)
 		return self.vexpand
-	
+
 	def gen(self, out):
 		out.write('<div ')
 		self.gen_attrs(out)

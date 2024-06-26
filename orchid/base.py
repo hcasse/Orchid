@@ -456,8 +456,8 @@ class Component(AbstractComponent):
 		AbstractComponent.__init__(self)
 		self.page = None
 		self.model = model
-		#self.id = str(COMPONENT_ID)
 		COMPONENT_ID += 1
+		self.weight = None
 
 	def get_model(self):
 		"""Get the model of the component."""
