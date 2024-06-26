@@ -17,7 +17,8 @@
 
 """Classes representing models, observers and variables for complex data structures."""
 
-from orchid.mind import *
+from orchid.base import Subject
+from orchid.mind import Var, ListType, make_type, type_of_data
 
 class ListObserver:
 	"""Observer of a list model."""
@@ -105,8 +106,10 @@ class ListModel(Subject):
 class ListVar(Var, ListModel):
 	"""Variable containg a list."""
 
-	def __init__(self, list = [], item_type = None, **args):
+	def __init__(self, list = None, item_type = None, **args):
 		ListModel.__init__(self)
+		if list is None:
+			list = []
 		if item_type is not None:
 			type = ListType(make_type(item_type))
 		else:
@@ -119,7 +122,7 @@ class ListVar(Var, ListModel):
 	def index(self, x):
 		return (~self).find(x)
 
-	def get(self, i):
+	def get_index(self, i):
 		return (~self)[i]
 
 	def append(self, x):
@@ -134,7 +137,7 @@ class ListVar(Var, ListModel):
 		(~self).remove(x)
 		ListModel.remove(self, x)
 
-	def set(self, i, x):
+	def set_index(self, i, x):
 		(~self)[i] = x
 		ListModel.set(self, i, x)
 
@@ -150,8 +153,8 @@ class ListVar(Var, ListModel):
 		return len(~self)
 
 	def __getitem__(self, i):
-		return self.get(i)
+		return self.get_index(i)
 
 	def __setitem__(self, i, x):
-		self.set(i, x)
+		self.set_index(i, x)
 
