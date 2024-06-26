@@ -1,7 +1,6 @@
 """Button class."""
 
-from orchid.base import *
-import orchid.image
+from orchid.base import Component, Model
 from orchid.mind import AbstractAction, EnableObserver, Var, BOOL_TYPE, EnumType
 from orchid.label import Label
 from orchid.field import LabelledField
@@ -120,12 +119,12 @@ class Button(AbstractButton):
 			self.label = Label(self.action.label)
 		if self.action.help is not None:
 			self.set_attr("title", self.action.help)
-		self.set_attr("onclick", 'ui_onclick("%s");' % self.get_id())
+		self.set_attr("onclick", 'ui_onclick("{self.get_id()}");')
 
 
 	def finalize(self, page):
 		AbstractButton.finalize(self, page)
-		if self.action.icon != None:
+		if self.action.icon is not None:
 			self.action.icon.finalize(page)
 		if self.label is not None:
 			self.label.finalize(page)
@@ -146,11 +145,11 @@ class Button(AbstractButton):
 		if self.action.is_enabled():
 			self.action.perform(None)
 
-	def receive(self, m, h):
-		if m["action"] == "click":
+	def receive(self, msg, handler):
+		if msg["action"] == "click":
 			self.click()
 		else:
-			Component.receive(self, m, h)
+			Component.receive(self, msg, handler)
 
 	def on_click(self):
 		"""Called when a click is performed."""
@@ -187,16 +186,17 @@ class CheckBox(Component, LabelledField):
 			self.var = Var(value, label=label, help=help)
 		self.set_value(value)
 		self.set_attr("onchange",
-			"check_box_on_change('%s', event);" % self.get_id())
+			f"check_box_on_change('{self.get_id()}', event);")
 		self.enabled = True
 		self.set_enabled(enabled)
+		self.updating = False
 
 	def show(self):
 		self.var.add_observer(self)
 		self.updating = True
 
 	def hide(self):
-		self.varr.remove_observer(self)
+		self.var.remove_observer(self)
 
 	def update_remote(self):
 		self.call("check_box_set",
@@ -223,12 +223,12 @@ class CheckBox(Component, LabelledField):
 
 	def gen_label(self, out):
 		if self.var.label is not None:
-			out.write('<label for="%s">' % self.get_id())
+			out.write(f'<label for="{self.get_id()}">')
 			out.write(self.var.label)
 			out.write('</label>')
 
 	def gen_field(self, out, with_label=True):
-		out.write('<div class="checkbox"><input type="checkbox" name="%s"' % self.get_id())
+		out.write(f'<div class="checkbox"><input type="checkbox" name="{self.get_id()}"')
 		self.gen_attrs(out)
 		out.write('>')
 		if with_label:
@@ -256,7 +256,7 @@ class CheckBox(Component, LabelledField):
 	def is_enabled(self):
 		return self.enabled
 
-	def set_enabled(self, enabled):
+	def set_enabled(self, enabled = True):
 		if self.enabled != enabled:
 			self.enabled = enabled
 			if enabled:
@@ -293,11 +293,12 @@ class RadioButton(Component, LabelledField):
 				  label=label,
 				  help=help)
 		self.options = self.var.get_type().get_values()
-		assert 0 <= choice and choice < len(self.options)
+		assert 0 <= choice < len(self.options)
 		self.horizontal = horizontal
+		self.updating = False
 
 	def get_option_id(self, n):
-		return "%s-%d" % (self.get_id(), n)
+		return f"{self.get_id()}-{n}"
 
 	def show(self):
 		self.var.add_observer(self)
@@ -307,7 +308,7 @@ class RadioButton(Component, LabelledField):
 		self.var.remove_observer(self)
 
 	def record_var(self, n):
-		assert 0 <= n and n < len(self.options)
+		assert 0 <= n < len(self.options)
 		self.updating = True
 		self.var.set(n)
 		self.updating = False
@@ -333,16 +334,17 @@ class RadioButton(Component, LabelledField):
 			out.write('</label>')
 
 	def gen_field(self, out, with_label=True):
-		out.write('<form onchange="radio_button_on_change(\'%s\', event);">' % self.get_id())
-		for i in range(0, len(self.options)):
+		out.write(f'<form onchange="radio_button_on_change(\'{self.get_id()}\', event);">')
+		for i, x in enumerate(self.options):
 			if i != 0 and not self.horizontal:
 				out.write('<br/>')
-			id = self.get_option_id(i)
-			out.write('<input type="radio" id="%s" name="%s-radio" value="%d"' % (id, self.get_id(), i))
+			id = self.get_option_id(x)
+			out.write(f'<input type="radio" id="{id}" \
+				name="{self.get_id()}-radio" value="{i}"')
 			if i == ~self.var:
 				out.write(' checked')
 			out.write('>')
-			out.write('<label for="%s">%s</label>' % (id,  self.options[i]))
+			out.write(f'<label for="{id}">{self.options[i]}</label>')
 		out.write("</form>")
 
 	def gen(self, out):
@@ -351,7 +353,6 @@ class RadioButton(Component, LabelledField):
 	def receive(self, msg, handler):
 		action = msg['action']
 		if action == 'choose':
-			old = ~self.var
 			new = int(msg['choice'])
 			self.record_var(new)
 			#if self.online():
