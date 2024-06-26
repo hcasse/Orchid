@@ -23,12 +23,9 @@ import json
 import mimetypes
 import os.path
 import re
-import socketserver
-import sys
 import threading
 import time
 import webbrowser
-from orchid.base import Page
 
 class Provider:
 	"""Interface of objects providing content. Each provider is
@@ -40,7 +37,7 @@ class Provider:
 	def add_headers(self, handler):
 		"""Called to let the provider to add headers on the given
 		HTTPHandler."""
-		if self.mime != None:
+		if self.mime is not None:
 			handler.send_header("Content-type", self.mime)
 
 	def gen(self, out):
@@ -52,7 +49,7 @@ class FileProvider(Provider):
 	"""Provider providing a file from the file system."""
 
 	def __init__(self, path, mime = None):
-		if mime == None:
+		if mime is None:
 			mime = mimetypes.guess_type(path)[0]
 		Provider.__init__(self, mime)
 		self.path = path
@@ -61,21 +58,19 @@ class FileProvider(Provider):
 
 		# send text file
 		if self.mime in TEXT_MIMES:
-			file = open(self.path, encoding="utf-8")
-			for l in file:
-				out.write(bytes(l, "utf-8"))
-			file.close()
+			with open(self.path, encoding="utf-8") as file:
+				for l in file:
+					out.write(bytes(l, "utf-8"))
 
 		# send binary file
 		else:
-			file = open(self.path, "rb")
-			while True:
-				b = file.read(4096)
-				if b == b'':
-					break
-				else:
-					out.write(b)
-			file.close()
+			with open(self.path, "rb") as file:
+				while True:
+					b = file.read(4096)
+					if b == b'':
+						break
+					else:
+						out.write(b)
 
 		# success
 		return 200
@@ -87,10 +82,12 @@ class PageProvider(Provider):
 	def __init__(self, page):
 		Provider.__init__(self, "text/html")
 		self.page = page
-	
+		self.out = None
+
 	def gen(self, out):
 		self.out = out
 		self.page.gen(self)
+		self.out = None
 
 	def write(self, text):
 		self.out.write(text.encode('utf-8'))
@@ -104,6 +101,7 @@ class AppProvider(Provider):
 		Provider.__init__(self, "text/html")
 		self.app = app
 		self.man = man
+		self.out = None
 
 	def gen(self, out):
 		self.out = out
@@ -112,10 +110,11 @@ class AppProvider(Provider):
 		session.add_page(page)
 		self.man.record_page(page, PageProvider(page))
 		page.gen(self)
+		self.out = None
 
 	def write(self, text):
 		self.out.write(text.encode('utf-8'))
-	
+
 
 class TextProvider(Provider):
 	"""Provider providing plain text message."""
@@ -127,9 +126,9 @@ class TextProvider(Provider):
 	def gen(self, out):
 		out.write(self.text.encode('utf-8'))
 
-	
 
-GEN_RE = re.compile("^\s+<\?\s+(\S+)\s+\?>\s+$")
+
+GEN_RE = re.compile(r"^\s+<\?\s+(\S+)\s+\?>\s+$")
 
 TEXT_MIMES = {
 	"application/javascript",
@@ -156,6 +155,7 @@ class Manager:
 		self.check_time = self.config['session_check_time']
 		self.check_thread = None
 		self.is_server = config['server']
+		self.super = None
 
 	def add_path(self, path, prov):
 		self.paths[path] = prov
@@ -192,7 +192,7 @@ class Manager:
 
 	def add_app(self, app):
 		prov = AppProvider(app, self)
-		self.paths["/app/%s" % app.name] = prov
+		self.paths[f"/app/{app.name}"] = prov
 		return prov
 
 	def remove_page(self, page):
@@ -210,7 +210,7 @@ class Manager:
 		if self.config['server']:
 			return False
 		else:
-			return self.pages == {}
+			return not self.pages
 
 	def get(self, path):
 		path = os.path.normpath(path)
@@ -232,7 +232,7 @@ class Manager:
 	def remove_session(self, session):
 		"""Remove a session from the server manager."""
 		self.sessions.remove(session)
-		if self.sessions == [] and not self.is_server:
+		if not self.sessions and not self.is_server:
 			os._exit(0)
 
 	def check_connections(self):
@@ -257,7 +257,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
 		try:
 			page = self.server.manager.get_page(msg["page"])
 		except KeyError:
-			self.log_error("malformed message: %s" % msg)
+			self.log_error(f"malformed message: {msg}")
 			return
 		answers = page.receive(msg["messages"], self)
 		self.send_response(200)
@@ -271,8 +271,8 @@ class Handler(http.server.SimpleHTTPRequestHandler):
 	def do_GET(self):
 		debug = self.server.manager.config['debug']
 		prov = self.server.manager.get(self.path)
-		if prov == None:
-			self.log_error("bad path: %s" % self.path)
+		if prov is None:
+			self.log_error(f"bad path: {self.path}")
 			self.send_response(404)
 			self.end_headers()
 			if debug:
@@ -293,7 +293,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
 
 def open_browser(host, port):
 	time.sleep(.5)
-	webbrowser.open("http://%s:%d" % (host, port))
+	webbrowser.open(f"http://{host}:{port}")
 
 DEFAULT_CONFIG = {
 	'host': 'localhost',
@@ -322,8 +322,8 @@ def run(app, **args):
 
 	# build the configuration
 	config = dict(DEFAULT_CONFIG)
-	for k in args:
-		config[k] = args[k]
+	for (k, x) in args.items():
+		config[k] = x
 
 	# build the manager
 	my_assets = os.path.realpath(os.path.join(os.path.dirname(__file__), "../assets"))
@@ -335,7 +335,7 @@ def run(app, **args):
 	# build the server
 	server = http.server.HTTPServer((config['host'], config['port']), Handler)
 	server.manager = manager
-	print("Server on %s:%d" % (config['host'], config['port']))
+	print(f"Server on {config['host']}:{config['port']}")
 
 	# launch browser if required
 	if config['browser']:
