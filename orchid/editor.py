@@ -1,6 +1,6 @@
 """Editor class."""
 
-from orchid.base import *
+from orchid.base import Model, ExpandableComponent
 
 class EditorModel(Model):
 

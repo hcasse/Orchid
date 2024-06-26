@@ -18,10 +18,11 @@
 """Field components."""
 
 import re
-from orchid.base import *
+from orchid.base import Component, Model, ALIGN_JUSTIFY
+from orchid.util import Buffer
 from orchid.group import VGroup, Group
 from orchid.label import Label
-from orchid.mind import Var, Entity, EnumType
+from orchid.mind import Var, EnumType
 
 
 class LabelledField:
@@ -92,8 +93,8 @@ class Field(Component, LabelledField):
 		self.convert = convert
 		self.validate = validate
 		self.place_holder = place_holder
-		if weight == None:
-			if size != None:
+		if weight is None:
+			if size is not None:
 				weight = (size, 0)
 			else:
 				weight = (1, 0)
@@ -106,6 +107,7 @@ class Field(Component, LabelledField):
 		self.check(self.var.get())
 		self.enabled = None
 		self.set_enabled(enabled)
+		self.updating = False
 
 	def make_var(self, init, **args):
 		"""Build a variable for the current field."""
@@ -118,7 +120,7 @@ class Field(Component, LabelledField):
 		"""Get the variable containing the value of the field."""
 		return self.var
 
-	def set_enabled(self, enabled):
+	def set_enabled(self, enabled=True):
 		"""Set enabled state."""
 		if self.enabled != enabled:
 			if enabled:
@@ -134,7 +136,7 @@ class Field(Component, LabelledField):
 	def disable(self):
 		"""Disable the field."""
 		self.enabled = False
-		self.add_attr("disabled")
+		self.set_attr("disabled")
 
 	def get_value(self):
 		"""Get the content of the field."""
@@ -163,7 +165,7 @@ class Field(Component, LabelledField):
 
 	def update_remote(self):
 		if self.online():
-			self.get_page().set_direct_attr("%s-field" % self.get_id(), "value", str(~self.var))
+			self.get_page().set_direct_attr(f"{self.get_id()}-field", "value", str(~self.var))
 
 	def update(self, subject):
 		if not self.updating:
@@ -182,7 +184,7 @@ class Field(Component, LabelledField):
 
 	def gen_input_attrs(self, out):
 		"""Generate attributes that goes inside <input> tag."""
-		if self.size != None:
+		if self.size is not None:
 			self.gen_attr(out, "size", self.size)
 		if self.place_holder is not None:
 			self.gen_attr(out, "placeholder", self.place_holder)
@@ -194,16 +196,16 @@ class Field(Component, LabelledField):
 		val = self.get_value()
 		if val is not None:
 			self.gen_attr(out, "value", val)
-		self.gen_attr(out, "oninput", 'field_change("%s", this.value);' % self.get_id())
+		self.gen_attr(out, "oninput", f'field_change("{self.get_id()}", this.value);')
 
 	def gen_label(self, out):
 		"""Generate label for the field."""
-		if self.var.label != None:
-			out.write('<label for="%s-field">%s</label>' % (self.get_id(), self.var.label))
+		if self.var.label is not None:
+			out.write(f'<label for="{self.get_id()}-field">{self.var.label}</label>')
 
 	def gen_input(self, out):
 		"""Generate the <input> tag."""
-		out.write('<input id="%s-field"' % self.get_id())
+		out.write(f'<input id="{self.get_id()}-field"')
 		self.gen_input_attrs(out)
 		out.write('>')
 		self.gen_custom_content(out)
@@ -241,19 +243,19 @@ class Field(Component, LabelledField):
 		if content is None:
 			return
 		content = self.validate(content)
-		if content == None:
+		if content is not None:
 			self.set_validity(False)
 		else:
 			if self.var.get() != content:
 				self.record_var(content)
 			self.set_validity(True)
 
-	def receive(self, m, h):
-		if m["action"] == "change":
-			content = m["value"]
+	def receive(self, msg, handler):
+		if msg["action"] == "change":
+			content = msg["value"]
 			self.check(content)
 		else:
-			Component.receive(self, m, h)
+			Component.receive(self, msg, handler)
 
 
 class ColorField(Field):
@@ -325,7 +327,7 @@ class RangeField(Field):
 		Field.__init__(self, validate=as_natural, **args)
 
 	def make_var(self, init, **args):
-		if init == None:
+		if init is None:
 			return Var(None, type=int, **args)
 		else:
 			return Var(init, **args)
@@ -357,10 +359,10 @@ class Select(Component, LabelledField):
 		Component.__init__(self, SELECT_MODEL)
 		if var is not None:
 			assert isinstance(var.type, EnumType)
-			assert 0 <= choice and choice < len(var.type.values)
+			assert 0 <= choice < len(var.type.values)
 			self.var = var
 		else:
-			assert 0 <= choice and choice < len(choices)
+			assert 0 <= choice < len(choices)
 			self.var = Var(choice, EnumType(choices),
 				label=label,
 				help=help
@@ -370,6 +372,7 @@ class Select(Component, LabelledField):
 		self.set_enabled(enabled)
 		self.size = size
 		self.set_attr("onchange", 'select_on_choose(this);')
+		self.updating = False
 
 	def show(self):
 		self.var.add_observer(self)
@@ -378,7 +381,7 @@ class Select(Component, LabelledField):
 	def hide(self):
 		self.var.remove_observer(self)
 
-	def set_enabled(self, enabled):
+	def set_enabled(self, enabled=True):
 		"""Set the enabled state."""
 		if enabled != self.enabled:
 			if enabled:
@@ -393,7 +396,7 @@ class Select(Component, LabelledField):
 
 	def disable(self):
 		"""Disable the selector."""
-		self.add_attr("disabled")
+		self.set_attr("disabled")
 		self.enabled = True
 
 	def record_var(self, value):
@@ -414,11 +417,11 @@ class Select(Component, LabelledField):
 			self.record_var(choice)
 			self.update_remote()
 
-	def receive(self, m, h):
-		if m["action"] == "choose":
-			self.record_var(m["idx"])
+	def receive(self, msg, handler):
+		if msg["action"] == "choose":
+			self.record_var(msg["idx"])
 		else:
-			Component.receive(self, m, h)
+			Component.receive(self, msg, handler)
 
 	def update(self, subject):
 		if not self.updating:
@@ -426,7 +429,7 @@ class Select(Component, LabelledField):
 
 	def gen_label(self, out):
 		if self.var.label is not None:
-			out.write('<label for="%s">%s</label>' % (self.get_id(), self.var.label))
+			out.write(f'<label for="{self.get_id()}">{self.var.label}</label>')
 
 	def gen_field(self, out, with_label=True):
 		out.write("<div>")
@@ -434,7 +437,7 @@ class Select(Component, LabelledField):
 			self.gen_label(out)
 		out.write('<select')
 		self.gen_attrs(out)
-		out.write(' name="%s"' % self.get_id())
+		out.write(f' name="{self.get_id()}"')
 		if self.var.help is not None:
 			self.gen_attr(out, "title", self.var.help)
 		out.write('>')
@@ -446,11 +449,8 @@ class Select(Component, LabelledField):
 		self.gen_field(out)
 
 	def gen_option(self, i, out):
-		out.write('<option value="%s"%s>%s</option>' % (
-			i,
-			" selected" if i == ~self.var else "",
-			self.choices[i])
-	)
+		out.write(f'<option value="{i}" \
+			{" selected" if i == ~self.var else ""}>{self.choices[i]}</option>')
 
 	def gen_options(self, out):
 		for i in range(0, len(self.choices)):
@@ -459,7 +459,7 @@ class Select(Component, LabelledField):
 	def set_choices(self, choices):
 		"""Change the set of choices."""
 		self.choices = choices
-		self.choice = 0
+		self.var.set(0)
 		if self.online():
 			buf = Buffer()
 			self.gen_options(buf)
@@ -571,8 +571,9 @@ function proposal_on_key_down(evt) {
 
 class ProposalField(Field):
 	"""Like a field but also with the possibility to provides, with a menu,
-	proposals to the user to shorten the typing effort. The propose function takes as input the current content of the field and returns a list of proposals
-	as a list of strings."""
+	proposals to the user to shorten the typing effort. The propose function
+	takes as input the current content of the field and returns a list of
+	proposals as a list of strings."""
 
 	def __init__(self, propose = lambda x: [], **args):
 		Field.__init__(self, model=PROPOSAL_MODEL, **args)
@@ -610,9 +611,9 @@ class ProposalField(Field):
 	def hide_props(self):
 		self.call("proposal_hide")
 
-	def receive(self, m, h):
-		if m["action"] == "change":
-			value = m["value"]
+	def receive(self, msg, handler):
+		if msg["action"] == "change":
+			value = msg["value"]
 			if value == "":
 				self.hide_props()
 				self.prev = []
@@ -626,11 +627,11 @@ class ProposalField(Field):
 						labs = [Label(prop) for prop in props]
 						self.group.replace_children(labs)
 						self.show_props()
-		elif m["action"] == "select":
+		elif msg["action"] == "select":
 			self.prev = []
-			self.check(m["value"])
+			self.check(msg["value"])
 		else:
-			Field.receive(self, m, h)
+			Field.receive(self, msg, handler)
 
 
 def as_natural(x):
@@ -644,7 +645,7 @@ def as_re(r):
 	"""Generate a function to test if the content match RE."""
 	cre = re.compile(r)
 	def check(x):
-		return x if cre.fullmatch(x) != None else None
+		return x if cre.fullmatch(x) is not None else None
 	return check
 
 
