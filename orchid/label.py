@@ -1,7 +1,7 @@
 """Label component."""
 
-from orchid.base import *
-from orchid.util import ProxyInterface, STANDARD_INTERFACE
+from orchid.base import Component, Model, Displayable, ExpandableComponent
+from orchid.util import ProxyInterface, STANDARD_INTERFACE, Buffer
 
 LABEL_MODEL = Model()
 
@@ -45,7 +45,7 @@ BANNER_MODEL = Model()
 class Banner(ExpandableComponent):
 	"""Display an HTML text that occupies the whole avaiable width,
 	like a banner."""
-	
+
 	def __init__(self, text):
 		ExpandableComponent.__init__(self, BANNER_MODEL)
 		self.add_class("banner")
@@ -88,14 +88,14 @@ class MessageLabel(Label, ProxyInterface):
 		self.last_cls = None
 		self.set_text("")
 
-	def show_error(self, msg):
-		self.set_text(msg)
+	def show_error(self, message):
+		self.set_text(message)
 		self.replace_class("error-text")
 
-	def show_warning(self, msg):
-		self.set_text(msg)
+	def show_warning(self, message):
+		self.set_text(message)
 		self.replace_class("warn-text")
 
-	def show_info(self, msg):
-		self.set_text(msg)
+	def show_info(self, message):
+		self.set_text(message)
 		self.replace_class("info-text")
