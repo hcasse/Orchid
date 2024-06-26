@@ -1,6 +1,7 @@
 """Component for a structured view."""
 
-from orchid.base import Model, CONTEXT_HEADERBAR, CONTEXT_TOOLBAR, MSG_ERROR, MSG_WARN, MSG_INFO, ALIGN_CENTER
+from orchid.base import Model, CONTEXT_HEADERBAR, CONTEXT_TOOLBAR, MSG_ERROR, \
+	MSG_WARN, MSG_INFO, ALIGN_CENTER
 from orchid.label import Label
 from orchid.group import HGroup, Spring, HGROUP_MODEL, VGroup, Group
 
@@ -16,7 +17,9 @@ HEADER_MODEL = Model("header-model", parent=HGROUP_MODEL)
 
 class Header(HGroup):
 
-	def __init__(self, title, tools = [], model = HEADER_MODEL):
+	def __init__(self, title, tools = None, model = HEADER_MODEL):
+		if tools is None:
+			tools = []
 		self.label  = Label(title)
 		HGroup.__init__(self,
 			comps = [self.label, Spring(hexpand = True)] + tools,
@@ -30,7 +33,9 @@ class Header(HGroup):
 
 class ToolBar(HGroup):
 
-	def __init__(self, tools = []):
+	def __init__(self, tools = None):
+		if tools is None:
+			tools = []
 		HGroup.__init__(self, tools)
 		self.add_class("toolbar")
 
@@ -64,11 +69,11 @@ class MessageContainer(VGroup):
 		"""Hide the message."""
 		self.msg_comp.remove_children()
 
-	def hide(self, id):
+	def hide_message(self, id):
 		"""Hide a displayed message."""
 		self.msg_comp.remove(id)
 
-	def show(self, msg, type=None):
+	def show_message(self, msg, type=None):
 		"""Show the message. type may be one of MSG_XXX constant. """
 		comps = []
 		icon = self.get_page().get_theme().get_dialog_icon(type, 16)
@@ -86,12 +91,12 @@ class MessageContainer(VGroup):
 
 	def error(self, msg):
 		"""Show an error and return display identifier."""
-		return self.show(msg, MSG_ERROR)
+		return self.show_message(msg, MSG_ERROR)
 
 	def warn(self, msg):
 		"""Show a warning and return display identifier."""
-		return self.show(msg, MSG_WARN)
+		return self.show_message(msg, MSG_WARN)
 
 	def info(self, msg):
 		"""Show an information and return display identifier.."""
-		return self.show(msg, MSG_INFO)
+		return self.show_message(msg, MSG_INFO)
