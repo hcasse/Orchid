@@ -1,6 +1,5 @@
 """Orchid module in charge of table display."""
 
-from orchid import *
 import orchid as orc
 
 ACTION_TR	= 0		# TR number
@@ -28,7 +27,7 @@ TABLE_MODEL = orc.Model(
 """
 )
 
-class Model(Subject):
+class TableModel(orc.Subject):
 	"""The model is used to define the lookup of the table in function
 	the displayed cell. The returned value may be components, simple
 	strings or None if there is nothing to display.
@@ -39,7 +38,8 @@ class Model(Subject):
 	has to be performed throught the Model object."""
 
 	def __init__(self):
-		Subject.__init__(self)
+		orc.Subject.__init__(self)
+		self.component = None
 
 	def get_header(self, column):
 		"""Get the lookup of the given column header."""
@@ -59,12 +59,12 @@ class Model(Subject):
 
 	def set_table(self, table):
 		"""Called to change the table object."""
-		if self.component != None:
+		if self.component is not None:
 			self.component.update_all()
 
 	def set(self, row, column, value):
 		"""Change the value of a table element."""
-		if self.component != None:
+		if self.component is not None:
 			self.component.update_cell(row, column)
 
 	def append_row(self, content):
@@ -88,20 +88,20 @@ class Model(Subject):
 		return True
 
 
-class ListModel(Model):
+class ListModel(TableModel):
 	"""Table for a model based on Python list."""
 
 	def __init__(self, table = None, column_count = None):
-		Model.__init__(self)
+		TableModel.__init__(self)
 		self.table = table
 		self.component = None
-		if column_count == None and table != None and table != []:
+		if column_count is None and table is not None and table != []:
 			self.column_count = len (table[0])
 		else:
 			self.column_count = column_count
 
 	def get_header(self, column):
-		return "Column %s" % column
+		return f"Column {column}"
 
 	def get_column_count(self):
 		return self.column_count
@@ -136,7 +136,7 @@ class ListModel(Model):
 		del self.table[row]
 		for obs in self.observers:
 			obs.update_remove(row)
-	
+
 
 class View(orc.Component):
 	"""Represents a table made of rows and columns."""
@@ -150,7 +150,7 @@ class View(orc.Component):
 		Python list or an instance of table.Model."""
 		orc.Component.__init__(self, model)
 		self.no_header = no_header
-		if isinstance(table, Model):
+		if isinstance(table, TableModel):
 			self.table = table
 		else:
 			self.table = ListModel(table)
@@ -159,7 +159,7 @@ class View(orc.Component):
 		self.set_style("display", "block")
 
 	def gen(self, out):
-		out.write('<table onclick="table_on_click(\'%s\', event);"' % self.get_id())
+		out.write(f'<table onclick="table_on_click(\'{self.get_id()}\', event);"')
 		self.gen_attrs(out)
 		out.write(">")
 		coln = self.table.get_column_count()
@@ -181,11 +181,11 @@ class View(orc.Component):
 				self.gen_content(self.table.get_cell(r, c), out)
 				out.write("</td>")
 			out.write("</tr>")
-		
+
 		out.write("</table>")
 
 	def gen_content(self, content, out):
-		if content != None:
+		if content is not None:
 			if isinstance(content, orc.Component):
 				content.gen(out)
 			else:
