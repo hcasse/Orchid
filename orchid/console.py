@@ -1,6 +1,6 @@
 """Component providing a console with scrolling text."""
 
-from orchid.base import *
+from orchid.base import ExpandableComponent, Model
 
 class ConsoleModel(Model):
 
@@ -45,7 +45,7 @@ class Console(ExpandableComponent):
 	def append(self, line):
 		"""Append the given line to the console. The line may use any text
 		formatting HTML tag."""
-		self.append_content("<p>%s</p>" % line)
+		self.append_content(f"<p>{line}</p>")
 		self.show_last()
 
 	def clear(self):
