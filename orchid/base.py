@@ -19,16 +19,13 @@
 
 import html
 import importlib
-import sys
 import time
 from threading import Thread
 from time import sleep
 
-from orchid.util import *
+from orchid.util import Buffer, STANDARD_INTERFACE
 
 CLOSE_TIMEOUT=0.250
-
-COMPONENT_ID = 1
 
 # type of context
 CONTEXT_NONE = 0
@@ -116,7 +113,8 @@ class Subject:
 				yield obs
 
 	def add_observer(self, observer):
-		"""Add an observer to the subject. The observer may either implements Observer, or be callable (and will take the subject as parameter).
+		"""Add an observer to the subject. The observer may either implements
+		Observer, or be callable (and will take the subject as parameter).
 
 		Return the build observer that may be passed back to remove_observer()."""
 		if callable(observer):
@@ -140,10 +138,13 @@ class Model:
 	* script -- JS code to insert in the HTML header.
 	* style_paths -- CSS paths to link with.
 	* script_paths -- JS  paths to link with.
-	* before_main -- function taking out as parameter called before main component generation.
-	* after_main -- function taking out as parameter called before main component generation.
+	* before_main -- function taking out as parameter called before main
+		component generation.
+	* after_main -- function taking out as parameter called before main
+		component generation.
 
-	Style and script paths are retrieved (when relative) from the `dirs` list passed in the configuration.
+	Style and script paths are retrieved (when relative) from the `dirs` list
+	passed in the configuration.
 	"""
 
 	def __init__(self,
@@ -151,10 +152,14 @@ class Model:
 		parent = None,
 		style = "",
 		script = "",
-		style_paths = [],
-		script_paths = []
+		style_paths = None,
+		script_paths = None
 	):
-		self.name = name 
+		if style_paths is None:
+			style_paths = []
+		if script_paths is None:
+			script_paths = []
+		self.name = name
 		self.parent = parent
 		self.style = style
 		self.script = script
@@ -219,7 +224,7 @@ class Text(Displayable):
 	def gen(self, out):
 		out.write("<span")
 		if self.style is not None:
-			out.write(' class="text-%s"' % self.style)
+			out.write(f' class="text-{self.style}"')
 		out.write('>')
 		out.write(self.text)
 		out.write('</span>')
@@ -228,22 +233,27 @@ class Text(Displayable):
 class AbstractComponent(Displayable, Subject):
 	"""Base class allowing to generate HTML with attributes, classes
 	style and content and an identifier that may be customized."""
+	COMPONENT_ID = 1
 
 	def __init__(self):
-		global COMPONENT_ID
 		Subject.__init__(self)
 		#self.id = "x" + str(COMPONENT_ID)	# !!DEBUG!!
-		self.id = "orc%s" % COMPONENT_ID
-		COMPONENT_ID += 1
+		self.id = f"orc{AbstractComponent.COMPONENT_ID}"
+		AbstractComponent.COMPONENT_ID += 1
 		self.classes = []
 		self.style = {}
 		self.attrs = {}
 		self.parent = None
+		self.page = None
+
+	def get_page(self):
+		"""Get the page containing the component."""
+		return self.page
 
 	def online(self):
 		"""Test if the current page is online.
 		Must be implemented by each extension class."""
-		return None
+		return self.page is not None and self.page.online()
 
 	def get_interface(self):
 		"""Get the interface to communicate with user."""
@@ -262,7 +272,7 @@ class AbstractComponent(Displayable, Subject):
 	def receive(self, msg, handler):
 		"""Called to process a message on the current component.
 		Default implementation displays an error."""
-		handler.log_error("%s: unknown message: %s" % (self.model, msg))
+		handler.log_error(f"unknown message: {msg}")
 
 	def get_id(self):
 		"""Return the identifier of the current element."""
@@ -275,47 +285,54 @@ class AbstractComponent(Displayable, Subject):
 	def gen_attr(self, out, att, val = None):
 		"""Generate an attribute on the given output."""
 		if val is None:
-			out.write(' %s' % att)
+			out.write(f' {att}')
 		else:
-			out.write(' %s="%s"' % (att, html.escape(str(val), quote=True)))
+			out.write(f' {att}="{html.escape(str(val), quote=True)}"')
 
 	def gen_attrs(self, out):
 		"""Generate common attributes"""
 
 		# generate attribute themselves
-		out.write(' id="%s"' % self.get_id())
+		out.write(f' id="{self.get_id()}"')
 
 		# generate style
-		if self.style != {}:
+		if self.style:
 			out.write(' style="')
-			for k in self.style:
-				out.write("%s: %s; " % (k, self.make_attr(self.style[k])))
+			for (k, x) in self.style.items():
+				out.write(f"{k}: {self.make_attr(x)}; ")
 			out.write('"')
 
 		# generate classes
-		if self.classes != []:
-			out.write(' class="%s"' % " ".join(self.classes))
+		if self.classes:
+			out.write(f' class="{" ".join(self.classes)}"')
 
 		# generate attributes
-		for att in self.attrs:
-			val = self.attrs[att]
-			if val == None:
-				out.write(" %s" % att)
+		for (att, val) in self.attrs.items():
+			if val is None:
+				out.write(f" {att}")
 			else:
-				out.write(" %s=\"%s\"" % (att, self.make_attr(val)))
+				out.write(f" {att}=\"{self.make_attr(val)}\"")
 
-	def call(self, fun, args = {}):
+	def call(self, fun, args = None):
 		"""Send a message to call a function."""
+		if args is None:
+			args = {}
 		self.send({"type": "call", "fun": fun, "args": args})
 
 	def set_style(self, attr, val):
 		"""Send a message to set a style."""
 		self.style[attr] = val
 		if self.online():
-			self.send({"type": "set", "id": self.get_id(), "attr": attr, "val": val})
+			self.send({
+				"type": "set",
+				"id": self.get_id(),
+				"attr": attr,
+				"val": val
+			})
 
 	def set_attr(self, attr, val=None, id=None):
-		"""Set the value of an attribute of the current component. If on line, propagate the schange to the remote page."""
+		"""Set the value of an attribute of the current component. If on line,
+		propagate the schange to the remote page."""
 		if id is None:
 			id = self.get_id()
 			self.attrs[attr] = val
@@ -324,7 +341,7 @@ class AbstractComponent(Displayable, Subject):
 				"type": "set-attr",
 				"id": id,
 				"attr": attr,
-				"val": val if val != None else ""})
+				"val": val if val is not None else ""})
 
 	def set_attr_async(self, attr, val = None):
 		"""Set an attribute for the current component. Do not propagate
@@ -332,7 +349,7 @@ class AbstractComponent(Displayable, Subject):
 
 		Useful to updte the component state according to changes from
 		the remote page."""
-		self.attrs[attr] = val		
+		self.attrs[attr] = val
 
 	def get_attr(self, attr):
 		"""Get the value of an attribute. Return None if the attribute is not defined."""
@@ -342,7 +359,8 @@ class AbstractComponent(Displayable, Subject):
 			return None
 
 	def remove_attr(self, attr, id=None):
-		"""Remove an attribute of the current component. If on line, propagate the modification to the remote page."""
+		"""Remove an attribute of the current component. If on line, propagate
+		the modification to the remote page."""
 		try:
 			if id is None:
 				id = self.get_id()
@@ -353,7 +371,8 @@ class AbstractComponent(Displayable, Subject):
 			pass
 
 	def remove_attr_async(self, attr):
-		"""Remove an attribute of the current component. No propagation is performed to the remote page."""
+		"""Remove an attribute of the current component. No propagation is
+		performed to the remote page."""
 		try:
 			del self.attrs[attr]
 			if self.online():
@@ -422,7 +441,7 @@ class AbstractComponent(Displayable, Subject):
 			self.send({
 				"type": "show-last",
 				"id": self.get_id()})
-	
+
 	def add_class(self, cls):
 		"""Add a class of the component."""
 		if cls not in self.classes:
@@ -438,12 +457,13 @@ class AbstractComponent(Displayable, Subject):
 				self.send({"type": "remove-class", "id": self.get_id(), "class": cls})
 
 	def set_top_class(self, cls):
-		"""Customize the component as a top component with the given class. The default implementation applies the style to the page."""
+		"""Customize the component as a top component with the given class. The
+		default implementation applies the style to the page."""
 		self.get_page().add_class(cls)
 
 	def __str__(self):
 		try:
-			return "component(%s)" % self.get_id()
+			return f"component({self.get_id()})"
 		except AttributeError:
 			return "page"
 
@@ -452,11 +472,8 @@ class Component(AbstractComponent):
 	but is also interactive requiring to have a link with the page."""
 
 	def __init__(self, model):
-		global COMPONENT_ID
 		AbstractComponent.__init__(self)
-		self.page = None
 		self.model = model
-		COMPONENT_ID += 1
 		self.weight = None
 
 	def get_model(self):
@@ -478,10 +495,6 @@ class Component(AbstractComponent):
 	def get_children(self):
 		return []
 
-	def online(self):
-		"""Test if the current page is online."""
-		return self.page != None and self.page.online()
-
 	def send(self, msg):
 		"""Send a message to the UI."""
 		self.page.messages.append(msg)
@@ -489,7 +502,7 @@ class Component(AbstractComponent):
 	# !!CHECK!! check usage! Seems deprecated.
 	def send_classes(self, classes, id = None):
 		"""Set the classes of a component."""
-		if id == None:
+		if id is None:
 			id = self.id
 		self.send({"type": "set-class", "id": id, "classes": " ".join(classes)})
 
@@ -545,13 +558,13 @@ class ExpandableComponent(Component):
 		Component.__init__(self, model)
 
 	def gen_resize(self, out):
-		out.write("""
-			function resize_%s(w, h) {
-				e = document.getElementById("%s");
+		out.write(f"""
+			function resize_{self.get_id()}(w, h) {{
+				e = document.getElementById("{self.get_id()}");
 				ui_set_width(e, w);
 				ui_set_height(e, h);
-			}
-""" % (self.get_id(), self.get_id()))
+			}}
+""")
 
 
 class PageObserver:
@@ -590,17 +603,18 @@ class Page(AbstractComponent):
 		self.set_attr("onbeforeunload", "ui_close();")
 		#self.set_attr("onclick", "ui_complete();")
 		self.set_attr("onload", 'ui_hi();')
-
 		self.interface = interface
+		self.manager = None
+		self.style_paths = []
 
 		# prepare the theme
 		if isinstance(theme, str):
-			m = importlib.import_module("orchid.themes.%s" % theme)
+			m = importlib.import_module(f"orchid.themes.{theme}")
 			theme = m.get()
 		self.theme = theme
 
 		# install main component
-		if main != None:
+		if main is not None:
 			self.set_main(main)
 		else:
 			self.models = {}
@@ -638,7 +652,7 @@ class Page(AbstractComponent):
 	def add_model(self, model):
 		"""Add a model to the page."""
 		m = model
-		while m != None:
+		while m is not None:
 			try:
 				self.models[m] += 1
 				m = None
@@ -703,7 +717,7 @@ class Page(AbstractComponent):
 
 	def gen_script(self, out):
 		"""Generate the script part."""
-		out.write("var ui_page=\"%s\";\n" % self.get_id())
+		out.write(f"var ui_page=\"{self.get_id()}\";\n")
 		for m in self.models:
 			m.gen_script(out)
 
@@ -714,16 +728,16 @@ class Page(AbstractComponent):
 			comp.gen(out)
 		self.is_online = True
 
-	def receive(self, messages, handler):
+	def receive(self, msg, handler):
 		"""Called to receive messages and answer. The answer is a
 		possibly list of back messages."""
 
 		# manage session
-		if self.session != None:
+		if self.session is not None:
 			self.session.update()
 
 		# manage messages
-		for m in messages:
+		for m in msg:
 			id = m["id"]
 			if id == "0":
 				self.manage(m, handler)
@@ -731,9 +745,9 @@ class Page(AbstractComponent):
 				try:
 					comp = self.components[id]
 				except KeyError:
-					handler.log_error("unknown component in %s" % m)
+					handler.log_error(f"unknown component in {m}")
 					comp = None
-				if comp != None:
+				if comp is not None:
 					comp.receive(m, handler)
 
 		# manage answers
@@ -760,7 +774,7 @@ class Page(AbstractComponent):
 		for obs in self.filter_observers(PageObserver):
 			obs.on_close(self)
 		self.session.remove_page(self)
-		if self.parent != None:
+		if self.parent is not None:
 			self.parent.on_close()
 
 	def hide(self):
@@ -782,10 +796,9 @@ class Page(AbstractComponent):
 		if a == "close":
 			self.on_close()
 		elif a == "hi":
-			print("DEBUG: hi!")
 			pass
 		else:
-			handler.log_error("unknown action: %s" % a)
+			handler.log_error(f"unknown action: {a}")
 
 	def gen_script_paths(self, out):
 		"""Called to generate linked scripts."""
@@ -795,7 +808,7 @@ class Page(AbstractComponent):
 				if s not in ss:
 					ss.append(s)
 		for s in ss:
-			out.write('<script src="%s"></script>\n' % s)
+			out.write(f'<script src="{s}"></script>\n')
 
 	def gen_style_paths(self, out):
 		"""Called to generate linked CSS."""
@@ -804,10 +817,10 @@ class Page(AbstractComponent):
 			for s in m.get_style_paths():
 				if s not in ss:
 					ss.append(s)
-		if self.app != None:
+		if self.app is not None:
 			ss = ss + self.app.style_paths
 		for s in ss:
-			out.write('<link rel="stylesheet" href="%s"/>\n' % s)
+			out.write(f'<link rel="stylesheet" href="{s}"/>\n')
 
 	def open(self, page):
 		"""Change page to the given page."""
@@ -815,13 +828,13 @@ class Page(AbstractComponent):
 		self.page.messages.append({
 			"type": "call",
 			"fun": "ui_open",
-			"args": "/_/%s" % page.get_id()
+			"args": f"/_/{page.get_id()}"
 		})
 
 	def gen_title(self, out):
-		if self.title != None:
+		if self.title is not None:
 			text = self.title
-		elif self.app != None:
+		elif self.app is not None:
 			text = self.app.name
 		else:
 			text = "No Title"
@@ -892,7 +905,7 @@ class Page(AbstractComponent):
 			self.send({
 				"type": "remove-attr",
 				"id": id,
-				"attr": attr
+				"attr": att
 			})
 
 
@@ -913,7 +926,7 @@ class Session:
 		self.last = self.creation
 		self.timeout = man.config['session_timeout']
 		man.add_session(self)
-		if Session.FREE != []:
+		if Session.FREE:
 			self.number = Session.FREE.pop()
 		else:
 			self.number = Session.COUNT
@@ -940,7 +953,7 @@ class Session:
 		"""Remove a page from the session. If there is no more page in the session, it is cleaned."""
 		self.man.remove_page(page)
 		self.pages.remove(page)
-		if self.pages == []:
+		if not self.pages:
 			self.release()
 
 	def update(self):
@@ -978,15 +991,19 @@ class Application:
 
 	def __init__(self, name,
 		version = None,
-		authors = [],
+		authors = None,
 		license = None,
 		copyright = None,
 		description = None,
 		website = None,
 		icon = None,
-		style_paths = [],
+		style_paths = None,
 		theme = "basic"
 	):
+		if authors is None:
+			authors = []
+		if style_paths is None:
+			style_paths = []
 		self.name = name
 		self.version = version
 		self.license = license
@@ -996,6 +1013,7 @@ class Application:
 		self.icon = icon
 		self.style_paths = style_paths
 		self.theme = theme
+		self.config = {}
 
 	def get_theme(self):
 		"""Get the theme of the application."""
@@ -1019,7 +1037,8 @@ class Application:
 TIMER_MODEL = Model("timer")
 
 class Timer(Component):
-	"""A timer that is able to call the trigger() function according to a time basis. IT may be oneshot or periodic if a periond in ms is given.
+	"""A timer that is able to call the trigger() function according to a time
+	basis. IT may be oneshot or periodic if a periond in ms is given.
 	It may also be started at application start-time if started is True."""
 
 	def __init__(self, page, trigger, period=0, started=False):
@@ -1031,12 +1050,13 @@ class Timer(Component):
 
 	def gen(self, out):
 		if self.started and self.period != 0:
-			out.write('<script>ui_timer_start({id: "%s", time: %d, periodic: true});</script>' % (self.get_id(), self.period))
+			out.write(f'<script>ui_timer_start({{id: "{self.get_id}", \
+						time: {self.period}, periodic: true}});</script>')
 
 	def start(self, time = None):
 		"""Start the timer to trigger at given time or after period.
 		Argument time is in ms. If not given, the period time applies."""
-		if time != None:
+		if time is not None:
 			periodic = False
 		else:
 			time = self.period
@@ -1053,13 +1073,13 @@ class Timer(Component):
 		self.call("ui_timer_stop", {"id": self.get_id()})
 		self.started = False
 
-	def receive(self, m, h):
-		if m["action"] == "trigger":
+	def receive(self, msg, handler):
+		if msg["action"] == "trigger":
 			if self.period == 0:
 				self.started = False
 			self.trigger()
 		else:
-			Component.receive(self, m, h)
+			Component.receive(self, msg, handler)
 
 
 PLAIN_MODEL = Model("plain")
@@ -1075,12 +1095,12 @@ class Plain(Component):
 
 	def gen(self, out):
 		if self.in_tag is not None:
-			out.write("<%s" % self.in_tag)
+			out.write(f"<{self.in_tag}")
 			self.gen_attrs(out)
 			out.write(">")
 		out.write(self.text)
 		if self.in_tag is not None:
-			out.write("</%s>" % self.in_tag)
+			out.write(f"</{self.in_tag}>")
 
 
 class Theme(Model):
@@ -1091,8 +1111,8 @@ class Theme(Model):
 		parent = None,
 		style = "",
 		script = "",
-		style_paths = [],
-		script_paths = []
+		style_paths = None,
+		script_paths = None
 	):
 		Model.__init__(self, name, parent, style, script, style_paths, script_paths)
 
