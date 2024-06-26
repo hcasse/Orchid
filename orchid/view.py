@@ -1,6 +1,23 @@
+#
+#	This file is part of Orchid.
+#
+#    Orchid is free software: you can redistribute it and/or modify
+#	it under the terms of the GNU Lesser General Public License as
+#	published by the Free Software Foundation, either version 3 of the
+#	License, or (at your option) any later version.
+#
+#	Orchid is distributed in the hope that it will be useful, but
+#	WITHOUT ANY WARRANTY; without even the implied warranty of
+#	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+#	GNU Lesser General Public License for more details.
+#
+#	You should have received a copy of the GNU Lesser General Public
+#	License along with Orchid. If not, see <https://www.gnu.org/licenses/>.
+#
+
 """Module imlementing components allowing to view comple data."""
 
-from orchid.base import *
+from orchid.base import Model, Component
 
 class InteractiveViewModel(Model):
 
@@ -82,30 +99,31 @@ class InteractiveView(Component):
 		model = INTERACTIVE_VIEW_MODEL
 	):
 		Component.__init__(self, model)
-		if init != None:
-			self.set_text(init, mime)
-		elif path != None:
-			self.set_path(path, mime)
-		else:
-			self.text = None
-			self.path = None
+		self.text = None
+		self.path = None
+		self.mime = None
+		if init is not None:
+			self.text = init
+		elif path is not None:
+			self.path = path
+		if self.mime is None:
 			self.mime = mime
 		self.add_class("interactive-view")
 		self.url = "/interactive-view/" + self.get_id()
 
-	def show(self, path = None, text = None, mime = None):
+	def display(self, path = None, text = None, mime = None):
 		"""Set the content of a view. If neither path,
 		nor text is given, the view is cleared."""
 
 		# set the state
 		self.mime = mime
-		if path != None:
+		if path is not None:
 			self.path = path
 			self.text = None
-		elif text != None:
+		elif text is not None:
 			self.text = text
 			self.path = None
-			if self.mime == None:
+			if self.mime is None:
 				self.mime = "text/plain"
 		else:
 			self.path = None
@@ -121,9 +139,9 @@ class InteractiveView(Component):
 		})
 
 	def publish(self):
-		if self.text != None:
+		if self.text is not None:
 			self.get_page().publish_text_file(self.url, self.text)
-		elif self.path != None:
+		elif self.path is not None:
 			self.get_page().publish_file(self.url, self.path)
 
 	def gen(self, out):
