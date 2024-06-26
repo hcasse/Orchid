@@ -95,7 +95,9 @@ disable=raw-checker-failed,
         unnecessary-pass,
         missing-class-docstring,
         too-many-arguments,
-        trailing-whitespace
+        no-self-use,
+        no-else-return,
+        unused-argument
 
 # Enable the message, report, category or checker with the given id(s). You can
 # either give multiple identifier separated by comma (,) or put this option

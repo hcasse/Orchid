@@ -19,11 +19,13 @@
 concept as first-class citizen and then build around it the UI.
 
 It defines variables that can be obserbed, action instead of buttons, etc.
-An application, and its different views, can be seen as a set of data on which actions applies. This structure may also be used to provide external interface to the application."""
+An application, and its different views, can be seen as a set of data on which
+actions applies. This structure may also be used to provide external interface
+to the application."""
 
 import re
 
-from orchid.base import Subject, Observer, AbstractComponent
+from orchid.base import Subject, Observer
 from orchid.util import STANDARD_INTERFACE
 
 def is_python_type(t):
@@ -37,9 +39,11 @@ class Type:
 		self.type = None
 		self.null = None
 
+	@staticmethod
 	def record(type, object):
 		Type.MAP[type] = object
 
+	@staticmethod
 	def find(type):
 		try:
 			return Type.MAP[type]
@@ -50,6 +54,7 @@ class BaseType(Type):
 	"""Type for Python base types."""
 
 	def __init__(self, type, null):
+		Type.__init__(self)
 		self.type = type
 		self.null = null
 
@@ -68,6 +73,7 @@ class ListType(Type):
 	"""Type for lists."""
 
 	def __init__(self, type):
+		Type.__init__(self)
 		self.type = list
 		self.null = []
 		self.item_type = type
@@ -78,6 +84,7 @@ class EnumType(Type):
 
 	def __init__(self, values, null=None):
 		assert len(values) >= 1
+		Type.__init__(self)
 		self.values = values
 		self.type = int
 		if null is None:
@@ -99,6 +106,7 @@ class RangeType(Type):
 
 	def __init__(self, min, max, null=None):
 		assert min <= max
+		Type.__init__(self)
 		self.min = min
 		self.max = max
 		self.type = int
@@ -159,7 +167,8 @@ class Var(Subject, Entity):
 	"""A variable that contains a vlue that can be observed.
 	As Python is not strict about types, a type ma also be given.
 	This includes basic types of Python like bool, int, float, str
-	but more types derived from Type can be given. This type may be used to derive automatically consistent UI."""
+	but more types derived from Type can be given. This type may be used
+	to derive automatically consistent UI."""
 
 	def __init__(self, value, type = None, **args):
 		Subject.__init__(self)
@@ -185,10 +194,10 @@ class Var(Subject, Entity):
 		self.update_observers()
 
 	def __repr__(self):
-		return "var(%s: %s)" % (self.value, self.type)
+		return f"var({self.value}: {self.type})"
 
 	def __str__(self):
-		return "var(%s: %s)" % (self.value, self.type)
+		return f"var({self.value}: {self.type})"
 
 	def __invert__(self):
 		"""Get the value of the variable."""
@@ -234,7 +243,7 @@ class AbstractAction(EnableSubject, Entity):
 	An action may be observed to detect changes in enabling/disabling."""
 
 	def __init__(self, **args):
-		Subject.__init__(self)
+		EnableSubject.__init__(self)
 		Entity.__init__(self, **args)
 		self.context = None
 
@@ -244,7 +253,7 @@ class AbstractAction(EnableSubject, Entity):
 
 	def get_interface(self):
 		"""Get the interface for the action."""
-		if self.context == None:
+		if self.context is None:
 			return STANDARD_INTERFACE
 		else:
 			return self.context.get_interface()
@@ -254,14 +263,15 @@ class AbstractAction(EnableSubject, Entity):
 		True."""
 		return True
 
-	def perform(self):
-		"""Perform the action with the given console.
+	def perform(self, interface):
+		"""Perform the action with the given interface.
 		Default implementation does nothing."""
 		pass
 
 
 class PredicateHandler(EnableSubject, Observer):
-	"""Manage the predicate by observing the used variables. If a variable is changed and the predicate value is changed, update its observers."""
+	"""Manage the predicate by observing the used variables. If a variable is
+	changed and the predicate value is changed, update its observers."""
 
 	def __init__(self, pred):
 		EnableSubject.__init__(self)
@@ -294,11 +304,12 @@ class PredicateHandler(EnableSubject, Observer):
 			self.update_observers()
 
 	def set_context(self, context):
-		"""Connect the handler to the given component (typically to benefit from the component context information like interface)."""
+		"""Connect the handler to the given component (typically to benefit from
+		the component context information like interface)."""
 		self.context = context
 
 	def get_interface(self):
-		if self.context == None:
+		if self.context is None:
 			return STANDARD_INTERFACE
 		else:
 			return self.context.get_interface()
@@ -308,12 +319,15 @@ class AbstractPredicate:
 	"""A formula that depends on variables and that may be True or
 	False. In turn, a predicate may be observed for changes."""
 
+	def __init__(self):
+		self.handler = None
+
 	def collect_vars(self, vars):
 		"""Called to collect variables used in the predicate that has to be
 		stored in the var set."""
 		pass
 
-	def check(self, context):
+	def check(self, handler):
 		"""Check if the predicate is true or false and return it.
 		Default implementation returns True."""
 		return True
@@ -343,9 +357,12 @@ class AbstractPredicate:
 class Predicate(AbstractPredicate):
 	"""A predicate that lsiten to a set of variables and check with a function."""
 
-	def __init__(self, vars = [], fun = lambda: True ):
+	def __init__(self, vars = None, fun = lambda: True ):
 		AbstractPredicate.__init__(self)
-		self.vars = set(vars)
+		if vars is None:
+			self.vars = set()
+		else:
+			self.vars = set(vars)
 		self.fun = fun
 
 	def collect_vars(self, vars):
@@ -423,11 +440,13 @@ def get_value(x):
 		return x
 
 def not_null(var):
-	"""Generate a predicate that test if the variable is not None, 0, empty text, empty list, etc."""
+	"""Generate a predicate that test if the variable is not None, 0,
+	empty text, empty list, etc."""
 	return Predicate(vars=[var], fun=lambda: bool(~var))
 
 def equals(x, y):
-	"""Predicate testing if x = y. x and y may be any value and specially variables that will be observed."""
+	"""Predicate testing if x = y. x and y may be any value and specially
+	variables that will be observed."""
 	return Predicate(
 		[v for v in [x, y] if isinstance(v, Var)],
 		fun=lambda: get_value(x) == get_value(y)
@@ -438,8 +457,8 @@ def not_(pred):
 	class NotPredicate(MultiPredicate):
 		def __init__(self):
 			MultiPredicate.__init__(self, [pred])
-		def check(self):
-			return not pred.check()
+		def check(self, handler):
+			return not pred.check(handler)
 	return NotPredicate()
 
 def and_(*preds):
@@ -460,16 +479,18 @@ def or_(*preds):
 		def __init__(self):
 			MultiPredicate.__init__(self, preds)
 		def check(self, handler):
-			return any([pred.check(handler) for pred in preds])
+			return any(pred.check(handler) for pred in preds)
 	return OrPredicate()
 
 def is_password(var, size=8, lower=1, upper=1, digit=1, other=1):
-	"""Test if the variable contains at least size characters with lower lowercase letter, upper uppercase letters, digit characters and other characters."""
+	"""Test if the variable contains at least size characters with lower
+	lowercase letter, upper uppercase letters, digit characters and other
+	characters."""
 	def is_other(c):
 		return not (c.islower() or c.isupper() or c.isdigit())
 	def count(i):
 		c = 0
-		for x in i:
+		for _ in i:
 			c += 1
 		return c
 	return Predicate([var], fun=lambda:
@@ -486,15 +507,15 @@ def if_error(pred, msg):
 		def __init__(self):
 			MultiPredicate.__init__(self, [pred])
 			self.displayed = False
-		def check(self, context):
-			res = pred.check(context)
+		def check(self, handler):
+			res = pred.check(handler)
 			if res:
 				if self.displayed:
-					context.get_interface().clear_message()
+					handler.get_interface().clear_message()
 					self.displayed = False
 			else:
 				if not self.displayed:
-					context.get_interface().show_error(msg)
+					handler.get_interface().show_error(msg)
 					self.displayed = True
 			return res
 	return IfError()
@@ -504,8 +525,8 @@ def matches(var, expr):
 	"""Check if the variable matches the given regular expression."""
 	r = re.compile(expr)
 	class Match(Predicate):
-		def check(self, context):
-			return r.fullmatch(~var) != None
+		def check(self, handler):
+			return r.fullmatch(~var) is not None
 	return Match()
 
 

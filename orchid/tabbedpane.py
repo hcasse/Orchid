@@ -15,6 +15,8 @@
 #	License along with Orchid. If not, see <https://www.gnu.org/licenses/>.
 #
 
+"""Provide TabbedPane component.q"""
+
 from orchid.base import Model
 import orchid
 from orchid.group import VGroup, HGroup, VGROUP_MODEL, LayeredPane
@@ -57,7 +59,7 @@ class Tab:
 	def on_release(self):
 		"""Called when a tab is released."""
 		pass
-		
+
 
 class TabbedPane(VGroup):
 	"""Implements tabbed pane i.e. a list of layered pane accesible
@@ -129,12 +131,12 @@ class TabbedPane(VGroup):
 				break
 		return expand
 
-	def insert(self, tab, i = -1):
+	def insert(self, child, i = -1):
 		if i < 0:
-			self.append(tab)
+			self.append(child)
 		else:
-			self.tabs.insert(i, tab)
-			self.complete_tab(i, tab)
+			self.tabs.insert(i, child)
+			self.complete_tab(i, child)
 
 	def append(self, tab):
 		self.tabs.append(tab)
@@ -154,7 +156,7 @@ class TabbedPane(VGroup):
 		else:
 			tab = self.get_tab(i)
 		if i == self.current:
-			l = len(self.tabs) 
+			l = len(self.tabs)
 			if l < 2:
 				self.select(-1)
 			else:
