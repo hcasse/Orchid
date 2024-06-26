@@ -17,7 +17,7 @@
 
 """SplitPane implementation."""
 
-from orchid import Component, Buffer, Model
+from orchid import Model
 from orchid.group import Group
 
 MODEL = Model(
@@ -153,28 +153,27 @@ class SplitPane(Group):
 	def get_pane2(self):
 		return self.get_children()[1]
 
-	def expand_horizontal(self):
-		return not self.vert or Group.expand_horizontal(self)
+	def expands_horizontal(self):
+		return not self.vert or Group.expands_horizontal(self)
 
-	def expand_vertical(self):
-		return self.vert or Group.expand_vertical(self)
+	def expands_vertical(self):
+		return self.vert or Group.expands_vertical(self)
 
 	def gen(self, out):
 		out.write("<div")
 		self.gen_attrs(out)
 		out.write(">")
 		self.get_pane1().gen(out)
-		out.write('<div id="%s-knob" class="split-%s-knob" onmousedown="split_on_mouse_down(this, event, %s);">&nbsp;</div>' % (
-				self.get_id(),
-				"horz" if not self.vert else "vert",
-				"false" if not self.vert else "true"),
-			)
+		out.write(f'<div id="{self.get_id()}-knob" \
+			class="split-{"horz" if not self.vert else "vert"}-knob" \
+			onmousedown="split_on_mouse_down(this, event, \
+			{"false" if not self.vert else "true"});">&nbsp;</div>')
 		self.get_pane2().gen(out)
 		out.write("</div>")
 
-	def receive(self, m, h):
-		if m["action"] == "move":
-			self.pos = m["pos"]
+	def receive(self, msg, handler):
+		if msg["action"] == "move":
+			self.pos = msg["pos"]
 		else:
-			Group.receive(self, m, h)
+			Group.receive(self, msg, handler)
 
