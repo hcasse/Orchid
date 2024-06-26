@@ -17,16 +17,25 @@
 
 """Management of images."""
 
-from orchid.base import *
+from orchid.base import Displayable, Model, CONTEXT_NONE
 
 class Image(Displayable):
 	"""Base class to represent an image (according different sources:
 	file to download, standard icon, etc)."""
 
-	def __init__(self, model):
+	def __init__(self, model, context=CONTEXT_NONE):
 		self.model = model
+		self.context = context
 
-	def gen(self, out, type = CONTEXT_NONE):
+	def get_context(self):
+		"""Get the context of the image."""
+		return self.context
+
+	def set_context(self, context):
+		"""Set the context of the image."""
+		self.context = context
+
+	def gen(self, out):
 		"""Generate the code for the image."""
 		pass
 
@@ -39,17 +48,17 @@ ICON_MODEL = Model(name="icon-model")
 class Icon(Image):
 
 	def __init__(self, name, color = None):
-		global ICON_MODEL
 		Image.__init__(self, ICON_MODEL)
 		self.name = name
 		self.color = color
+		self.icon = None
 
 	def finalize(self, page):
 		Image.finalize(self, page)
 		self.icon = page.get_theme().get_icon(self.name, self.color)
 
-	def gen(self, out, context = CONTEXT_NONE):
-		self.icon.gen(out, context)
+	def gen(self, out):
+		self.icon.gen(out, self.get_context())
 
 
 ASSET_IMAGE_MODEL = Model("asset-image")
@@ -63,10 +72,10 @@ class AssetImage(Image):
 		self.width = width
 		self.height = height
 
-	def gen(self, out, type = CONTEXT_NONE):
-		out.write('<img src="%s"' % self.path)
-		if self.width != None:
-			out.write(' width="%d"' % self.width)
-		if self.height != None:
-			out.write(' width="%d"' % self.height)
+	def gen(self, out):
+		out.write(f'<img src="{self.path}"')
+		if self.width is not None:
+			out.write(' width="{self.width}"')
+		if self.height is not None:
+			out.write(' width="{self.height}"')
 		out.write(">")
