@@ -27,7 +27,6 @@ from orchid.field import Field, ColorField, DateField, TimeField, \
 	Select, as_natural, as_re, Form
 from orchid.group import HGroup, VGroup, Spring, LayeredPane, hspring, vspring
 from orchid.tabbedpane import TabbedPane, Tab
-from orchid.updater import *
 from orchid.editor import Editor
 from orchid.console import Console
 from orchid.struct import Header, ToolBar, MessageContainer

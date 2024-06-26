@@ -15,6 +15,8 @@
 #	License along with Orchid. If not, see <https://www.gnu.org/licenses/>.
 #
 
+"""Utilty classes for Orchid."""
+
 import sys
 
 class Buffer:
@@ -82,14 +84,14 @@ class Interface:
 class StandardInterface(Interface):
 	"""Console using standard input/output."""
 
-	def show_info(self, msg):
-		sys.stderr.write("INFO: %s\n" % msg)
+	def show_info(self, message):
+		sys.stderr.write("INFO: {message}\n")
 
-	def show_warning(self, msg):
-		sys.stderr.write("WARNING: %s\n" % msg)
+	def show_warning(self, message):
+		sys.stderr.write("WARNING: {message}\n")
 
-	def show_error(self, msg):
-		sys.stderr.write("ERROR: %s\n" % msg)
+	def show_error(self, message):
+		sys.stderr.write("ERROR: {message}\n")
 
 STANDARD_INTERFACE = StandardInterface()
 
