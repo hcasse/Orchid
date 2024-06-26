@@ -18,7 +18,7 @@
 """Module providing support for list component."""
 
 from orchid import buffer
-from orchid.base import *
+from orchid.base import Component, Model, Text
 from orchid.models import ListVar, ListObserver
 
 SELECT_NONE = 0
@@ -39,13 +39,17 @@ class ListView(Component, ListObserver):
 	"""Vertical list of items."""
 
 	def __init__(self,
-		items = [],
-		selection = [],
+		items = None,
+		selection = None,
 		select_mode = SELECT_SINGLE,
 		context_menu = None,
 		model = MODEL
 	):
 		Component.__init__(self, model)
+		if items is None:
+			items = []
+		if selection is None:
+			selection = []
 		self.add_class("list")
 		if isinstance(items, list):
 			self.items = ListVar(items)
@@ -60,14 +64,14 @@ class ListView(Component, ListObserver):
 		self.context_menu = context_menu
 		if select_mode != SELECT_NONE:
 			self.set_attr('onclick',
-				"list_on_click('%s', event);" % self.get_id())
-		if context_menu != None:
+				 f"list_on_click('{self.get_id()}', event);")
+		if context_menu is not None:
 			self.set_attr("oncontextmenu",
-				"list_on_context_menu('%s', event);" % self.get_id())
+				f"list_on_context_menu('{self.get_id()}', event);")
 
 	def finalize(self, page):
 		Component.finalize(self, page)
-		if self.context_menu != None:
+		if self.context_menu is not None:
 			self.context_menu.finalize(page)
 			page.add_hidden(self.context_menu)
 
@@ -109,8 +113,8 @@ class ListView(Component, ListObserver):
 	def set_items(self, items):
 		"""Chane the items displayed."""
 		if isinstance(items, list):
-			items = ListModel(items)
-		self.selection.clear();
+			items = ListVar(items)
+		self.selection.clear()
 		self.items.remove_observer(self)
 		self.items = items
 		self.items.add_observer(self)
@@ -123,20 +127,20 @@ class ListView(Component, ListObserver):
 		item = self.make(x)
 		self.get_children().append(item)
 		if self.online():
-			self.append_content("<div>%s</div>" % buffer(item.gen))
+			self.append_content(f"<div>{buffer(item.gen)}</div>")
 
 	def on_insert(self, i, x):
 		self.deselect_all()
 		item = self.make(x)
 		self.get_children().insert(i, item)
 		if self.online():
-			self.insert_content("<div>%s</div>" % buffer(item.gen), i)
+			self.insert_content(f"<div>{buffer(item.gen)}</div>", i)
 
-	def on_remove(self, x):
+	def on_remove(self, i):
 		self.deselect_all()
-		i = self.items.index(x)
+		j = self.items.index(i)
 		if self.online():
-			self.remove_child(i)
+			self.remove_content(j)
 
 	def on_set(self, i, x):
 		children = self.get_children()
@@ -148,24 +152,22 @@ class ListView(Component, ListObserver):
 				"id": self.get_id(),
 				"index": i,
 				"content": buffer(item.gen)
-			});
+			})
 
 	def on_clear(self):
-		print("DEBUG: on_clear called!")
-		children = []
 		if self.online():
 			self.call("list_clear", {"id": self.get_id()})
 
 	def get_children(self):
-		if self.children == None:
+		if self.children is None:
 			self.children = []
 			for i in range(0, self.items.size()):
 				self.children.append(self.make(self.items.get(i)))
 		return self.children
 
 	def index_of(self, id):
-		for i in range(0, len(self.children)):
-			if self.children[i].get_id() == id:
+		for (i, x) in enumerate(self.children):
+			if x.get_id() == id:
 				return i
 		return -1
 
