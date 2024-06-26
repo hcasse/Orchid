@@ -23,8 +23,8 @@ useful constants.
 
 import os.path
 
-from orchid import *
-from orchid.util import *
+from orchid import Model, Component
+from orchid.util import Buffer
 
 MODEL = Model(
 	"svg-canvas",
@@ -33,7 +33,6 @@ MODEL = Model(
 
 XMLNS = "http://www.w3.org/2000/svg"
 
-SVG_NUM = 0
 
 # standard dash arrays
 DASHED = [5, 5]
@@ -45,7 +44,7 @@ def adjust(key):
 def make_event_id(id, event):
 	if isinstance(id, Shape):
 		id = str(id.num)
-	return "%s-%s" % (id, event)
+	return f"{id}-{event}"
 
 class Transform:
 	"""A transformation in SVG."""
@@ -59,7 +58,6 @@ class Transform:
 		if self.next is not None:
 			self.next.gen(out)
 
-
 class Scale(Transform):
 	"""Scale transformation."""
 
@@ -69,7 +67,7 @@ class Scale(Transform):
 		self.sy = sy if sy is not None else sx
 
 	def gen(self, out):
-		out.write("scale(%f, %f)" % (self.sx, self.sy))
+		out.write(f"scale({self.sx}, {self.sy})")
 		Transform.gen(self, out)
 
 	def set(self, sx, sy = None):
@@ -86,7 +84,7 @@ class Translate(Transform):
 		self.dy = dy
 
 	def gen(self, out):
-		out.write("translate(%f, %f)" % (self.dx, self.dy))
+		out.write(f"translate({self.dx}, {self.dy})")
 		Transform.gen(self, out)
 
 	def move(self, dx, dy):
@@ -98,19 +96,19 @@ class Translate(Transform):
 		self.dx = dx
 		self.dy = dy
 		self.parent.update_transform()
-	
+
 
 class Shape:
 	"""Represents a shape in the canvas."""
 
 	def __init__(self, **args):
 		self.parent = None
-		self.num = None
+		self.num = 0
 		self.attrs = dict(**args)
 		self.trans = None
 
 	def get_id(self):
-		return "svg-%d-%d" % (self.parent.num, self.num)
+		return f"svg-{self.parent.num}-{self.num}"
 
 	def finalize(self):
 		pass
@@ -119,7 +117,7 @@ class Shape:
 		buf = Buffer()
 		self.trans.gen(buf)
 		self.attrs["transform"] = str(buf)
-	
+
 	def update_transform(self):
 		self.make_transform()
 		if self.parent is not None and self.parent.online():
@@ -127,16 +125,16 @@ class Shape:
 				self.get_id(), "transform", self.attrs["transform"])
 
 	def get_attrs(self):
-		return " ".join([" %s='%s'" % (adjust(key), str(val))
+		return " ".join([f" {adjust(key)}='{str(val)}'"
 			for (key, val) in self.attrs.items()])
-			
-	def gen(self, id, out):
+
+	def gen(self, out):
 		"""Called to generate the shape."""
 		pass
 
 	def set_attr(self, att, val):
 		"""Set an attribute of the shape. If val is None, remove it."""
-		if val == None:
+		if val is None:
 			self.remove_attr(att)
 		else:
 			self.attrs[att] = val
@@ -147,7 +145,7 @@ class Shape:
 	def remove_attr(self, att):
 		"""Remove an attribute."""
 		del self.attrs[att]
-		if self.online():
+		if self.parent.online():
 			self.parent.get_page().remove_direct_attr(
 				self.get_id(), adjust(att))
 
@@ -186,8 +184,8 @@ class Circle(Shape):
 		self.r = r
 
 	def gen(self, out):
-		out.write("<circle id='%s' cx='%d' cy='%d' r='%d' %s/>" %
-			(self.get_id(), self.x, self.y, self.r, self.get_attrs()))
+		out.write(f"<circle id='{self.get_id()}' cx='{self.x}' cy='{self.y}' \
+			r='{self.r}' {self.get_attrs()}/>")
 
 
 class Line(Shape):
@@ -201,7 +199,8 @@ class Line(Shape):
 		self.y2 = y2
 
 	def gen(self, out):
-		out.write("<line id='%s' x1='%d' y1='%d' x2='%d' y2='%d' %s/>" % (self.get_id(), self.x1, self.y1, self.x2, self.y2, self.get_attrs()))
+		out.write(f"<line id='{self.get_id()}' x1='{self.x1}' y1='{self.y1}' \
+			x2='{self.x2}' y2='{self.y2}' {self.get_attrs()}/>")
 
 
 class Image(Shape):
@@ -218,15 +217,15 @@ class Image(Shape):
 	def gen(self, out):
 		added = ""
 		if self.w:
-			added += " width='%d'" % self.w
+			added += f" width='{self.w}'"
 		if self.h:
-			added += " height='%d'" % self.h
-		out.write("<image id='%s' href='%s' x='%d' y='%d' %s/>" %
-			(self.get_id(), self.url, self.x, self.y, added))
+			added += f" height='{self.h}'"
+		out.write(f"<image id='{self.get_id()}' href='{self.url}' \
+			x='{self.x}' y='{self.y}' {added}/>")
 
 	def finalize(self):
 		Shape.finalize(self)
-		self.url = parent.publish(self.path)
+		self.url = self.parent.publish(self.path)
 
 
 class Content(Shape):
@@ -240,7 +239,7 @@ class Content(Shape):
 		self.content = self.content.replace("{id}", self.get_id())
 
 	def gen(self, out):
-		out.write("<g id='%s' %s>" % (self.get_id(), self.get_attrs()))
+		out.write(f"<g id='{self.get_id()}' {self.get_attrs()}>")
 		out.write(self.content)
 		out.write("</g>")
 
@@ -250,19 +249,19 @@ class Content(Shape):
 
 class Canvas(Component):
 	"""A canvas that support CFG primitives."""
+	SVG_NUM = 0
 
 	def __init__(self):
-		global SVG_NUM
 		Component.__init__(self, MODEL)
 		self.set_attr("xmlns", XMLNS)
 		self.add_class("svg-canvas")
-		self.num = SVG_NUM
-		SVG_NUM = SVG_NUM + 1;
+		self.num = Canvas.SVG_NUM
+		Canvas.SVG_NUM += 1
 		self.child_num = 0
 		self.image_map = {}
 		self.shapes = []
 		self.events = {}
-		
+
 	def record(self, shape):
 		shape.parent = self
 		shape.num = self.child_num
@@ -280,7 +279,7 @@ class Canvas(Component):
 	def gen(self, out):
 		out.write("<svg ")
 		self.gen_attrs(out)
-		out.write('><template id="svg-%d-temp"></template>' % self.num)
+		out.write(f'><template id="svg-{self.num}-temp"></template>')
 		for shape in self.shapes:
 			shape.gen(out)
 		out.write("</svg>")
@@ -289,7 +288,7 @@ class Canvas(Component):
 		try:
 			url = self.image_map[path]
 		except KeyError:
-			url = "/svg/%s" % path
+			url = f"/svg/{path}"
 			self.image_map[path] = url
 			if self.online():
 				self.publish_server(path, url)
@@ -347,10 +346,10 @@ class Canvas(Component):
 
 	def gen_event_call(self, id, event):
 		"""Generate code to invoke event. id may be a shape or any string."""
-		return 'svg_on_event("%s", "%s");' % (self.get_id(), make_event_id(id, event))
+		return f'svg_on_event("{self.get_id()}", "{make_event_id(id, event)}");'
 
-	def receive(self, m, h):
+	def receive(self, msg, handler):
 		try:
-			self.events[m["event"]]()
+			self.events[msg["event"]]()
 		except KeyError:
-			Component.receive(self, m, h)
+			Component.receive(self, msg, handler)

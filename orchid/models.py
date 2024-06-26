@@ -97,7 +97,7 @@ class ListModel(Subject):
 		"""Clear the list."""
 		for obs in self.filter_observers(ListObserver):
 			if isinstance(obs, ListObserver):
-				obs.clear(i, x)
+				obs.on_clear()
 			else:
 				obs.update(self)
 
@@ -139,6 +139,7 @@ class ListVar(Var, ListModel):
 		ListModel.set(self, i, x)
 
 	def clear(self):
+		print("DEBUG: clear in ListVar")
 		(~self).clear()
 		ListModel.clear(self)
 

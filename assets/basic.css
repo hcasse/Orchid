@@ -217,6 +217,14 @@ div.field label {
 }
 
 
+/* editor */
+.editor {
+	background: white;
+	padding: 8px;
+	border: darkgray solid 1px;
+}
+
+
 /* Table */
 .table {
 	background: white;

@@ -59,6 +59,25 @@ class AbstractButton(Component, EnableObserver):
 	def is_enabled(self):
 		return self.action.is_enabled(self)
 
+	def get_action(self):
+		"""Get the action of the button."""
+		return self.action
+
+	def test_enabled(self):
+		if not self.action.is_enabled():
+			self.set_attr("disabled", None)
+		else:
+			self.remove_attr("disabled")
+
+	def set_action(self, action):
+		"""Change the action of the button."""
+		if self.online():
+			self.action.remove_observer()
+		self.action = action
+		if self.online():
+			self.action.add_observer(self)
+			self.test_enabled()
+
 
 BUTTON_MODEL = Model("button-model")
 
@@ -101,6 +120,8 @@ class Button(AbstractButton):
 			self.label = Label(self.action.label)
 		if self.action.help is not None:
 			self.set_attr("title", self.action.help)
+		self.set_attr("onclick", 'ui_onclick("%s");' % self.get_id())
+
 
 	def finalize(self, page):
 		AbstractButton.finalize(self, page)
@@ -112,7 +133,7 @@ class Button(AbstractButton):
 	def gen(self, out):
 		out.write('<button')
 		self.gen_attrs(out)
-		out.write(' onclick="ui_onclick(\'%s\');">' % self.get_id())
+		out.write('>')
 		if self.action.icon is not None:
 			self.action.icon.gen(out, self.parent.get_context())
 		if self.label is not None:
@@ -120,10 +141,14 @@ class Button(AbstractButton):
 		out.write('</button>')
 		out.write('\n')
 
+	def click(self):
+		"""Called when the button is clicked."""
+		if self.action.is_enabled():
+			self.action.perform(None)
+
 	def receive(self, m, h):
 		if m["action"] == "click":
-			if self.action.is_enabled():
-				self.action.perform(None)
+			self.click()
 		else:
 			Component.receive(self, m, h)
 
@@ -175,7 +200,7 @@ class CheckBox(Component, LabelledField):
 
 	def update_remote(self):
 		self.call("check_box_set",
-			{"id": self.get_id(), "checked": value})
+			{"id": self.get_id(), "checked": ~self.var})
 
 	def record_var(self, value):
 		self.updating = True
@@ -247,8 +272,8 @@ function radio_button_on_change(id, event) {
 	ui_send({id: id, action: "choose", choice: event.target.value});
 }
 
-function radio_button_set(args) {
-	const comp = document.getElementById(args.id);
+function radio_button_set(msg) {
+	const comp = document.getElementById(msg.id);
 	comp.checked = true;
 }
 """
@@ -281,8 +306,8 @@ class RadioButton(Component, LabelledField):
 	def hide(self):
 		self.var.remove_observer(self)
 
-	def record_var(self, value):
-		assert 0 <= n and n < (self.options)
+	def record_var(self, n):
+		assert 0 <= n and n < len(self.options)
 		self.updating = True
 		self.var.set(n)
 		self.updating = False
@@ -290,14 +315,16 @@ class RadioButton(Component, LabelledField):
 	def set_choice(self, n):
 		"""Set the current choice with n in [0, number of options-1]."""
 		if ~self.var != n:
-			self.record_var(n)
+			self.var.set(n)
+			self.update_remote()
 
 	def get_choice(self):
 		"""Get the current choosen option. Return is in [0, number of options-1]."""
 		return ~self.var
 
 	def update_remote(self):
-		self.call("radio_button_set", {"id": self.get_option_id(self.get_choice())})
+		if self.online():
+			self.call("radio_button_set", {"id": self.get_option_id(self.get_choice())})
 
 	def gen_label(self, out):
 		if self.var.label is not None:
@@ -306,17 +333,17 @@ class RadioButton(Component, LabelledField):
 			out.write('</label>')
 
 	def gen_field(self, out, with_label=True):
-		out.write('<div onchange="radio_button_on_change(\'%s\', event);">' % self.get_id())
+		out.write('<form onchange="radio_button_on_change(\'%s\', event);">' % self.get_id())
 		for i in range(0, len(self.options)):
 			if i != 0 and not self.horizontal:
 				out.write('<br/>')
 			id = self.get_option_id(i)
-			out.write('<input type="radio" id="%s" name="%s" value="%d"' % (id, self.get_id(), i))
+			out.write('<input type="radio" id="%s" name="%s-radio" value="%d"' % (id, self.get_id(), i))
 			if i == ~self.var:
 				out.write(' checked')
 			out.write('>')
 			out.write('<label for="%s">%s</label>' % (id,  self.options[i]))
-		out.write("</div>")
+		out.write("</form>")
 
 	def gen(self, out):
 		self.gen_field(out)
@@ -324,10 +351,15 @@ class RadioButton(Component, LabelledField):
 	def receive(self, msg, handler):
 		action = msg['action']
 		if action == 'choose':
-			self.record_var(int(msg['choice']))
+			old = ~self.var
+			new = int(msg['choice'])
+			self.record_var(new)
+			#if self.online():
+			#	self.remove_attr('checked', id=self.get_option_id(old))
+			#	self.set_attr('checked', id=self.get_option_id(new))
 		else:
 			Component.receive(self, msg, handler)
 
-	def update(self):
+	def update(self, subject):
 		if not self.updating:
 			self.update_remote()

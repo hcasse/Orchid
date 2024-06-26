@@ -6,7 +6,7 @@ MODEL = Model(
 	script = """
 		function counter_onclick(id, event) {
 			if(event.button == 0) 
-				ui_post({id: id, action: "click"});
+				ui_send({id: id, action: "click"});
 		}
 	""",
 	style = """

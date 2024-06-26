@@ -19,7 +19,7 @@
 
 from orchid import buffer
 from orchid.base import *
-from orchid.models import ListVar
+from orchid.models import ListVar, ListObserver
 
 SELECT_NONE = 0
 SELECT_SINGLE = 1
@@ -35,7 +35,7 @@ MODEL = Model(
 )
 
 
-class ListView(Component, Observer):
+class ListView(Component, ListObserver):
 	"""Vertical list of items."""
 
 	def __init__(self,
@@ -72,13 +72,14 @@ class ListView(Component, Observer):
 			page.add_hidden(self.context_menu)
 
 	def show(self):
+		print("DEBUG: list shown")
 		self.items.add_observer(self)
 
 	def hide(self):
 		self.items.remove_observer(self)
 
 	def get_items(self):
-		"""Get the model of items."""
+		"""Get the model of items of class orchid.models.ListModel ."""
 		return self.items
 
 	def get_selection(self):
@@ -149,7 +150,8 @@ class ListView(Component, Observer):
 				"content": buffer(item.gen)
 			});
 
-	def on_reset(self):
+	def on_clear(self):
+		print("DEBUG: on_clear called!")
 		children = []
 		if self.online():
 			self.call("list_clear", {"id": self.get_id()})

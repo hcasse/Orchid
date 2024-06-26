@@ -58,7 +58,8 @@ class MyPage(Page):
 		)
 
 	def clear(self):
-		pass
+		print("DEBUG: clear clicked!")
+		self.component.get_items().clear()
 
 	def insert(self):
 		item = "item %d" % self.count

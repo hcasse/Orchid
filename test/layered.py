@@ -45,5 +45,5 @@ class MyApp(Application):
 	def first(self):
 		return self.fst
 
-run(MyApp())
+run(MyApp(), debug=True)
 

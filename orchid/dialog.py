@@ -110,6 +110,17 @@ def default_answer(dialog, answer):
 	pass
 
 
+ANSWER_MODEL = Model(
+	"dialog-answer-model",
+	parent = MODEL,
+	script = """
+function dialog_answer_choose(id, n) {
+	ui_send({ id: id, action: "choose", n: n });
+}
+"""
+)
+
+
 class Answer(Base):
 	"""Answer dialog: provides information to the user and wait
 	for its answer."""
@@ -118,7 +129,9 @@ class Answer(Base):
 		"""Build the dialog displaying the given message optionally with a title.
 		It displays the given list of button (may be Orchid button or simple strings).
 		The on_close is function is called when the dialog is close and takes as
-		parameter (dialog, answer) with answer the index of the clicked answer button (starting from 0)."""
+		parameter (dialog, answer) with answer the index of the clicked answer button (starting from 0).
+
+		If you want to provide a custom button, use the dialog on_click() function to close the dialog."""
 		content = []
 
 		# add message
@@ -131,27 +144,39 @@ class Answer(Base):
 		# prepare buttons
 		buts = [Spring(hexpand=True)]
 		n = 0
+		self.buttons = []
 		for but in buttons:
 			if not isinstance(but, Component):
 				but = Button(label = but)
-			but.old_on_click = but.on_click
-			but.on_click = partial(self.select, but, n)
+			self.buttons.append(but)
 			buts.append(but)
 			buts.append(Spring(hexpand=True))
 			n = n + 1
-		self.buttons = HGroup(buts)
-		self.buttons.add_class("dialog-buttons")
-		content.append(self.buttons)
+		self.button_bar = HGroup(buts)
+		self.button_bar.add_class("dialog-buttons")
+		content.append(self.button_bar)
 
 		# initialize the parent
-		Base.__init__(self, page, VGroup(content), title=title)
+		Base.__init__(self, page, VGroup(content), title=title, model=ANSWER_MODEL)
 		self.on_close = on_close
 		self.add_class("dialog-answer")
 
-	def select(self, but, i):
+		# capture button click
+		for n in range(0, len(self.buttons)):
+			self.buttons[n].set_attr('onclick', 'dialog_answer_choose("%s", %d);' % (self.get_id(), n))
+
+	def select(self, n):
+		"""Called when a button number n is choosed/"""
 		self.hide()
-		but.old_on_click()
-		self.on_close(self, i)
+		self.on_close(self, n)
+		self.buttons[n].click()
+
+	def receive(self, msg, hnd):
+		if msg['action'] == 'choose':
+			self.select(msg['n'])
+		else:
+			Base.receive(self, msg, hnd)
+
 
 MESSAGES = {
 	"warning": "basic/warning.svg",

@@ -141,15 +141,6 @@ TEXT_MIMES = {
 	"text/xml"
 }
 
-# CMD_MAP = {
-	# "body-attrs":	Page.gen_body_attrs,
-	# "content":		Page.gen_content,
-	# "style": 		Page.gen_style,
-	# "script": 		Page.gen_script,
-	# "script-paths": Page.gen_script_paths,
-	# "style-paths": 	Page.gen_style_paths,
-	# "title":		Page.gen_title
-# }
 
 class Manager:
 	"""Orchid server manager."""
@@ -163,6 +154,8 @@ class Manager:
 		self.paths["/"] = self.add_app(app)
 		self.sessions = []
 		self.check_time = self.config['session_check_time']
+		self.check_thread = None
+		self.is_server = config['server']
 
 	def add_path(self, path, prov):
 		self.paths[path] = prov
@@ -232,16 +225,22 @@ class Manager:
 					return prov
 			return None
 
+	def add_session(self, session):
+		"""Add a session to the server manager."""
+		self.sessions.append(session)
+
+	def remove_session(self, session):
+		"""Remove a session from the server manager."""
+		self.sessions.remove(session)
+		if self.sessions == [] and not self.is_server:
+			os._exit(0)
+
 	def check_connections(self):
 		while True:
 			time.sleep(self.check_time)
 			for session in self.sessions:
-				sessions.check()
+				session.check()
 
-def check_quit(manager):
-	time.sleep(.25)
-	if manager.is_completed():
-		os._exit(0)
 
 class Handler(http.server.SimpleHTTPRequestHandler):
 
@@ -268,8 +267,6 @@ class Handler(http.server.SimpleHTTPRequestHandler):
 		if debug:
 			print("DEBUG: answer ", s)
 		self.wfile.write(s.encode("utf-8"))
-		if self.server.manager.is_completed():
-			threading.Thread(target=partial(check_quit, self.server.manager)).start()
 
 	def do_GET(self):
 		debug = self.server.manager.config['debug']

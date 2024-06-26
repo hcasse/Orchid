@@ -58,6 +58,7 @@ class MyPage(Page):
 		self.dialog3 = None
 
 	def open(self):
+		print("DEBUG: open first dialog!")
 		self.dialog.show()
 
 	def open2(self):

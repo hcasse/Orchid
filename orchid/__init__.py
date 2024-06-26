@@ -39,8 +39,8 @@ SUCCESS = "success"
 FAILED = "failed"
 INFO = "info"
 
-def text(type, text):
+def text(style, content):
 	"""Generate a text colored according to the type. Type may be one
 	of SUCCESS, FAILED or INFO."""
-	return '<span class="text-%s">%s</span>' % (type, text)
+	return f'<span class="text-{style}">{content}</span>'
 

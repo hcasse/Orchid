@@ -477,7 +477,7 @@ class Select(Component, LabelledField):
 		"""Remove the choice matching the given number."""
 		del self.choices[i]
 		if self.online():
-			self.remove_child(i)
+			self.remove_content(i)
 
 
 PROPOSAL_MODEL = Model(

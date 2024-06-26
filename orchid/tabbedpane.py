@@ -79,6 +79,10 @@ class TabbedPane(VGroup):
 		VGroup.__init__(self, [self.labs, self.panes], model)
 		self.add_class("tabbed")
 
+	def get_tabs(self):
+		"""Get the list of tabs."""
+		return self.tabs
+
 	def make_label(self, tab):
 		but = orchid.Button(
 			tab.get_label(),
@@ -143,6 +147,12 @@ class TabbedPane(VGroup):
 			self.select(0)
 
 	def remove(self, i):
+		"""Remove a tab. i may be the tab number or the tab to remove."""
+		if isinstance(i, Tab):
+			tab = i
+			i = self.tabs.index(i)
+		else:
+			tab = self.get_tab(i)
 		if i == self.current:
 			l = len(self.tabs) 
 			if l < 2:
@@ -152,7 +162,6 @@ class TabbedPane(VGroup):
 					self.select(0)
 				else:
 					self.select(self.current + 1)
-		tab = self.get_tab(i)
 		del self.tabs[i]
 		self.labs.remove(i)
 		self.panes.remove(i)

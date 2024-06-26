@@ -8,12 +8,10 @@ class MyPage(Page):
 		self.star = Button(Icon("star-empty"), enabled = False)
 
 		self.checkbox = CheckBox("check box",
-			help="This is a check box!",
-			on_change=self.on_checkbox_change)
+			help="This is a check box!")
 
 		self.radio = RadioButton(
-			["choice 1", "choice 2", "choice 3"],
-			on_change = self.on_choose)
+			["choice 1", "choice 2", "choice 3"])
 
 		Page.__init__(
 			self,
@@ -39,6 +37,7 @@ class MyPage(Page):
 		i = self.radio.get_choice() + 1
 		if i >= 3:
 			i = 0
+		print("DEBUG: next =", i)
 		self.radio.set_choice(i)
 
 	def invert_checkbox(self):
@@ -46,12 +45,6 @@ class MyPage(Page):
 
 	def click(self):
 		print("Clicked!")
-
-	def on_checkbox_change(self, value):
-		print("Checkbox:", value)
-
-	def on_choose(self, n):
-		print("Choosen", n)
 
 
 class MyApp(Application):

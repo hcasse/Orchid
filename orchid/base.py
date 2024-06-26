@@ -21,7 +21,12 @@ import html
 import importlib
 import sys
 import time
+from threading import Thread
+from time import sleep
+
 from orchid.util import *
+
+CLOSE_TIMEOUT=0.250
 
 COMPONENT_ID = 1
 
@@ -227,7 +232,8 @@ class AbstractComponent(Displayable, Subject):
 	def __init__(self):
 		global COMPONENT_ID
 		Subject.__init__(self)
-		self.id = str(COMPONENT_ID)
+		#self.id = "x" + str(COMPONENT_ID)	# !!DEBUG!!
+		self.id = "orc%s" % COMPONENT_ID
 		COMPONENT_ID += 1
 		self.classes = []
 		self.style = {}
@@ -249,7 +255,7 @@ class AbstractComponent(Displayable, Subject):
 		self.parent.set_interface(interface)
 
 	def send(self, msg):
-		"""Send a message to the UI.
+		"""Send a message to the UI. Returns the sent message.
 		Must be implemented by each extension class."""
 		pass
 
@@ -308,18 +314,15 @@ class AbstractComponent(Displayable, Subject):
 		if self.online():
 			self.send({"type": "set", "id": self.get_id(), "attr": attr, "val": val})
 
-	def set_content(self, content):
-		"""Change the content of an element."""
-		if self.online():
-			self.send({"type": "set-content", "id": self.get_id(), "content": content})
-
-	def set_attr(self, attr, val = None):
+	def set_attr(self, attr, val=None, id=None):
 		"""Set the value of an attribute of the current component. If on line, propagate the schange to the remote page."""
-		self.attrs[attr] = val
+		if id is None:
+			id = self.get_id()
+			self.attrs[attr] = val
 		if self.online():
 			self.send({
 				"type": "set-attr",
-				"id": self.get_id(),
+				"id": id,
 				"attr": attr,
 				"val": val if val != None else ""})
 
@@ -338,12 +341,14 @@ class AbstractComponent(Displayable, Subject):
 		except KeyError:
 			return None
 
-	def remove_attr(self, attr):
+	def remove_attr(self, attr, id=None):
 		"""Remove an attribute of the current component. If on line, propagate the modification to the remote page."""
 		try:
-			del self.attrs[attr]
+			if id is None:
+				id = self.get_id()
+				del self.attrs[attr]
 			if self.online():
-				self.send({"type": "remove-attr", "id": self.get_id(), "attr": attr})
+				self.send({"type": "remove-attr", "id": id, "attr": attr})
 		except KeyError:
 			pass
 
@@ -356,55 +361,60 @@ class AbstractComponent(Displayable, Subject):
 		except KeyError:
 			pass
 
-	def append_content(self, content):
-		"""Append content to the current element."""
-		if self.online():
-			self.send({
-				"type": "append",
-				"id": self.get_id(),
-				"content": content})
+	def append_content(self, content, id=None):
+		"""Append content to the current element. Content may be text or
+		a component (that will be generated in this case)."""
+		if id is None:
+			id = self.get_id()
+		msg = { "type": "append", "id": self.get_id() }
+		self.send(msg)
+		msg['content'] = self.gen_as_text(content)
 
-	def insert_content(self, content, pos):
+	def set_content(self, content):
+		"""Change the content of an element. Content may be string or component."""
+		msg = {"type": "set", "id": self.get_id()}
+		self.send(msg)
+		msg['content'] = self.gen_as_text(content)
+
+	def insert_content(self, content, pos, id=None):
 		"""Insert the given content into the current element at the
-		given position."""
-		if self.online():
-			self.send({
-				"type": "insert",
-				"id": self.get_id(),
-				"pos": pos,
-				"content": content})
+		given position. Content may be text or a component."""
+		if id is None:
+			id = self.get_id()
+		msg = {
+			"type": "insert",
+			"id": id,
+			"pos": pos
+		}
+		self.send(msg)
+		msg['content'] = self.gen_as_text(content)
 
 	def clear_content(self):
 		"""Clear the content of the component."""
-		if self.online():
-			self.send({
-				"type": "clear",
-				"id": self.get_id()})
+		self.send({ "type": "clear", "id": self.get_id()})
 
-	def remove_child(self, index):
+	def remove_content(self, pos, id=None):
 		"""Remove a child at given index from the current component."""
-		if self.online():
-			self.send({
-				"type": "remove-child",
-				"id": self.get_id(),
-				"child": index});
+		if id is None:
+			id = self.get_id()
+		self.send({
+			"type": "remove",
+			"id": id,
+			"pos": pos
+		})
 
-	def append_child(self, content):
-		"""Append a child component."""
-		if self.online():
-			self.send({
-				"type": "append-child",
-				"id": self.get_id(),
-				"child": content});
-
-	def insert_child(self, content, pos):
-		"""Insert a child element at given position."""
-		if self.online():
-			self.send({
-				"type": "insert-child",
-				"id": self.get_id(),
-				"child": content,
-				"pos": pos});
+	def gen_as_text(self, content):
+		"""Generate the given component as a text."""
+		if isinstance(content, str):
+			return content
+		else:
+			buf = Buffer()
+			if isinstance(content, list):
+				for comp in content:
+					comp.gen(buf)
+			else:
+				content.gen(buf)
+		return str(buf)
 
 	def show_last(self):
 		"""If the current element is a container, show its last item."""
@@ -418,14 +428,14 @@ class AbstractComponent(Displayable, Subject):
 		if cls not in self.classes:
 			self.classes.append(cls)
 			if self.online():
-				self.send_classes(self.classes)
+				self.send({"type": "add-class", "id": self.get_id(), "class": cls})
 
 	def remove_class(self, cls):
 		"""Remove a class of the component."""
 		if cls in self.classes:
 			self.classes.remove(cls)
 			if self.online():
-				self.send_classes(self.classes)
+				self.send({"type": "remove-class", "id": self.get_id(), "class": cls})
 
 	def set_top_class(self, cls):
 		"""Customize the component as a top component with the given class. The default implementation applies the style to the page."""
@@ -446,7 +456,7 @@ class Component(AbstractComponent):
 		AbstractComponent.__init__(self)
 		self.page = None
 		self.model = model
-		self.id = str(COMPONENT_ID)
+		#self.id = str(COMPONENT_ID)
 		COMPONENT_ID += 1
 
 	def get_model(self):
@@ -575,9 +585,12 @@ class Page(AbstractComponent):
 		self.session = None
 		self.main = None
 		self.base_style = style
+		self.timeout_thread = None
 		self.hidden = []
 		self.set_attr("onbeforeunload", "ui_close();")
 		#self.set_attr("onclick", "ui_complete();")
+		self.set_attr("onload", 'ui_hi();')
+
 		self.interface = interface
 
 		# prepare the theme
@@ -661,9 +674,7 @@ class Page(AbstractComponent):
 		comp.parent = self
 		comp.finalize(self)
 		if self.online():
-			buf = Buffer()
-			comp.gen(buf)
-			self.append_child(str(buf))
+			self.append_content(comp)
 
 	def set_main(self, main):
 		"""Set the main component."""
@@ -730,17 +741,27 @@ class Page(AbstractComponent):
 		self.messages = []
 		return res
 
+	def close(self):
+		"""Called to close the page."""
+		self.send({"type": "quit"})
+		self.timeout_thread = Thread(target=self.close_timeout)
+		self.timeout_thread.start()
+
+	def close_timeout(self):
+		"""Manage timeout in case the browser does not answer the quit command."""
+		sleep(CLOSE_TIMEOUT)
+		print("Close timeout!")
+		if self.timeout_thread is not None:
+			self.on_close()
+
 	def on_close(self):
 		"""Called when a closure message is received from the client."""
+		self.timeout_thread = None
 		for obs in self.filter_observers(PageObserver):
 			obs.on_close(self)
 		self.session.remove_page(self)
 		if self.parent != None:
 			self.parent.on_close()
-
-	def close(self):
-		"""Called to close the page."""
-		self.send({"type": "quit"})
 
 	def hide(self):
 		self.main.hide()
@@ -835,7 +856,7 @@ class Page(AbstractComponent):
 		self.gen_attrs(out)
 		out.write(">\n")
 		self.gen_content(out)
-		out.write('<script>ui_send({ id: "0", action: "hi" });</script>')
+		out.write('<script>console.log("end of body!");</script>')
 		out.write('</body>')
 		out.write('</html>')
 
@@ -843,11 +864,13 @@ class Page(AbstractComponent):
 		"""Publish an URL returning the given text
 		(for big GET operation)."""
 		self.manager.add_text_file(url, text, mime)
+		print("DEBUG: publish", url)
 
 	def publish_file(self, url, path, mime = None):
 		"""Publish an URL returning the content of the file
 		corresponding to the path."""
 		self.manager.add_file(url, path, mime)
+		print("DEBUG: publish", url)
 
 	def publish(self, url, provider):
 		"""Publish an URL with a custom provider."""
@@ -889,7 +912,7 @@ class Session:
 		self.creation = time.time()
 		self.last = self.creation
 		self.timeout = man.config['session_timeout']
-		man.sessions.append(self)
+		man.add_session(self)
 		if Session.FREE != []:
 			self.number = Session.FREE.pop()
 		else:
@@ -939,7 +962,7 @@ class Session:
 			Session.FREE.append(self.number)
 		for page in self.pages:
 			self.man.remove_page(page)
-		self.man.sessions.remove(self)
+		self.man.remove_session(self)
 
 	def get_application(self):
 		"""Get the application owning the session."""

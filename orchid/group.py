@@ -67,10 +67,7 @@ class Group(Component):
 			child.finalize(self.page)
 		if self.online():
 			self.clear_content()
-			buf = orchid.Buffer()
-			for child in children:
-				child.gen(buf)
-			self.set_content(str(buf))
+			self.set_content(children)
 
 	def insert(self, child, i = -1):
 		"""Add a child to the group."""
@@ -81,12 +78,10 @@ class Group(Component):
 		self.map_child(child)
 		child.finalize(self.page)
 		if self.online():
-			buf = orchid.Buffer()
-			child.gen(buf)
 			if i < 0:
-				self.append_child(str(buf))
+				self.append_content(child)
 			else:
-				self.insert_child(str(buf), i)
+				self.insert_content(child, i)
 
 	def remove(self, i):
 		"""Remove a child. i may be the index or the sub-component to remove."""
@@ -95,7 +90,7 @@ class Group(Component):
 				i = self.children.index(i)
 			except ValueError:
 				return
-		self.remove_child(i)
+		self.remove_content(i)
 		del self.children[i]
 		self.remap_children()
 
@@ -132,6 +127,7 @@ HGROUP_MODEL = Model(
 	"hgroup-model",
 	style = """
 .hgroup-item {
+	flex-shrink: 0;
 }
 .hgroup-expand {
 	align-self: stretch;
@@ -197,6 +193,7 @@ class VGroupModel(Model):
 	def gen_style(self, out):
 		out.write("""
 .vgroup-item {
+	flex-shrink: 0;
 }
 .vgroup-expand {
 	align-self: stretch;
@@ -297,20 +294,23 @@ def vspring():
 LAYERED_PANE_MODEL = Model(
 	style = """
 .layered-parent {
+	display: flex;
+	align-items: stretch;
 }
 
 .layered-child {
-	width: 100%;
-	height: 100%;
+	display: block;
+	flex-grow: 1;
 	box-sizing: border-box;
 }
 
 .layered-inactive {
-	display: none;
+	position: absolute;
+	left: -10000px;
+	top: -10000px;
 }
 
 .layered-active {
-	display: block;
 }
 """
 )
@@ -331,10 +331,11 @@ class LayeredPane(Group):
 		if num == self.current:
 			return
 		if self.current >= 0:
-			self.children[self.current].add_class("layered-inactive")
 			self.children[self.current].remove_class("layered-active")
-		self.children[num].add_class("layered-active")
+		if self.current >= 0:
+			self.children[self.current].add_class("layered-inactive")
 		self.children[num].remove_class("layered-inactive")
+		self.children[num].add_class("layered-active")
 		self.current = num
 
 	def map_child(self, child):
