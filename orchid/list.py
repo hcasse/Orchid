@@ -162,7 +162,7 @@ class ListView(Component, ListObserver):
 		if self.children is None:
 			self.children = []
 			for i in range(0, self.items.size()):
-				self.children.append(self.make(self.items.get(i)))
+				self.children.append(self.make(self.items.get_index(i)))
 		return self.children
 
 	def index_of(self, id):

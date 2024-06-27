@@ -23,21 +23,18 @@ class Image(Displayable):
 	"""Base class to represent an image (according different sources:
 	file to download, standard icon, etc)."""
 
-	def __init__(self, model, context=CONTEXT_NONE):
+	def __init__(self, model):
 		self.model = model
-		self.context = context
-
-	def get_context(self):
-		"""Get the context of the image."""
-		return self.context
-
-	def set_context(self, context):
-		"""Set the context of the image."""
-		self.context = context
 
 	def gen(self, out):
-		"""Generate the code for the image."""
+		"""Generate the code for the image. Context is one of
+		CONTEXT_XXX constant."""
 		pass
+
+	def gen_in_context(self, out, context):
+		"""Generate the image in the given context.
+		Default implementation call gen()."""
+		self.gen(out)
 
 	def finalize(self, page):
 		page.add_model(self.model)
@@ -47,7 +44,7 @@ ICON_MODEL = Model(name="icon-model")
 
 class Icon(Image):
 
-	def __init__(self, name, color = None):
+	def __init__(self, name, color=None):
 		Image.__init__(self, ICON_MODEL)
 		self.name = name
 		self.color = color
@@ -58,7 +55,10 @@ class Icon(Image):
 		self.icon = page.get_theme().get_icon(self.name, self.color)
 
 	def gen(self, out):
-		self.icon.gen(out, self.get_context())
+		self.gen_in_context(out, CONTEXT_NONE)
+
+	def gen_in_context(self, out, context):
+		self.icon.gen_in_context(out, context)
 
 
 ASSET_IMAGE_MODEL = Model("asset-image")
@@ -75,7 +75,7 @@ class AssetImage(Image):
 	def gen(self, out):
 		out.write(f'<img src="{self.path}"')
 		if self.width is not None:
-			out.write(' width="{self.width}"')
+			out.write(f' width="{self.width}"')
 		if self.height is not None:
-			out.write(' width="{self.height}"')
+			out.write(f' width="{self.height}"')
 		out.write(">")

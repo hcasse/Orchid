@@ -131,6 +131,7 @@ HGROUP_MODEL = Model(
 }
 .hgroup-expand {
 	align-self: stretch;
+	flex-grow: 1;
 }
 
 .hgroup {
@@ -169,7 +170,7 @@ class HGroup(Group):
 		Group.map_child(self, child)
 		child.add_class("hgroup-item")
 		w  = child.get_weight()[0]
-		if w == 0 and child.expands_horizontal():
+		if w is None and child.expands_horizontal():
 			w = 1
 		if w != 0:
 			child.set_style("flex", str(w))
@@ -199,6 +200,7 @@ class VGroupModel(Model):
 }
 .vgroup-expand {
 	align-self: stretch;
+	flex-grow: 1;
 }
 
 .vgroup {
@@ -239,7 +241,7 @@ class VGroup(Group):
 		Group.map_child(self, child)
 		child.add_class("vgroup-item")
 		w = child.get_weight()[1]
-		if w == 0 and child.expands_vertical():
+		if w is None and child.expands_vertical():
 			w = 1
 		if w != 0:
 			child.set_style("flex", str(w))

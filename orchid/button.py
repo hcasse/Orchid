@@ -119,7 +119,7 @@ class Button(AbstractButton):
 			self.label = Label(self.action.label)
 		if self.action.help is not None:
 			self.set_attr("title", self.action.help)
-		self.set_attr("onclick", 'ui_onclick("{self.get_id()}");')
+		self.set_attr("onclick", f'ui_onclick("{self.get_id()}");')
 
 
 	def finalize(self, page):
@@ -134,7 +134,7 @@ class Button(AbstractButton):
 		self.gen_attrs(out)
 		out.write('>')
 		if self.action.icon is not None:
-			self.action.icon.gen(out, self.parent.get_context())
+			self.action.icon.gen_in_context(out, self.parent.get_context())
 		if self.label is not None:
 			self.label.gen(out)
 		out.write('</button>')
@@ -335,10 +335,10 @@ class RadioButton(Component, LabelledField):
 
 	def gen_field(self, out, with_label=True):
 		out.write(f'<form onchange="radio_button_on_change(\'{self.get_id()}\', event);">')
-		for i, x in enumerate(self.options):
+		for i, _ in enumerate(self.options):
 			if i != 0 and not self.horizontal:
 				out.write('<br/>')
-			id = self.get_option_id(x)
+			id = self.get_option_id(i)
 			out.write(f'<input type="radio" id="{id}" \
 				name="{self.get_id()}-radio" value="{i}"')
 			if i == ~self.var:

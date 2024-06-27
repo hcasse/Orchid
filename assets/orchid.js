@@ -40,56 +40,58 @@ ui_http.onreadystatechange = function() {
 		}
 		else {
 			ans = JSON.parse(this.responseText);
-			for(const a of ans["answers"]) {
+			for(let a of ans.answers) {
 				//console.log("executing " + JSON.stringify(a));
-				switch(a["type"]) {
+				switch(a.type) {
 				case "call":
-					var f = window[a["fun"]];
+					var f = window[a.fun];
 					if(f == undefined)
-						console.error(`cannot find function ${a['fun']}`);
+						console.error(`cannot find function ${a.fun}`);
 					else
-						f(a["args"]);
+						f(a.args);
 					break;
-				case "set":
-					component = document.getElementById(a["id"]);
-					component.style[a["attr"]] = a["val"];
+
+				case "set-style":
+					component = document.getElementById(a.id);
+					component.style[a.attr] = a.val;
 					break;
 				case "set-class":
-					component = document.getElementById(a["id"]);
-					component.className = a["classes"];
+					component = document.getElementById(a.id);
+					component.className = a.classes;
 					break;
 				case "add-class":
-					component = document.getElementById(a["id"]);
-					component.classList.add(a["class"]);
+					component = document.getElementById(a.id);
+					component.classList.add(a.class);
 					break;
 				case "remove-class":
-					component = document.getElementById(a["id"]);
-					component.classList.remove(a["class"]);
+					component = document.getElementById(a.id);
+					component.classList.remove(a.class);
 					break;
 				case "set-attr":
-					component = document.getElementById(a["id"]);
-					component.setAttribute(a["attr"], a["val"]);
+					component = document.getElementById(a.id);
+					component.setAttribute(a.attr, a.val);
 					break;
 				case "remove-attr":
-					component = document.getElementById(a["id"]);
-					component.removeAttribute(a["attr"]);
+					component = document.getElementById(a.id);
+					component.removeAttribute(a.attr);
 					break;
-				case 'set-content':
-					component = document.getElementById(a["id"]);
-					component.innerHTML = a["content"];
-					break;
+
 				case "quit":
 					window.close();
 					document.getElementsByTagName("body")[0].innerHTML = "<p>closed.</p>";
 					break;
 				case "download":
 					req = new XMLHttpRequest();
-					req.id = a["id"]
+					req.id = a.id
 					req.onreadystatechange = download
-					req.open("GET", a["path"], true);
+					req.open("GET", a.path, true);
 					req.send();
 					break;
 
+				case 'set-content':
+					component = document.getElementById(a.id);
+					component.innerHTML = a.content;
+					break;
 				case "clear":
 					component = document.getElementById(a.id);
 					while(component.firstChild)
@@ -118,32 +120,30 @@ ui_http.onreadystatechange = function() {
 					break;
 
 				case "show-last":
-					show_last(a["id"]);
+					show_last(a.id);
 					break;
+
 				case "model":
-					for(const path of a["style_paths"]) {
+					for(const path of a.style_paths) {
 						elem = document.createElement("link");
 						elem.setAttribute("rel", "stylesheet");
 						elem.setAttribute("href", path);
 						document.head.appendChild(elem);
 					}
-					for(const path of a["script_paths"]) {
+					for(const path of a.script_paths) {
 						elem = document.createElement("script");
 						elem.setAttribute("src", path);
 						document.head.appendChild(elem);
 					}
-					if(a["script"]) {
-						/*elem = document.createElement("script");
-						elem.innerHTML = a["script"];
-						document.head.appendChild(elem);*/
-						window.eval(a["script"]);
-					}
-					if(a["style"]) {
+					if(a.script)
+						window.eval(a.script);
+					if(a.style) {
 						elem = document.createElement("style");
-						elem.innerHTML = a["style"];
+						elem.innerHTML = a.style;
 						document.head.appendChild(elem);
 					}
 					break;
+
 				default:
 					console.error("unknown command: " + JSON.stringify(a));
 					break;

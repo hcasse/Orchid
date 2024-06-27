@@ -28,11 +28,11 @@ class Counter(Component):
 		self.message = message;
 		self.count = 0
 		self.set_attr('onclick',
-			"counter_onclick('%s', event);" % self.get_id())
+			f"counter_onclick('{self.get_id()}', event);")
 		self.add_class('counter')
 
 	def display(self):
-		return '%s %d' % (self.message, self.count)
+		return f'{self.message} {self.count}'
 
 	def gen(self, out):
 		out.write('<div');
@@ -71,4 +71,4 @@ class MyApp(Application):
 	def first(self):
 		return self.fst
 
-run(MyApp())
+run(MyApp(), debug=True)

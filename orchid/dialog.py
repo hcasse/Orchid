@@ -246,15 +246,12 @@ class About(Base):
 		title = app.name
 		if app.version is not None:
 			title = f"{title} V{app.version}"
-		#title = Label(title)
-		#title.add_class("dialog-about-title")
-		#text.append(title)
 		if app.description is not None:
 			text.append(Plain(app.description, in_tag="p"))
 		if app.website is not None:
 			text.append(Plain(f'<a href="{app.website}">{app.website}</a>', in_tag="p"))
 		if app.license is not None:
-			text.append(Plain(f"<b>License:</b> {app.License}", in_tag="p"))
+			text.append(Plain(f"<b>License:</b> {app.license}", in_tag="p"))
 		if app.copyright is not None:
 			text.append(Plain(f"<i>{app.copyright}</i>", in_tag="center"))
 		text = VGroup(text)

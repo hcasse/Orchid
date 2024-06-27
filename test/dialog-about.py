@@ -16,10 +16,12 @@ class MyPage(Page):
 			]),
 			app = app
 		)
+		self.dialog = None
 
 	def about(self):
-		d = dialog.About(self)
-		d.show()
+		if self.dialog is None:
+			self.dialog = dialog.About(self)
+		self.dialog.show()
 
 
 class MyApp(Application):

@@ -324,7 +324,7 @@ class AbstractComponent(Displayable, Subject):
 		self.style[attr] = val
 		if self.online():
 			self.send({
-				"type": "set",
+				"type": "set-style",
 				"id": self.get_id(),
 				"attr": attr,
 				"val": val
@@ -391,7 +391,7 @@ class AbstractComponent(Displayable, Subject):
 
 	def set_content(self, content):
 		"""Change the content of an element. Content may be string or component."""
-		msg = {"type": "set", "id": self.get_id()}
+		msg = {"type": "set-content", "id": self.get_id()}
 		self.send(msg)
 		msg['content'] = self.gen_as_text(content)
 

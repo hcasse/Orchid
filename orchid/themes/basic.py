@@ -17,7 +17,8 @@
 
 """Definition of basic theme."""
 
-from orchid.base import Model, CONTEXT_HEADERBAR, CONTEXT_TOOLBAR, Theme
+from orchid.base import Model, CONTEXT_HEADERBAR, CONTEXT_TOOLBAR, Theme, \
+	CONTEXT_NONE
 from orchid.image import AssetImage, Image
 
 MESSAGES = {
@@ -201,6 +202,9 @@ class Icon(Image):
 		self.color = color
 
 	def gen(self, out):
+		self.gen_in_context(out, CONTEXT_NONE)
+
+	def gen_in_context(self, out, context):
 		if self.name.startswith("!"):
 			icon = self.name[1:]
 		else:
@@ -210,7 +214,7 @@ class Icon(Image):
 				icon = ICONS["image"]
 		out.write(f'<i class="bi bi-{icon}')
 		try:
-			out.write(Icon.CONTEXT[self.get_context()])
+			out.write(Icon.CONTEXT[context])
 		except KeyError:
 			pass
 		out.write('"')
