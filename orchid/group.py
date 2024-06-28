@@ -55,7 +55,8 @@ class Group(Component):
 		"""Remove all children of the group."""
 		self.children = []
 		self.remap_children()
-		self.clear_content()
+		if self.online():
+			self.clear_content()
 
 	def replace_children(self, children):
 		"""Replace all children by the new ones."""

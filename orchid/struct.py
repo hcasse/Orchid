@@ -59,7 +59,6 @@ class MessageContainer(VGroup):
 		else:
 			comps = [self.msg_comp, content]
 		VGroup.__init__(self, comps)
-		#self.msg_comp.add_class("message")
 		self.msg_comp.set_style("row-gap", "0")
 
 	def set_top_class(self, cls):

@@ -36,13 +36,13 @@ class MyPage(Page):
 		self.error = self.cont.error("There is an error!")
 
 	def hide_info(self):
-		self.cont.hide(self.info)
+		self.cont.hide_message(self.info)
 
 	def hide_warn(self):
-		self.cont.hide(self.warn)
+		self.cont.hide_message(self.warn)
 
 	def hide_error(self):
-		self.cont.hide(self.error)
+		self.cont.hide_message(self.error)
 
 
 class MyApp(Application):

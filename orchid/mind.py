@@ -393,6 +393,16 @@ class AbstractAction(Entity):
 		True."""
 		return True
 
+	def add_enable_observer(self, observer):
+		"""Add an enable observer that must implement EnableObserver.
+		Default implementation does nothing."""
+		pass
+
+	def remove_enable_observer(self, observer):
+		"""Remove an enable observer.
+		Default implementation does nothing."""
+		pass
+
 	def perform(self, interface):
 		"""Perform the action with the given interface.
 		Default implementation does nothing."""
@@ -417,14 +427,12 @@ class Action(AbstractAction, Subject):
 		self.fun = fun
 
 	def add_enable_observer(self, observer):
-		"""Add an enable observer that must implement EnableObserver."""
 		if self.enable_count == 0:
 			self.enable_pred.add_observer(self)
 			self.enable_count += 1
 		self.add_observer(observer)
 
 	def remove_enable_observer(self, observer):
-		"""Remove an enable observer."""
 		self.remove_observer(observer)
 		self.enable_count -= 1
 		if self.enable_count == 0:
