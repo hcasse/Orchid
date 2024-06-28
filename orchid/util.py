@@ -85,13 +85,13 @@ class StandardInterface(Interface):
 	"""Console using standard input/output."""
 
 	def show_info(self, message):
-		sys.stderr.write("INFO: {message}\n")
+		sys.stderr.write(f"INFO: {message}\n")
 
 	def show_warning(self, message):
-		sys.stderr.write("WARNING: {message}\n")
+		sys.stderr.write(f"WARNING: {message}\n")
 
 	def show_error(self, message):
-		sys.stderr.write("ERROR: {message}\n")
+		sys.stderr.write(f"ERROR: {message}\n")
 
 STANDARD_INTERFACE = StandardInterface()
 

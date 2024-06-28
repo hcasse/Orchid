@@ -75,7 +75,7 @@ class MyPage(Page):
 
 	def set(self):
 		if self.selection:
-			self.items.set(self.selection[0], "???")
+			self.items.set_index(self.selection[0], "???")
 
 	def change(self):
 		self.component.set_items(alt_list)

@@ -63,16 +63,25 @@ class Banner(ExpandableComponent):
 
 
 class MessageLabel(Label, ProxyInterface):
+	"""This label is dedicated to display user messages. It implements Interface
+	and can also display errors from a list of predicates."""
 
-	def __init__(self, content, interface = STANDARD_INTERFACE):
+	def __init__(self, preds=None, content="", interface=STANDARD_INTERFACE):
 		Label.__init__(self, content)
 		ProxyInterface.__init__(self, interface)
 		self.last_cls = None
+		if preds is None:
+			self.preds = []
+		else:
+			self.preds = preds
 
-	def finalize(self, page):
-		Label.finalize(self, page)
-		self.set_proxy(self.get_interface())
-		self.set_interface(self)
+	def show(self):
+		for pred in self.preds:
+			pred.add_error_observer(self)
+
+	def hide(self):
+		for pred in self.preds:
+			pred.remove_error_observer(self)
 
 	def clear_class(self):
 		if self.last_cls is not None:
@@ -84,18 +93,21 @@ class MessageLabel(Label, ProxyInterface):
 		self.last_cls = cls
 
 	def clear_message(self):
-		self.clear_class()
-		self.last_cls = None
-		self.set_text("")
+		if self.content:
+			self.clear_class()
+			self.last_cls = None
+			self.set_text("")
+
+	def set_message(self, style, message):
+		if self.content != message:
+			self.set_text(message)
+			self.replace_class(style)
 
 	def show_error(self, message):
-		self.set_text(message)
-		self.replace_class("error-text")
+		self.set_message("error-text", message)
 
 	def show_warning(self, message):
-		self.set_text(message)
-		self.replace_class("warn-text")
+		self.set_message("warn-text", message)
 
 	def show_info(self, message):
-		self.set_text(message)
-		self.replace_class("info-text")
+		self.set_message("info-text", message)

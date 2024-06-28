@@ -9,7 +9,8 @@ class MyPage(Page):
 		return popup.MenuButton(
 			popup.Menu([
 				Button("Menu 1", on_click=self.menu1),
-				Button("Menu 2", on_click=self.menu2)
+				Button("Menu 2", on_click=self.menu2),
+				Button("Menu 3 long")
 			])
 		)
 

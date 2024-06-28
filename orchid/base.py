@@ -351,12 +351,13 @@ class AbstractComponent(Displayable, Subject):
 		the remote page."""
 		self.attrs[attr] = val
 
-	def get_attr(self, attr):
-		"""Get the value of an attribute. Return None if the attribute is not defined."""
+	def get_attr(self, attr, default=None):
+		"""Get the value of an attribute. Return default if the attribute is
+		not defined (default to None)."""
 		try:
 			return self.attrs[attr]
 		except KeyError:
-			return None
+			return default
 
 	def remove_attr(self, attr, id=None):
 		"""Remove an attribute of the current component. If on line, propagate
@@ -463,9 +464,9 @@ class AbstractComponent(Displayable, Subject):
 
 	def __str__(self):
 		try:
-			return f"component({self.get_id()})"
+			return f"<component {self.get_id()}>"
 		except AttributeError:
-			return "page"
+			return "<page>"
 
 class Component(AbstractComponent):
 	"""Component to build a user-interface. A component may be displayed
@@ -515,13 +516,17 @@ class Component(AbstractComponent):
 		return False
 
 	def get_weight(self):
-		try:
-			if isinstance(self.weight, tuple):
-				return self.weight
-			else:
-				return (self.weight, self.weight)
-		except AttributeError:
-			return (0, 0)
+		if self.weight is None:
+			self.weight = (
+				0 if not self.expands_horizontal() else 1,
+				0 if not self.expands_vertical() else 1
+			)
+		elif isinstance(self.weight, int):
+			self.weight = (
+				0 if not self.expands_horizontal() else self.weight,
+				0 if not self.expands_vertical() else self.weight
+			)
+		return self.weight
 
 	def set_enabled(self, enabled = True):
 		"""Enable/disable a component."""

@@ -37,7 +37,7 @@ function popup_menu_show(args) {
 }
 
 function popup_menu_top_click(id) {
-	ui_post({id: id, action: "hide"});
+	ui_send({id: id, action: "hide"});
 }
 
 function popup_menu_show_child(args) {

@@ -66,7 +66,7 @@ class ListModel(Subject):
 		"""Append a value."""
 		for obs in self.get_observers():
 			if isinstance(obs, ListObserver):
-				obs.on_appennd(x)
+				obs.on_append(x)
 			else:
 				obs.update(self)
 

@@ -17,7 +17,7 @@
 
 """This module manage popups: menus."""
 
-from orchid.base import ICON_MENU, Model, CONTEXT_MENU
+from orchid.base import ICON_MENU, Model, CONTEXT_MENU, ALIGN_LEFT
 from orchid.group import VGroup
 from orchid.button import Button
 import orchid.image
@@ -34,11 +34,19 @@ MENU_MODEL = Model(
 class Menu(VGroup):
 	"""Menu made of a list of components verticaly placed."""
 
-	def __init__(self, items):
-		VGroup.__init__(self, items, model=MENU_MODEL)
+	def __init__(self, items, align=ALIGN_LEFT):
+		"""Build the menu with the items (that are usually buttons).
+		align can be set to one of orchid.base.ALIGN_XXX constant
+		(default ALIGN_LEFT)."""
+		VGroup.__init__(self, items, align=align, model=MENU_MODEL)
 		self.add_class("dropdown-content")
 		self.add_class("menu")
 		self.set_style('display', 'none')
+		self.shown = False
+
+	def is_shown(self):
+		"""Test if the menu is shown."""
+		return self.shown
 
 	def display(self, comp, pos = BELOW):
 		"""Display the popup menu at the given position relatively to
@@ -66,9 +74,11 @@ class Menu(VGroup):
 
 	def show_menu(self, ref, index = None):
 		"""Show the menu."""
+		if self.shown:
+			return
 		VGroup.show(self)
 		code = self.get_onclick()
-		onclick = self.page.get_attr("onclick")
+		onclick = self.page.get_attr("onclick", "")
 		if code not in onclick:
 			self.page.set_attr("onclick", code + onclick)
 		if index is None:
@@ -82,9 +92,12 @@ class Menu(VGroup):
 				"ref": ref.get_id(),
 				"index": index
 			})
+		self.shown = True
 
 	def hide_menu(self):
 		"""Hide the menu."""
+		if not self.shown:
+			return
 		code = self.get_onclick()
 		onclick = self.page.get_attr("onclick")
 		try:
@@ -94,6 +107,7 @@ class Menu(VGroup):
 			pass
 		self.call("popup_menu_hide", {"id": self.get_id()})
 		VGroup.hide(self)
+		self.shown = False
 
 
 class MenuButton(Button):
@@ -120,7 +134,8 @@ class MenuButton(Button):
 		out.write("</div>")
 
 	def on_click(self):
-		self.show_menu()
+		if not self.menu.is_shown():
+			self.show_menu()
 
 	def show_menu(self):
 		"""Show the current menu."""

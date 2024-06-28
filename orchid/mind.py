@@ -26,7 +26,6 @@ to the application."""
 import re
 
 from orchid.base import Subject, Observer
-from orchid.util import STANDARD_INTERFACE
 
 def is_python_type(t):
 	return isinstance(t, type)
@@ -175,7 +174,7 @@ class Var(Subject, Entity):
 		Entity.__init__(self, **args)
 		self.value = value
 		if type is None:
-			type = type_of_data(value)
+			self.type = type_of_data(value)
 		elif isinstance(type, Type):
 			self.type = type
 		else:
@@ -210,109 +209,74 @@ class Var(Subject, Entity):
 		return or_(not_null(self), x)
 
 
-class EnableSubject(Subject):
-	"""A subject that calls enable() or disable() if there is or not observers."""
+class PredicateError(Exception):
+	"""Raised as soon as there is a predicate error."""
 
-	def __init__(self):
-		Subject.__init__(self)
+	def __init__(self, message):
+		Exception.__init__(self)
+		self.msg = message
 
-	def add_observer(self, observer):
-		if not self.observers:
-			self.enable()
-		Subject.add_observer(self, observer)
+	def message(self):
+		return self.msg
 
-	def remove_observer(self, observer):
-		Subject.remove_observer(self, observer)
-		if not self.observers:
-			self.disable()
+	def __str__(self):
+		return self.msg
+
+
+class EnableObserver(Observer):
+	"""Observer for enabling/disabling."""
 
 	def enable(self):
-		"""Called as soon as there is an observer."""
+		"""Called to enable."""
 		pass
 
 	def disable(self):
-		"""Called when there is no more observer."""
+		"""Called to disable."""
 		pass
 
 
-class AbstractAction(EnableSubject, Entity):
-	"""An action represents a command, a procedure that can be applied
-	on the current data set of the application.
-
-	Mainly, an action can be enabled or not depending on the data set.
-	An action may be observed to detect changes in enabling/disabling."""
-
-	def __init__(self, **args):
-		EnableSubject.__init__(self)
-		Entity.__init__(self, **args)
-		self.context = None
-
-	def set_context(self, context):
-		"""Set the context of the action (component using it)."""
-		self.context = context
-
-	def get_interface(self):
-		"""Get the interface for the action."""
-		if self.context is None:
-			return STANDARD_INTERFACE
-		else:
-			return self.context.get_interface()
-
-	def is_enabled(self):
-		"""Test if the action is enabled. Default implementation returns
-		True."""
-		return True
-
-	def perform(self, interface):
-		"""Perform the action with the given interface.
-		Default implementation does nothing."""
-		pass
-
-
-class PredicateHandler(EnableSubject, Observer):
+class PredicateHandler(Subject, Observer):
 	"""Manage the predicate by observing the used variables. If a variable is
 	changed and the predicate value is changed, update its observers."""
 
 	def __init__(self, pred):
-		EnableSubject.__init__(self)
+		Subject.__init__(self)
+		Observer.__init__(self)
 		self.pred = pred
 		self.vars = set()
 		self.pred.collect_vars(self.vars)
 		self.value = None
-		self.context = None
 
-	def enable(self):
-		self.value = None
-		for var in self.vars:
-			var.add_observer(self)
+	def add_observer(self, observer):
+		if not self.get_observers():
+			for var in self.vars:
+				var.add_observer(self)
+		Subject.add_observer(self, observer)
 
-	def disable(self):
-		for var in self.vars:
-			var.remove_observer(self)
-		self.value = None
+	def remove_observer(self, observer):
+		Subject.remove_observer(self, observer)
+		if not self.get_observers():
+			for var in self.vars:
+				var.remove_observer(self)
+			self.value = None
 
-	def get(self):
-		"""Get the predicate value. Component is the component calling this function."""
-		if self.value is None:
-			self.value = self.pred.check(self)
+	def check(self):
+		"""Check and return the value of the pedicate."""
+		self.value = self.pred.check()
 		return self.value
 
 	def update(self, subject):
-		new_value = self.pred.check(self)
-		if new_value != self.value:
-			self.value = new_value
-			self.update_observers()
+		old_value = self.value
+		self.check()
+		if old_value != self.value:
+			for observer in self.get_observers():
+				observer.update(self.pred)
 
-	def set_context(self, context):
-		"""Connect the handler to the given component (typically to benefit from
-		the component context information like interface)."""
-		self.context = context
-
-	def get_interface(self):
-		if self.context is None:
-			return STANDARD_INTERFACE
-		else:
-			return self.context.get_interface()
+	def get_value(self):
+		"""Get the value of the pedicate."""
+		if self.value is None:
+			self.check()
+		return self.value
 
 
 class AbstractPredicate:
@@ -327,18 +291,16 @@ class AbstractPredicate:
 		stored in the var set."""
 		pass
 
-	def check(self, handler):
+	def check(self):
 		"""Check if the predicate is true or false and return it.
 		Default implementation returns True."""
 		return True
 
 	def get_handler(self):
 		"""Get the handler for the predicate."""
-		try:
-			return self.handler
-		except AttributeError:
+		if self.handler is None:
 			self.handler = PredicateHandler(self)
-			return self.handler
+		return self.handler
 
 	def __and__(self, x):
 		if isinstance(x, Var):
@@ -352,6 +314,26 @@ class AbstractPredicate:
 
 	def __invert__(self):
 		return not_(self)
+
+	def add_observer(self, observer):
+		"""Add an observer to the predicate."""
+		self.get_handler().add_observer(observer)
+
+	def remove_observer(self, observer):
+		"""Add an observer to the predicate."""
+		self.get_handler().remove_observer(observer)
+
+	def get_value(self):
+		"""Get the value of the predicate, True or False."""
+		return self.get_handler().get_value()
+
+	def add_error_observer(self, observer):
+		"""For predicate displaying an error, add an observer."""
+		pass
+
+	def remove_error_observer(self, observer):
+		"""Remove an error observer."""
+		pass
 
 
 class Predicate(AbstractPredicate):
@@ -368,7 +350,7 @@ class Predicate(AbstractPredicate):
 	def collect_vars(self, vars):
 		vars |= self.vars
 
-	def check(self, handler):
+	def check(self):
 		return self.fun()
 
 
@@ -386,18 +368,41 @@ class MultiPredicate(AbstractPredicate):
 		for pred in self.preds:
 			pred.collect_vars(vars)
 
+	def add_error_observer(self, observer):
+		for pred in self.preds:
+			pred.add_error_observer(observer)
 
-class EnableObserver(Observer):
-	"""Observer supporting activation of actions."""
+	def remove_error_observer(self, observer):
+		for pred in self.preds:
+			pred.remove_error_observer(observer)
 
-	def enable(self):
+
+class AbstractAction(Entity):
+	"""An action represents a command, a procedure that can be applied
+	on the current data set of the application.
+
+	Mainly, an action can be enabled or not depending on the data set.
+	An action may be observed to detect changes in enabling/disabling."""
+
+	def __init__(self, **args):
+		Entity.__init__(self, **args)
+		self.context = None
+
+	def is_enabled(self):
+		"""Test if the action is enabled. Default implementation returns
+		True."""
+		return True
+
+	def perform(self, interface):
+		"""Perform the action with the given interface.
+		Default implementation does nothing."""
 		pass
 
-	def disable(self):
-		pass
+	def __str__(self):
+		return f"<action {self.label}>"
 
 
-class Action(AbstractAction, Observer):
+class Action(AbstractAction, Subject):
 	"""Default implementation of an action. An action basically
 	perform an action (method action()) when it is invoked.
 	In addition, an action may ne enabled or not depending on
@@ -406,34 +411,42 @@ class Action(AbstractAction, Observer):
 
 	def __init__(self, fun, enable=TRUE, **args):
 		AbstractAction.__init__(self, **args)
-		self.enable_pred = enable.get_handler()
+		Subject.__init__(self)
+		self.enable_pred = enable
+		self.enable_count = 0
 		self.fun = fun
 
-	def set_context(self, context):
-		AbstractAction.set_context(self, context)
-		self.enable_pred.set_context(context)
+	def add_enable_observer(self, observer):
+		"""Add an enable observer that must implement EnableObserver."""
+		if self.enable_count == 0:
+			self.enable_pred.add_observer(self)
+			self.enable_count += 1
+		self.add_observer(observer)
 
-	def enable(self):
-		self.enable_pred.add_observer(self)
+	def remove_enable_observer(self, observer):
+		"""Remove an enable observer."""
+		self.remove_observer(observer)
+		self.enable_count -= 1
+		if self.enable_count == 0:
+			self.enable_pred.remove_observer(self)
 
-	def disable(self):
-		self.enable_pred.remove_observer(self)
+	def is_enabled(self):
+		return self.enable_pred.get_value()
+
+	def perform(self, interface):
+		self.fun(interface)
 
 	def update(self, subject):
-		if self.is_enabled():
+		if self.enable_pred.get_value():
 			for observer in self.filter_observers(EnableObserver):
 				observer.enable()
 		else:
 			for observer in self.filter_observers(EnableObserver):
 				observer.disable()
 
-	def is_enabled(self):
-		return self.enable_pred.get()
-
-	def perform(self, interface):
-		self.fun(interface)
 
 def get_value(x):
+	"""Get the value of a constant or from a variable."""
 	if isinstance(x, Var):
 		return ~x
 	else:
@@ -457,8 +470,8 @@ def not_(pred):
 	class NotPredicate(MultiPredicate):
 		def __init__(self):
 			MultiPredicate.__init__(self, [pred])
-		def check(self, handler):
-			return not pred.check(handler)
+		def check(self):
+			return not self.preds[0].check()
 	return NotPredicate()
 
 def and_(*preds):
@@ -466,9 +479,9 @@ def and_(*preds):
 	class AndPredicate(MultiPredicate):
 		def __init__(self):
 			MultiPredicate.__init__(self, preds)
-		def check(self, handler):
+		def check(self):
 			for pred in preds:
-				if not pred.check(handler):
+				if not pred.check():
 					return False
 			return True
 	return AndPredicate()
@@ -478,8 +491,8 @@ def or_(*preds):
 	class OrPredicate(MultiPredicate):
 		def __init__(self):
 			MultiPredicate.__init__(self, preds)
-		def check(self, handler):
-			return any(pred.check(handler) for pred in preds)
+		def check(self):
+			return any(pred.check() for pred in preds)
 	return OrPredicate()
 
 def is_password(var, size=8, lower=1, upper=1, digit=1, other=1):
@@ -503,21 +516,31 @@ def is_password(var, size=8, lower=1, upper=1, digit=1, other=1):
 
 def if_error(pred, msg):
 	"""If the predicate is false, display the message as an error to the displayer."""
-	class IfError(MultiPredicate):
+	class IfError(AbstractPredicate, Subject):
+
 		def __init__(self):
-			MultiPredicate.__init__(self, [pred])
-			self.displayed = False
-		def check(self, handler):
-			res = pred.check(handler)
+			AbstractPredicate.__init__(self)
+			Subject.__init__(self)
+
+		def add_error_observer(self, observer):
+			Subject.add_observer(self, observer)
+
+		def remove_error_observer(self, observer):
+			Subject.remove_observer(self, observer)
+
+		def collect_vars(self, vars):
+			pred.collect_vars(vars)
+
+		def check(self):
+			res = pred.check()
 			if res:
-				if self.displayed:
-					handler.get_interface().clear_message()
-					self.displayed = False
+				for observer in self.get_observers():
+					observer.clear_message()
 			else:
-				if not self.displayed:
-					handler.get_interface().show_error(msg)
-					self.displayed = True
+				for observer in self.get_observers():
+					observer.show_error(msg)
 			return res
+
 	return IfError()
 
 
@@ -525,7 +548,7 @@ def matches(var, expr):
 	"""Check if the variable matches the given regular expression."""
 	r = re.compile(expr)
 	class Match(Predicate):
-		def check(self, handler):
+		def check(self):
 			return r.fullmatch(~var) is not None
 	return Match()
 

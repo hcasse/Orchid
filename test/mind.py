@@ -11,7 +11,6 @@ class MyPage(Page):
 		self.pwd = Var("", label="Password")
 		self.repwd = Var("", label="Retype")
 		self.email = Var("", label="EMail")
-		self.message = MessageLabel("")
 		apply_enable = \
 			if_error(not_null(self.login), "Login required!") & \
 			if_error(is_password(self.pwd), "Password must contains at least 8 character, 1 uppercase, 1 lower case and 1 digit.") & \
@@ -31,7 +30,7 @@ class MyPage(Page):
 				PasswordField(var=self.pwd),
 				PasswordField(var=self.repwd),
 				EmailField(var=self.email),
-				self.message,
+				MessageLabel([apply_enable]),
 				Button(action=apply_action)
 			]),
 			app = app

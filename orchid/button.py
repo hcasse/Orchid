@@ -37,17 +37,13 @@ class AbstractButton(Component, EnableObserver):
 				help=help
 			)
 
-	def finalize(self, page):
-		Component.finalize(self, page)
-		self.action.set_context(self)
-
 	def show(self):
-		self.action.add_observer(self)
+		self.action.add_enable_observer(self)
 		if not self.action.is_enabled():
 			self.set_attr("disabled", None)
 
 	def hide(self):
-		self.action.remove_observer(self)
+		self.action.remove_enable_observer(self)
 
 	def enable(self):
 		self.remove_attr("disabled")
@@ -71,10 +67,10 @@ class AbstractButton(Component, EnableObserver):
 	def set_action(self, action):
 		"""Change the action of the button."""
 		if self.online():
-			self.action.remove_observer()
+			self.action.remove_enable_observer()
 		self.action = action
 		if self.online():
-			self.action.add_observer(self)
+			self.action.add_enable_observer(self)
 			self.test_enabled()
 
 

@@ -120,14 +120,6 @@ class Field(Component, LabelledField):
 		"""Get the variable containing the value of the field."""
 		return self.var
 
-	#def set_enabled(self, enabled=True):
-	#	"""Set enabled state."""
-	#	if self.enabled != enabled:
-	#		if enabled:
-	#			self.enable()
-	#		else:
-	#			self.disable()
-
 	def enable(self):
 		"""Enable the field."""
 		self.enabled = True
@@ -241,9 +233,10 @@ class Field(Component, LabelledField):
 	def check(self, content):
 		"""Check the current value."""
 		if content is None:
+			self.set_validity(True)
 			return
 		content = self.validate(content)
-		if content is not None:
+		if content is None:
 			self.set_validity(False)
 		else:
 			if self.var.get() != content:
