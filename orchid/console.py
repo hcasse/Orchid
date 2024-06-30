@@ -1,6 +1,6 @@
 """Component providing a console with scrolling text."""
 
-from orchid.base import ExpandableComponent, Model
+from orchid.base import Component, Model
 
 class ConsoleModel(Model):
 
@@ -21,10 +21,10 @@ class ConsoleModel(Model):
 
 CONSOLE_MODEL = Model()
 
-class Console(ExpandableComponent):
+class Console(Component):
 
 	def __init__(self, init = "", max = None):
-		ExpandableComponent.__init__(self, CONSOLE_MODEL)
+		Component.__init__(self, CONSOLE_MODEL)
 		self.init = init
 		self.max = max
 		self.add_class("console")

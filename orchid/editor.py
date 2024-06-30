@@ -1,6 +1,6 @@
 """Editor class."""
 
-from orchid.base import Model, ExpandableComponent
+from orchid.base import Model, Component
 
 class EditorModel(Model):
 
@@ -17,10 +17,10 @@ class EditorModel(Model):
 
 EDITOR_MODEL = EditorModel()
 
-class Editor(ExpandableComponent):
+class Editor(Component):
 
 	def __init__(self, init = "", enabled = True, readonly = False):
-		ExpandableComponent.__init__(self, EDITOR_MODEL)
+		Component.__init__(self, EDITOR_MODEL)
 		self.value = init
 		self.add_class("editor")
 		self.content_getters = []
@@ -71,4 +71,4 @@ class Editor(ExpandableComponent):
 				f(self, content)
 			self.content_getters = []
 		else:
-			ExpandableComponent.receive(self, msg, handler)
+			Component.receive(self, msg, handler)

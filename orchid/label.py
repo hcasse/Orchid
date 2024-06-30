@@ -1,6 +1,6 @@
 """Label component."""
 
-from orchid.base import Component, Model, Displayable, ExpandableComponent
+from orchid.base import Component, Model, Displayable
 from orchid.util import ProxyInterface, STANDARD_INTERFACE, Buffer
 
 LABEL_MODEL = Model()
@@ -42,12 +42,12 @@ class Label(Component):
 BANNER_MODEL = Model()
 
 
-class Banner(ExpandableComponent):
+class Banner(Component):
 	"""Display an HTML text that occupies the whole avaiable width,
 	like a banner."""
 
 	def __init__(self, text):
-		ExpandableComponent.__init__(self, BANNER_MODEL)
+		Component.__init__(self, BANNER_MODEL)
 		self.add_class("banner")
 		self.text = text
 

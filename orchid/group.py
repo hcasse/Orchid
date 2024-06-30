@@ -18,7 +18,7 @@
 """Group components."""
 
 import orchid.base as orc
-from orchid.base import Model, Component, ExpandableComponent
+from orchid.base import Model, Component
 
 GROUP_MODEL = Model(
 	"group",
@@ -245,13 +245,13 @@ class VGroup(Group):
 # Spring component
 SPRING_MODEL = Model()
 
-class Spring(ExpandableComponent):
+class Spring(Component):
 	"""Invisible component taking as much place as possible.
 	One parameter of hexpand or vexpand has to be defined else the
 	component won't occupy any place."""
 
 	def __init__(self, hexpand = False, vexpand = False, weight = 1):
-		ExpandableComponent.__init__(self, SPRING_MODEL)
+		Component.__init__(self, SPRING_MODEL)
 		self.hexpand = hexpand
 		hw = weight if hexpand else 0
 		self.vexpand = vexpand

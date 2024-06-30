@@ -550,20 +550,16 @@ class Component(AbstractComponent):
 		"""Called when the component is hidden."""
 		pass
 
+	def show(self):
+		"""Show the current item."""
+		self.on_show()
+		self.set_style("display", "flex")
 
-class ExpandableComponent(Component):
-
-	def __init__(self, model):
-		Component.__init__(self, model)
-
-	def gen_resize(self, out):
-		out.write(f"""
-			function resize_{self.get_id()}(w, h) {{
-				e = document.getElementById("{self.get_id()}");
-				ui_set_width(e, w);
-				ui_set_height(e, h);
-			}}
-""")
+	def hide(self):
+		"""Hide the current item."""
+		if self.online():
+			self.on_hide()
+		self.set_style("display", "none")
 
 
 class PageObserver:
