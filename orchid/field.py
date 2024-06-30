@@ -148,11 +148,11 @@ class Field(Component, LabelledField):
 		self.update_remote()
 		self.set_validity(self.validate(str(val)) is not None)
 
-	def show(self):
+	def on_show(self):
 		self.var.add_observer(self)
 		self.updating = False
 
-	def hide(self):
+	def on_hide(self):
 		self.var.remove_observer(self)
 
 	def update_remote(self):
@@ -367,11 +367,11 @@ class Select(Component, LabelledField):
 		self.set_attr("onchange", 'select_on_choose(this);')
 		self.updating = False
 
-	def show(self):
+	def on_show(self):
 		self.var.add_observer(self)
 		self.updating = False
 
-	def hide(self):
+	def on_hide(self):
 		self.var.remove_observer(self)
 
 	def set_enabled(self, enabled=True):

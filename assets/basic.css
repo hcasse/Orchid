@@ -18,6 +18,8 @@
 	--warn-text: var(--myorange);
 	--info-text: black;
 	--select: var(--myorange);
+	--back: #EEEEEE;
+	--back-button: #E9E9ED;
 }
 
 
@@ -172,6 +174,12 @@ div.field label {
 	font-weight: bold;
 }
 
+.message-label {
+	font-size: 11px;
+	min-height: 14px;
+	display: flex;
+	align-content: center;
+}
 
 /* tool icons */
 .headerbar-icon {
@@ -390,21 +398,30 @@ dialog {
 
 
 /* tabbed pane */
-.tabbed-head {
-}
-.tabbed-current {
-	border: 1px solid var(--border);
-	border-bottom: none;
-	border-radius: 4px 4px 0 0;
-	background-color: white;
-}
-.tabbed-buttons {
-	
-}
-.tabbed-body {
-}
 .tabbed {
 	row-gap: 0 !important;
+}
+
+.tabbed-labelbar {
+	margin-bottom: -1px;
+}
+
+.tabbed-label {
+	border: 1px solid var(--border);
+	border-radius: 4px 4px 0 0;
+	background-color: var(--back-button);
+	z-index: 100;
+}
+
+.tabbed-current {
+	border-bottom: none;
+	background-color: var(--back);
+	border-bottom: 1px solid var(--back);
+}
+
+.tabbed-body {
+	padding: 2px;
+	border: 1px solid var(--border);
 }
 
 

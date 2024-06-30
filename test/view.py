@@ -17,10 +17,10 @@ class MyPage(Page):
 		)
 
 	def do_pikachu(self):
-		self.view.show(path = "pikachu.svg")
+		self.view.display(path = "pikachu.svg")
 
 	def do_ninetales(self):
-		self.view.show(path = "ninetales.svg")
+		self.view.display(path = "ninetales.svg")
 
 
 class MyApp(Application):

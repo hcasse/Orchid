@@ -37,12 +37,12 @@ class AbstractButton(Component, EnableObserver):
 				help=help
 			)
 
-	def show(self):
+	def on_show(self):
 		self.action.add_enable_observer(self)
 		if not self.action.is_enabled():
 			self.set_attr("disabled", None)
 
-	def hide(self):
+	def on_hide(self):
 		self.action.remove_enable_observer(self)
 
 	def enable(self):
@@ -187,11 +187,11 @@ class CheckBox(Component, LabelledField):
 		self.set_enabled(enabled)
 		self.updating = False
 
-	def show(self):
+	def on_show(self):
 		self.var.add_observer(self)
 		self.updating = True
 
-	def hide(self):
+	def on_hide(self):
 		self.var.remove_observer(self)
 
 	def update_remote(self):
@@ -296,11 +296,11 @@ class RadioButton(Component, LabelledField):
 	def get_option_id(self, n):
 		return f"{self.get_id()}-{n}"
 
-	def show(self):
+	def on_show(self):
 		self.var.add_observer(self)
 		self.updating = False
 
-	def hide(self):
+	def on_hide(self):
 		self.var.remove_observer(self)
 
 	def record_var(self, n):

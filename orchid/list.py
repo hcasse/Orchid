@@ -75,11 +75,10 @@ class ListView(Component, ListObserver):
 			self.context_menu.finalize(page)
 			page.add_hidden(self.context_menu)
 
-	def show(self):
-		print("DEBUG: list shown")
+	def on_show(self):
 		self.items.add_observer(self)
 
-	def hide(self):
+	def on_hide(self):
 		self.items.remove_observer(self)
 
 	def get_items(self):

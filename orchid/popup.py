@@ -66,17 +66,17 @@ class Menu(VGroup):
 		"""Get the on-click code."""
 		return f"popup_menu_top_click('{self.get_id()}');"
 
-	def show(self):
+	def on_show(self):
 		pass
 
-	def hide(self):
+	def on_hide(self):
 		pass
 
 	def show_menu(self, ref, index = None):
 		"""Show the menu."""
 		if self.shown:
 			return
-		VGroup.show(self)
+		VGroup.on_show(self)
 		code = self.get_onclick()
 		onclick = self.page.get_attr("onclick", "")
 		if code not in onclick:
@@ -106,7 +106,7 @@ class Menu(VGroup):
 		except ValueError:
 			pass
 		self.call("popup_menu_hide", {"id": self.get_id()})
-		VGroup.hide(self)
+		VGroup.on_hide(self)
 		self.shown = False
 
 

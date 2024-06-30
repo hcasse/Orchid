@@ -20,10 +20,36 @@
 import orchid.base as orc
 from orchid.base import Model, Component, ExpandableComponent
 
+GROUP_MODEL = Model(
+	"group",
+	style = """
+.group-expand {
+	flex-grow: 1;
+}
+
+.group-not-expand {
+	flex-shrink: 0;
+}
+
+.group-anti-expand {
+	align-self: stretch;
+}
+"""
+)
+
+
 class Group(Component):
 	"""Groups allows to display several components together. The place
 	associated to each group component depends on its weight
 	(obtained by calling Component.get_weight())."""
+
+	ALIGNS = {
+		orc.ALIGN_NONE: None,
+		orc.ALIGN_TOP: "start",
+		orc.ALIGN_BOTTOM: "end",
+		orc.ALIGN_CENTER: "center",
+		orc.ALIGN_JUSTIFY: "stretch"
+	}
 
 	def __init__(self, model, comps):
 		Component.__init__(self, model)
@@ -42,14 +68,10 @@ class Group(Component):
 		"""Map the child in the group."""
 		(hw, vw) = self.weight
 		child.parent = self
-		if child.expands_horizontal():
+		if child.expands_horizontal() or hw > 0:
 			self.expandh = True
-			hw = 1
-		if child.expands_vertical():
+		if child.expands_vertical() or vw > 0:
 			self.expandv = True
-			vw = 1
-		if (hw, vw) != self.weight:
-			self.weight = (hw, vw)
 
 	def remove_children(self):
 		"""Remove all children of the group."""
@@ -87,10 +109,7 @@ class Group(Component):
 	def remove(self, i):
 		"""Remove a child. i may be the index or the sub-component to remove."""
 		if not isinstance(i, int):
-			try:
-				i = self.children.index(i)
-			except ValueError:
-				return
+			i = self.children.index(i)
 		self.remove_content(i)
 		del self.children[i]
 		self.remap_children()
@@ -113,27 +132,21 @@ class Group(Component):
 		for child in self.children:
 			child.finalize(page)
 
-	def show(self):
+	def on_show(self):
 		for child in self.children:
-			child.show()
+			child.on_show()
 
-	def hide(self):
+	def on_hide(self):
 		for child in self.children:
-			child.hide()
+			child.on_hide()
 
 
 # HGroup class
 
 HGROUP_MODEL = Model(
-	"hgroup-model",
+	"hgroup",
+	parent = GROUP_MODEL,
 	style = """
-.hgroup-item {
-	flex-shrink: 0;
-}
-.hgroup-expand {
-	align-self: stretch;
-}
-
 .hgroup {
 	display: flex;
 	flex-wrap: nowrap;
@@ -149,31 +162,26 @@ class HGroup(Group):
 	* comps: components in the group.
 	* align: vertival alignment of model (one of ALIGN_ constant)."""
 
-	ALIGNS = {
-		orc.ALIGN_NONE: None,
-		orc.ALIGN_TOP: "start",
-		orc.ALIGN_BOTTOM: "end",
-		orc.ALIGN_CENTER: "center",
-		orc.ALIGN_JUSTIFY: "stretch"
-	}
-
 	def __init__(self, comps = None, model = HGROUP_MODEL, align = orc.ALIGN_LEFT):
 		if comps is None:
 			comps = []
 		Group.__init__(self, model, comps)
 		self.add_class("hgroup")
-		align = HGroup.ALIGNS[align]
+		align = Group.ALIGNS[align]
 		if align is not None:
 			self.set_style("align-items", align)
 
 	def map_child(self, child):
 		Group.map_child(self, child)
-		child.add_class("hgroup-item")
 		(hw, vw) = child.get_weight()
-		if hw != 0:
+		if hw > 0:
 			child.set_style("flex-grow", hw)
-		if vw != 0:
-			child.add_class("hgroup-expand")
+		elif child.expands_horizontal():
+			child.add_class("group-expand")
+		else:
+			child.add_class("group-not-expand")
+		if vw > 0 or child.expands_vertical():
+			child.add_class("group-anti-expand")
 
 	def gen(self, out):
 		out.write('<div ')
@@ -185,20 +193,11 @@ class HGroup(Group):
 
 
 # VGroup class
-class VGroupModel(Model):
-	"""Represents a group of component vertically arranged."""
 
-	def __init__(self):
-		Model.__init__(self)
-
-	def gen_style(self, out):
-		out.write("""
-.vgroup-item {
-	flex-shrink: 0;
-}
-.vgroup-expand {
-	align-self: stretch;
-}
+VGROUP_MODEL = Model(
+	"vgroup",
+	parent = GROUP_MODEL,
+	style = """
 .vgroup {
 	display: flex;
 	flex-wrap: nowrap;
@@ -207,40 +206,32 @@ class VGroupModel(Model):
 	align-self: stretch;
 	overflow: hidden;
 }
-""")
-# 	white-space: nowrap;
-
-
-VGROUP_MODEL = VGroupModel()
+"""
+)
 
 class VGroup(Group):
 	"""Display a group of components vertically.
 	* comps: components in the group.
 	* align: horizontal alignment of components (one of ALIGN_ constant)."""
 
-	ALIGNS = {
-		orc.ALIGN_NONE: None,
-		orc.ALIGN_LEFT: "start",
-		orc.ALIGN_RIGHT: "end",
-		orc.ALIGN_CENTER: "center",
-		orc.ALIGN_JUSTIFY: "stretch"
-	}
-
 	def __init__(self, comps, model = VGROUP_MODEL, align = orc.ALIGN_NONE):
 		Group.__init__(self, model, comps)
 		self.add_class("vgroup")
-		align = VGroup.ALIGNS[align]
+		align = Group.ALIGNS[align]
 		if align is not None:
 			self.set_style("align-items", align)
 
 	def map_child(self, child):
 		Group.map_child(self, child)
-		child.add_class("vgroup-item")
 		(hw, vw) = child.get_weight()
-		if vw != 0:
+		if vw > 0:
 			child.set_style("flex-grow", vw)
-		if hw != 0:
-			child.add_class("vgroup-expand")
+		elif child.expands_vertical():
+			child.add_class("group-expand")
+		else:
+			child.add_class("group-not-expand")
+		if hw > 0 or child.expands_horizontal():
+			child.add_class("group-anti-expand")
 
 	def gen(self, out):
 		out.write('<div ')
@@ -322,6 +313,8 @@ class LayeredPane(Group):
 		self.vexpand = None
 		self.add_class("layered-parent")
 		self.current = -1
+		for child in self.get_children():
+			self.decorate_child(child)
 		if self.children != []:
 			self.set_layer(0)
 
@@ -336,10 +329,13 @@ class LayeredPane(Group):
 		self.children[num].add_class("layered-active")
 		self.current = num
 
-	def map_child(self, child):
-		Group.map_child(self, child)
+	def decorate_child(self, child):
 		child.add_class("layered-child")
 		child.add_class("layered-inactive")
+
+	def insert(self, child, i=-1):
+		super().insert(child, i)
+		self.decorate_child(child)
 
 	def remove(self, i):
 		Group.remove(self, i)

@@ -155,24 +155,19 @@ class TabbedPane(VGroup):
 			i = self.tabs.index(i)
 		else:
 			tab = self.get_tab(i)
+		fix = False
 		if i == self.current:
 			l = len(self.tabs)
-			if l < 2:
+			if l == 1:
 				self.select(-1)
+			elif self.current == l-1:
+				self.select(self.current - 1)
 			else:
-				if self.current + 1 >= l:
-					self.select(0)
-				else:
-					self.select(self.current + 1)
+				self.select(self.current + 1)
+				fix = True
 		del self.tabs[i]
 		self.labs.remove(i)
 		self.panes.remove(i)
 		tab.on_release()
-
-	#def gen(self, out):
-	#	out.write('<div ')
-	#	self.gen_attrs(out)
-	#	out.write('>\n')
-	#	for c in self.children:
-	#		c.gen(out)
-	#	out.write('</div>\n')
+		if fix:
+			self.current -= 1

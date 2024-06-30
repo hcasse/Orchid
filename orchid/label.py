@@ -69,17 +69,18 @@ class MessageLabel(Label, ProxyInterface):
 	def __init__(self, preds=None, content="", interface=STANDARD_INTERFACE):
 		Label.__init__(self, content)
 		ProxyInterface.__init__(self, interface)
+		self.add_class("message-label")
 		self.last_cls = None
 		if preds is None:
 			self.preds = []
 		else:
 			self.preds = preds
 
-	def show(self):
+	def on_show(self):
 		for pred in self.preds:
 			pred.add_error_observer(self)
 
-	def hide(self):
+	def on_hide(self):
 		for pred in self.preds:
 			pred.remove_error_observer(self)
 

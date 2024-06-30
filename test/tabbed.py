@@ -70,5 +70,5 @@ class MyApp(Application):
 	def first(self):
 		return MyPage(self)
 
-run(MyApp())
+run(MyApp(), debug=True)
 

@@ -517,15 +517,9 @@ class Component(AbstractComponent):
 
 	def get_weight(self):
 		if self.weight is None:
-			self.weight = (
-				0 if not self.expands_horizontal() else 1,
-				0 if not self.expands_vertical() else 1
-			)
+			self.weight = (0, 0)
 		elif isinstance(self.weight, int):
-			self.weight = (
-				0 if not self.expands_horizontal() else self.weight,
-				0 if not self.expands_vertical() else self.weight
-			)
+			self.weight = (self.weight, self.weight)
 		return self.weight
 
 	def set_enabled(self, enabled = True):
@@ -548,11 +542,11 @@ class Component(AbstractComponent):
 		added to a page."""
 		page.on_add(self)
 
-	def show(self):
+	def on_show(self):
 		"""Called when the component is shown. The default implementation does nothing."""
 		pass
 
-	def hide(self):
+	def on_hide(self):
 		"""Called when the component is hidden."""
 		pass
 
@@ -782,11 +776,11 @@ class Page(AbstractComponent):
 		if self.parent is not None:
 			self.parent.on_close()
 
-	def hide(self):
-		self.main.hide()
+	def on_hide(self):
+		self.main.on_hide()
 
-	def show(self):
-		self.main.show()
+	def on_show(self):
+		self.main.on_show()
 
 	def manage(self, msg, handler):
 		"""Manage window messages."""
@@ -852,7 +846,7 @@ class Page(AbstractComponent):
 	def gen(self, out):
 		for obs in self.filter_observers(PageObserver):
 			obs.on_open(self)
-		self.main.show()
+		self.main.on_show()
 		out.write("""
 <!DOCTYPE html>
 <html lang="en">

@@ -268,7 +268,7 @@ class Canvas(Component):
 		self.child_num += 1
 		self.shapes.append(shape)
 		if self.get_page() is not None:
-			shape.finalize(self)
+			shape.finalize()
 			if self.online():
 				buf = Buffer()
 				shape.gen(buf)
