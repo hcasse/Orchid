@@ -26,6 +26,7 @@ from orchid.field import Field, ColorField, DateField, TimeField, \
 	DateTimeField, PasswordField, EmailField, RangeField, \
 	Select, as_natural, as_re, Form
 from orchid.group import HGroup, VGroup, Spring, LayeredPane, hspring, vspring
+from orchid import mind
 from orchid.tabbedpane import TabbedPane, Tab
 from orchid.editor import Editor
 from orchid.console import Console
@@ -42,4 +43,8 @@ def text(style, content):
 	"""Generate a text colored according to the type. Type may be one
 	of SUCCESS, FAILED or INFO."""
 	return f'<span class="text-{style}">{content}</span>'
+
+
+def var(val, type=None, **args):
+	return mind.Var(val, type=type, **args)
 
