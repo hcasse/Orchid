@@ -32,13 +32,11 @@ x = var(0, int)
 ```
 
 The entity configuration in the variable can also be passed to this constructor:
-
 ```python
 x = var(0, label="My variable", help="This is my variable, an integer!")
 ```
 
 After that, it is very simple to build a field to handle this variable:
-
 ```python
 from orchid import *
 
@@ -66,6 +64,64 @@ Notice that `x.get()` can be shortened to `~x` (with the rarely used operator `~
 
 
 ## Actions and Predicates
+
+Actions are triggered by a user action (button, menu, etc) and perform some task in the application on the data. Basically, an action must implemtn the `AbstractAction` interface:
+
+```python
+class AbstractAction(Entity):
+
+	def is_enabled(self):
+		...
+
+	def perform(self, interface):
+		...
+```
+
+`perform` is called when the action is triggered when the user activates a button or any other action triggerrer. It takes as parameter an interface (class `orchid.util.Interface` that provides a link to interact with user in any way independent of the real underlying UI).
+
+Basically, an action can only be performed under some conditions which state is provided by the function `is_enabled()`. Basically, ths UI component triggerring, like buttons, an action uses this function to be enabled or not. The default implementation of `is_enabled()` returns true.
+
+Often, `is_enabled()` is implemented with predicates (class `Predicate`) as in the class `Action`. `Action` takes as parameter a predicate and function to call when the action is performed.
+
+```python
+x = var(None, int)
+field = Field(var)
+
+def perform(self, interface):
+	print("x =", ~x)
+
+action = Action(fun=perform, pred=not_null(x))
+button = Button(action)
+```
+
+`not_null()` builds a predicate that returns true if the variable is not false (as for a condition of Python). At beginning, `button` is disabled and when some value different from 0 is typed in `field`. When `button` will be clicked, function `perform` is called.
+
+Notice that an action can be used with several activators and a predicate can be used with several actions.
+
+```python
+x = var(None, int)
+field = Field(var)
+
+def inc(self):
+	x.set(~x + 1)
+def dec(self):
+	x.set(~x - 1)
+
+predicate = not_null(x)
+increment = Action(fun=inc, pred=predicate, label="Increment")
+decrement = Action(fun=dec, pred=predicate, label="Decrement")
+
+inc_but = Button(increment)
+dec_but = Button(decrement)
+inc_menu = MenuButton(increment)
+dec_menu = MenuButton(decrement)
+```
+
+In the end, the idea is that now an application (or a page of an application) is structured as:
+* a	set of data stored in `Var` objects,
+* a set of actions representing the different activities of the application.
+
+Once this is defined and possibly tested separately from the UI, one or several UIs can be designed for the application but back-end and front-end designs are kept seperate.
 
 
 
