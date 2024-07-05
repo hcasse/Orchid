@@ -17,27 +17,33 @@
 
 """Data/Process-oriented user interface."""
 
-from orchid.util import *
-from orchid.base import *
+from orchid.base import AbstractComponent, Component, Page, Model, Subject, \
+	Observer, Session, Application
 from orchid.button import Button, CheckBox, RadioButton
-from orchid.label import Label, MessageLabel
-from orchid.label import Banner
+from orchid.console import Console
+from orchid.editor import Editor
 from orchid.field import Field, ColorField, DateField, TimeField, \
 	DateTimeField, PasswordField, EmailField, RangeField, \
 	Select, as_natural, as_re, Form
 from orchid.group import HGroup, VGroup, Spring, LayeredPane, hspring, vspring
-from orchid import mind
-from orchid.tabbedpane import TabbedPane, Tab
-from orchid.editor import Editor
-from orchid.console import Console
-from orchid.struct import Header, ToolBar, MessageContainer
 from orchid.image import Icon, Image, AssetImage
+from orchid.label import Label, MessageLabel, Banner
+from orchid.listview import ListView
+from orchid import mind
+from orchid.mind import Type, EnumType, RangeType, Entity, Var, \
+	EnableObserver, AbstractPredicate, Predicate, AbstractAction, Action, \
+	not_null, equals, not_, is_password, if_error, matches
+from orchid.models import ListObserver, ListModel, ListVar
 from orchid.server import run
+from orchid.struct import Header, ToolBar, MessageContainer
+from orchid.tabbedpane import TabbedPane, Tab
+from orchid.util import Interface, buffer
 from orchid.view import InteractiveView
 
 SUCCESS = "success"
 FAILED = "failed"
 INFO = "info"
+ERROR = "error"
 
 def text(style, content):
 	"""Generate a text colored according to the type. Type may be one
@@ -46,5 +52,8 @@ def text(style, content):
 
 
 def var(val, type=None, **args):
-	return mind.Var(val, type=type, **args)
+	if isinstance(val, list) or isinstance(type, mind.ListType):
+		return ListVar(val, type=type, **args)
+	else:
+		return mind.Var(val, type=type, **args)
 

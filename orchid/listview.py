@@ -17,7 +17,7 @@
 
 """Module providing support for list component."""
 
-from orchid import buffer
+from orchid.util import buffer
 from orchid.base import Component, Model, Text
 from orchid.models import ListVar, ListObserver
 

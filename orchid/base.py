@@ -330,6 +330,13 @@ class AbstractComponent(Displayable, Subject):
 				"val": val
 			})
 
+	def get_style(self, attr, default=None):
+		"""Get a style. None if not set."""
+		try:
+			return self.style[attr]
+		except KeyError:
+			return default
+
 	def set_attr(self, attr, val=None, id=None):
 		"""Set the value of an attribute of the current component. If on line,
 		propagate the schange to the remote page."""
@@ -450,6 +457,10 @@ class AbstractComponent(Displayable, Subject):
 			if self.online():
 				self.send({"type": "add-class", "id": self.get_id(), "class": cls})
 
+	def has_class(self, cls):
+		"""Test if the class is already set."""
+		return cls in self.classes
+
 	def remove_class(self, cls):
 		"""Remove a class of the component."""
 		if cls in self.classes:
@@ -561,6 +572,20 @@ class Component(AbstractComponent):
 			self.on_hide()
 		self.set_style("display", "none")
 
+	def is_shown(self):
+		"""Test if the current component is shown."""
+		return self.get_style("display", "") != "none"
+
+
+class ParentComponent:
+	"""Interface implemented by any component containing other
+	components. All components are contained in a parent
+	component."""
+
+	def remap_child(self, child):
+		"""Function to call to signal that mapping properties of a child changed. Default implementation does nothing."""
+		pass
+
 
 class PageObserver:
 	"""Observer of events of a page."""
@@ -579,12 +604,13 @@ class PageObserver:
 		pass
 
 
-class Page(AbstractComponent):
+class Page(AbstractComponent, ParentComponent):
 	"""Implements a page ready to be displayed."""
 
 	def __init__(self, main = None, parent = None,
 	app = None, title = None, style = "default.css", theme = "basic", interface=STANDARD_INTERFACE):
 		AbstractComponent.__init__(self)
+		ParentComponent.__init__(self)
 		self.messages = []
 		self.is_online = False
 		self.parent = parent

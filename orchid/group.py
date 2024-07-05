@@ -18,7 +18,7 @@
 """Group components."""
 
 import orchid.base as orc
-from orchid.base import Model, Component
+from orchid.base import Model, Component, ParentComponent
 
 GROUP_MODEL = Model(
 	"group",
@@ -38,10 +38,15 @@ GROUP_MODEL = Model(
 )
 
 
-class Group(Component):
+class Group(Component, ParentComponent):
 	"""Groups allows to display several components together. The place
 	associated to each group component depends on its weight
 	(obtained by calling Component.get_weight())."""
+
+	COMP_CLASS = "hgroup"
+	EXPAND = "group-expand"
+	NOT_EXPAND = "group-not-expand"
+	ANTI_EXPAND = "group-anti-expand"
 
 	ALIGNS = {
 		orc.ALIGN_NONE: None,
@@ -54,27 +59,41 @@ class Group(Component):
 	def __init__(self, model, comps):
 		Component.__init__(self, model)
 		self.children = list(comps)
-		self.expandh = False
-		self.expandv = False
 		self.remap_children()
 
 	def remap_children(self):
 		"""Re-build the mapping of children."""
-		self.weight = (0, 0)
+		self.expandh = False
+		self.expandv = False
 		for c in self.children:
 			self.map_child(c)
 
 	def map_child(self, child):
 		"""Map the child in the group."""
-		(hw, vw) = self.weight
+		(hw, vw) = self.get_weight()
 		child.parent = self
 		if child.expands_horizontal() or hw > 0:
 			self.expandh = True
 		if child.expands_vertical() or vw > 0:
 			self.expandv = True
 
+	def check_remap(self):
+		"""Test if remapping is needed."""
+		old_expandh = self.expandh
+		old_expandv = self.expandv
+		self.remap_children()
+		if old_expandh != self.expandh or old_expandv != self.expandv:
+			self.parent.remap_child(self)
+
+	def remap_child(self, child):
+		self.check_remap()
+
 	def remove_children(self):
 		"""Remove all children of the group."""
+		if self.online() and self.is_shown():
+			for child in self.children:
+				if child.is_shown():
+					child.on_hide()
 		self.children = []
 		self.remap_children()
 		if self.online():
@@ -89,6 +108,9 @@ class Group(Component):
 		for child in children:
 			child.finalize(self.page)
 		if self.online():
+			if self.is_shown():
+				for child in children():
+					child.on_show()
 			self.clear_content()
 			self.set_content(children)
 
@@ -98,21 +120,28 @@ class Group(Component):
 			self.children.append(child)
 		else:
 			self.children.insert(i, child)
-		self.map_child(child)
 		child.finalize(self.page)
 		if self.online():
+			if self.is_shown():
+				child.on_show()
 			if i < 0:
 				self.append_content(child)
 			else:
 				self.insert_content(child, i)
+		self.check_remap()
 
 	def remove(self, i):
 		"""Remove a child. i may be the index or the sub-component to remove."""
 		if not isinstance(i, int):
-			i = self.children.index(i)
+			child = i
+			i = self.children.index(child)
+		else:
+			child = self.children[i]
 		self.remove_content(i)
 		del self.children[i]
-		self.remap_children()
+		if self.online() and self.is_shown():
+			child.on_hide()
+		self.check_remap()
 
 	def get_children(self):
 		return self.children
@@ -134,11 +163,13 @@ class Group(Component):
 
 	def on_show(self):
 		for child in self.children:
-			child.on_show()
+			if child.is_shown():
+				child.on_show()
 
 	def on_hide(self):
 		for child in self.children:
-			child.on_hide()
+			if child.is_shown():
+				child.on_hide()
 
 
 # HGroup class
@@ -166,7 +197,7 @@ class HGroup(Group):
 		if comps is None:
 			comps = []
 		Group.__init__(self, model, comps)
-		self.add_class("hgroup")
+		self.add_class(self.COMP_CLASS)
 		align = Group.ALIGNS[align]
 		if align is not None:
 			self.set_style("align-items", align)
@@ -175,13 +206,19 @@ class HGroup(Group):
 		Group.map_child(self, child)
 		(hw, vw) = child.get_weight()
 		if hw > 0:
+			child.remove_class(self.EXPAND)
+			child.remove_class(self.NOT_EXPAND)
 			child.set_style("flex-grow", hw)
 		elif child.expands_horizontal():
-			child.add_class("group-expand")
+			child.remove_class(self.NOT_EXPAND)
+			child.add_class(self.EXPAND)
 		else:
-			child.add_class("group-not-expand")
+			child.remove_class(self.EXPAND)
+			child.add_class(self.NOT_EXPAND)
 		if vw > 0 or child.expands_vertical():
-			child.add_class("group-anti-expand")
+			child.add_class(self.ANTI_EXPAND)
+		else:
+			child.remove_class(self.ANTI_EXPAND)
 
 	def gen(self, out):
 		out.write('<div ')
@@ -225,13 +262,19 @@ class VGroup(Group):
 		Group.map_child(self, child)
 		(hw, vw) = child.get_weight()
 		if vw > 0:
+			child.remove_class(self.EXPAND)
+			child.add_class(self.NOT_EXPAND)
 			child.set_style("flex-grow", vw)
 		elif child.expands_vertical():
-			child.add_class("group-expand")
+			child.remove_class(self.NOT_EXPAND)
+			child.add_class(self.EXPAND)
 		else:
-			child.add_class("group-not-expand")
+			child.remove_class(self.EXPAND)
+			child.add_class(self.NOT_EXPAND)
 		if hw > 0 or child.expands_horizontal():
-			child.add_class("group-anti-expand")
+			child.add_class(self.ANTI_EXPAND)
+		else:
+			child.remove_class(self.ANTI_EXPAND)
 
 	def gen(self, out):
 		out.write('<div ')
@@ -309,8 +352,8 @@ class LayeredPane(Group):
 
 	def __init__(self, comps, model = LAYERED_PANE_MODEL):
 		Group.__init__(self, model, comps)
-		self.hexpand = None
-		self.vexpand = None
+		#self.hexpand = None
+		#self.vexpand = None
 		self.add_class("layered-parent")
 		self.current = -1
 		for child in self.get_children():
@@ -329,6 +372,19 @@ class LayeredPane(Group):
 		self.children[num].add_class("layered-active")
 		self.current = num
 
+	def map_child(self, child):
+		super().map_child(child)
+		if child.expands_horizontal():
+			child.remove_class(self.NOT_EXPAND)
+			child.add_class(self.EXPAND)
+		else:
+			child.remove_class(self.EXPAND)
+			child.add_class(self.NOT_EXPAND)
+		if child.expands_vertical:
+			child.add_class(self.ANTI_EXPAND)
+		else:
+			child.remove_class(self.ANTI_EXPAND)
+
 	def decorate_child(self, child):
 		child.add_class("layered-child")
 		child.add_class("layered-inactive")
@@ -341,18 +397,6 @@ class LayeredPane(Group):
 		Group.remove(self, i)
 		if self.current == i:
 			self.current = -1
-
-	def expands_horizontal(self):
-		if self.hexpand is None:
-			self.hexpand = \
-				any(c.expands_horizontal for c in self.children)
-		return self.hexpand
-
-	def expands_vertical(self):
-		if self.vexpand is None:
-			self.vexpand = \
-				any(c.expands_vertical for c in self.children)
-		return self.vexpand
 
 	def gen(self, out):
 		out.write('<div ')

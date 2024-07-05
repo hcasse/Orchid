@@ -31,8 +31,7 @@ class Editor(Component):
 		self.readonly = readonly
 		if readonly:
 			self.set_attr("readonly", "true")
-		self.weight = (1, 1)
-		self.set_style("align-self", "stretch")
+		#self.set_style("align-self", "stretch")
 		self.add_class("editor")
 
 	def gen(self, out):

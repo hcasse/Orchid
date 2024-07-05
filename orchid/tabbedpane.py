@@ -80,6 +80,7 @@ class TabbedPane(VGroup):
 			self.select(0)
 		VGroup.__init__(self, [self.labs, self.panes], model)
 		self.add_class("tabbed")
+		self.vexpand = None
 
 	def get_tabs(self):
 		"""Get the list of tabs."""
@@ -122,14 +123,6 @@ class TabbedPane(VGroup):
 
 	def expands_horizontal(self):
 		return True
-
-	def expands_vertical(self):
-		expand = False
-		for child in self.panes.get_children():
-			if child.expands_vertical():
-				expand = True
-				break
-		return expand
 
 	def insert(self, child, i = -1):
 		if i < 0:

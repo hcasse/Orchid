@@ -106,14 +106,15 @@ class ListModel(Subject):
 class ListVar(Var, ListModel):
 	"""Variable containg a list."""
 
-	def __init__(self, list = None, item_type = None, **args):
+	def __init__(self, list=None, type=None, item_type=None, **args):
 		ListModel.__init__(self)
 		if list is None:
 			list = []
-		if item_type is not None:
-			type = ListType(make_type(item_type))
-		else:
-			type = type_of_data(list)
+		if type is None:
+			if item_type is not None:
+				type = ListType(make_type(item_type))
+			else:
+				type = type_of_data(list)
 		Var.__init__(self, list, type, **args)
 
 	def size(self):

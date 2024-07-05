@@ -38,6 +38,20 @@ class Type:
 		self.type = None
 		self.null = None
 
+	def get_null(self):
+		"""Get the null value."""
+		return self.null
+
+	def parse(self, text):
+		"""Parse a value of the type as a text.
+		Return the value or None if the parsing fails."""
+		return None
+
+	def as_text(self, value):
+		"""Transform the value of the type as text.
+		Default implementation use str()."""
+		return str(value)
+
 	@staticmethod
 	def record(type, object):
 		Type.MAP[type] = object
@@ -52,15 +66,28 @@ class Type:
 class BaseType(Type):
 	"""Type for Python base types."""
 
-	def __init__(self, type, null):
+	def __init__(self, type, null, parser=None):
 		Type.__init__(self)
 		self.type = type
 		self.null = null
+		self.parser = parser
 
-BOOL_TYPE = BaseType(bool, False)
-INT_TYPE = BaseType(int, 0)
-FLOAT_TYPE = BaseType(float, 0.)
-STR_TYPE = BaseType(str, "")
+	def parse(self, text):
+		return self.parser(text)
+
+def parse_bool(text):
+	text = text.lowercase()
+	if text in ["true", "on", "yes"]:
+		return True
+	elif text in ["false", "off", "no"]:
+		return False
+	else:
+		return None
+
+BOOL_TYPE = BaseType(bool, False, parser=parse_bool)
+INT_TYPE = BaseType(int, 0, parser=int)
+FLOAT_TYPE = BaseType(float, 0., parser=float)
+STR_TYPE = BaseType(str, "", parser=str)
 
 Type.record(bool, BOOL_TYPE)
 Type.record(int, INT_TYPE)
@@ -71,11 +98,18 @@ Type.record(str, STR_TYPE)
 class ListType(Type):
 	"""Type for lists."""
 
-	def __init__(self, type):
+	def __init__(self, item_type):
 		Type.__init__(self)
 		self.type = list
 		self.null = []
-		self.item_type = type
+		self.item_type = item_type
+
+	def get_item_type(self):
+		"""Get the type of items in the list."""
+		return self.get_item_type
+
+	def get_null(self):
+		return []
 
 
 class EnumType(Type):
