@@ -37,6 +37,17 @@ function ui_component(msg) {
 	let component = document.getElementById(msg.id);
 	if(component == null)
 		console.error(`no component with id ${msg.id}`);
+	else {
+		let nth = msg.nth;
+		if(nth >= 0) {
+			if(nth >= component.children.length) {
+				console.error(`no ${nth}th component in ${msg.id} but only ${component.children.length}`);
+				component = null;
+			}
+			else
+				component = component.children[nth];
+		}
+	}
 	return component;
 }
 

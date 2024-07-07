@@ -450,23 +450,29 @@ class AbstractComponent(Displayable, Subject):
 				"type": "show-last",
 				"id": self.get_id()})
 
-	def add_class(self, cls):
+	def add_class(self, cls, id=None, nth=-1):
 		"""Add a class of the component."""
-		if cls not in self.classes:
+		if id is None:
+			if cls in self.classes:
+				return
+			id = self.get_id()
 			self.classes.append(cls)
-			if self.online():
-				self.send({"type": "add-class", "id": self.get_id(), "class": cls})
+		if self.online():
+			self.send({"type": "add-class", "id": id, "nth": nth, "class": cls})
 
 	def has_class(self, cls):
 		"""Test if the class is already set."""
 		return cls in self.classes
 
-	def remove_class(self, cls):
+	def remove_class(self, cls, id=None, nth=-1):
 		"""Remove a class of the component."""
-		if cls in self.classes:
+		if id is None:
+			if cls not in self.classes:
+				return
+			id = self.get_id()
 			self.classes.remove(cls)
-			if self.online():
-				self.send({"type": "remove-class", "id": self.get_id(), "class": cls})
+		if self.online():
+			self.send({"type": "remove-class", "id": id, "nth": nth, "class": cls})
 
 	def set_top_class(self, cls):
 		"""Customize the component as a top component with the given class. The
