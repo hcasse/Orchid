@@ -396,7 +396,11 @@ class MultiPredicate(AbstractPredicate):
 
 	def __init__(self, preds):
 		AbstractPredicate.__init__(self)
-		self.preds = preds
+		self.preds = []
+		for pred in preds:
+			if isinstance(pred, Var):
+				pred = not_null(pred)
+			self.preds.append(pred)
 
 	def collect_vars(self, vars):
 		for pred in self.preds:
@@ -456,6 +460,8 @@ class Action(AbstractAction, Subject):
 	def __init__(self, fun, enable=TRUE, **args):
 		AbstractAction.__init__(self, **args)
 		Subject.__init__(self)
+		if isinstance(enable, Var):
+			enable = not_null(enable)
 		self.enable_pred = enable
 		self.enable_count = 0
 		self.fun = fun

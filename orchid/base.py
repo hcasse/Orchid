@@ -473,11 +473,11 @@ class AbstractComponent(Displayable, Subject):
 		default implementation applies the style to the page."""
 		self.get_page().add_class(cls)
 
-	def __str__(self):
-		try:
-			return f"<component {self.get_id()}>"
-		except AttributeError:
-			return "<page>"
+	#def __str__(self):
+	#	try:
+	#		return f"<component {self.get_id()}>"
+	#	except AttributeError:
+	#		return "<page>"
 
 class Component(AbstractComponent):
 	"""Component to build a user-interface. A component may be displayed

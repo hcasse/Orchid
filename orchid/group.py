@@ -25,6 +25,7 @@ GROUP_MODEL = Model(
 	style = """
 .group-expand {
 	flex-grow: 1;
+	flex-basis: 0;
 }
 
 .group-not-expand {
@@ -59,7 +60,14 @@ class Group(Component, ParentComponent):
 	def __init__(self, model, comps):
 		Component.__init__(self, model)
 		self.children = list(comps)
+		for child in self.children:
+			child.parent = self
 		self.remap_children()
+
+	def finalize(self, page):
+		Component.finalize(self, page)
+		for child in self.children:
+			child.finalize(page)
 
 	def remap_children(self):
 		"""Re-build the mapping of children."""
@@ -71,7 +79,6 @@ class Group(Component, ParentComponent):
 	def map_child(self, child):
 		"""Map the child in the group."""
 		(hw, vw) = self.get_weight()
-		child.parent = self
 		if child.expands_horizontal() or hw > 0:
 			self.expandh = True
 		if child.expands_vertical() or vw > 0:
@@ -94,6 +101,8 @@ class Group(Component, ParentComponent):
 			for child in self.children:
 				if child.is_shown():
 					child.on_hide()
+		for child in self.children:
+			child.parent = None
 		self.children = []
 		self.remap_children()
 		if self.online():
@@ -101,11 +110,11 @@ class Group(Component, ParentComponent):
 
 	def replace_children(self, children):
 		"""Replace all children by the new ones."""
-		if self.online():
-			self.remove_children()
+		self.remove_children()
 		self.children = children
 		self.remap_children()
 		for child in children:
+			child.parent = self
 			child.finalize(self.page)
 		if self.online():
 			if self.is_shown():
@@ -116,6 +125,7 @@ class Group(Component, ParentComponent):
 
 	def insert(self, child, i = -1):
 		"""Add a child to the group."""
+		child.parent = self
 		if i < 0:
 			self.children.append(child)
 		else:
@@ -141,6 +151,7 @@ class Group(Component, ParentComponent):
 		del self.children[i]
 		if self.online() and self.is_shown():
 			child.on_hide()
+		child.parent = None
 		self.check_remap()
 
 	def get_children(self):
@@ -155,11 +166,6 @@ class Group(Component, ParentComponent):
 	def get_context(self):
 		"""Get the group context (one of CONTEXT_* constants)."""
 		return orc.CONTEXT_NONE
-
-	def finalize(self, page):
-		Component.finalize(self, page)
-		for child in self.children:
-			child.finalize(page)
 
 	def on_show(self):
 		for child in self.children:

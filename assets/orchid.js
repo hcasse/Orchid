@@ -33,6 +33,13 @@ function show_last(id) {
 		cont.scrollTop += ebot - cbot;
 }
 
+function ui_component(msg) {
+	let component = document.getElementById(msg.id);
+	if(component == null)
+		console.error(`no component with id ${msg.id}`);
+	return component;
+}
+
 ui_http.onreadystatechange = function() {
 	if(this.readyState == 4) {
 		if(this.status != 200) {
@@ -40,6 +47,7 @@ ui_http.onreadystatechange = function() {
 		}
 		else {
 			ans = JSON.parse(this.responseText);
+			var component = null;
 			for(let a of ans.answers) {
 				//console.log("executing " + JSON.stringify(a));
 				switch(a.type) {
@@ -60,12 +68,14 @@ ui_http.onreadystatechange = function() {
 					component.className = a.classes;
 					break;
 				case "add-class":
-					component = document.getElementById(a.id);
-					component.classList.add(a.class);
+					component = ui_component(a);
+					if(component != null)
+						component.classList.add(a.class);
 					break;
 				case "remove-class":
-					component = document.getElementById(a.id);
-					component.classList.remove(a.class);
+					component = ui_component(a);
+					if(component != null)
+						component.classList.remove(a.class);
 					break;
 				case "set-attr":
 					component = document.getElementById(a.id);
@@ -152,7 +162,7 @@ ui_http.onreadystatechange = function() {
 			ui_release();
 		}
 	}
-}
+};
 
 function ui_post(obj) {
 	ui_messages.push(obj);

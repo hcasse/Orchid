@@ -64,6 +64,35 @@ body {
 	margin: 0 8px 8px 8px;
 }
 
+
+/* standard text decoration */
+
+/* TODO: normalize */
+.text-success {
+	color: green;
+	font-weight: bold;
+}
+
+.text-failed {
+	color: red;
+	font-weight: bold;
+}
+
+.text-info {
+	color: blue;
+	font-weight: bold;
+}
+
+.text-header {
+	font-weight: bold;
+}
+
+.select {
+	background: var(--select) !important;
+}
+/* end of normalize */
+
+
 .error-back {
 	background-color: var(--error-back);
 }
@@ -86,6 +115,12 @@ body {
 
 .info-text {
 	color: var(--info-text);
+}
+
+.text-back {
+	background: white;
+	padding: 4px;
+	border: darkgray solid 1px;
 }
 
 
@@ -141,8 +176,8 @@ a.button-disabled {
 	pointer-events: none;
 }
 
-.select {
-	background: var(--select) !important;
+button:disabled * {
+	opacity: 0.2;
 }
 
 
@@ -279,28 +314,9 @@ div.field label {
 }
 
 
-/* standard text decoration */
-.text-success {
-	color: green;
-	font-weight: bold;
-}
-
-.text-failed {
-	color: red;
-	font-weight: bold;
-}
-
-.text-info {
-	color: blue;
-	font-weight: bold;
-}
-
-.text-header {
-	font-weight: bold;	
-}
-
-
 /* modal */
+
+/* TODO should move in default.css (misnamed) */
 .hidden {
 	display: none;
 	position: fixed;
@@ -316,6 +332,7 @@ div.field label {
 	width: fit-content;
 	position: absolute;
 }
+/* end of move */
 
 .dropdown {
 	display: inline-block;

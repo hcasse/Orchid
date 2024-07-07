@@ -4,6 +4,7 @@ from orchid.base import Component, Model
 from orchid.mind import AbstractAction, EnableObserver, Var, BOOL_TYPE, EnumType
 from orchid.label import Label
 from orchid.field import LabelledField
+from orchid.image import Image
 
 
 class ButtonAction(AbstractAction):
@@ -102,6 +103,9 @@ class Button(AbstractButton):
 		elif action is not None:
 			AbstractButton.__init__(self, model, action=action)
 		else:
+			if isinstance(label, Image):
+				image = label
+				label = None
 			AbstractButton.__init__(self, model, action=ButtonAction(
 				enabled,
 				on_click,
@@ -129,8 +133,9 @@ class Button(AbstractButton):
 		out.write('<button')
 		self.gen_attrs(out)
 		out.write('>')
+		context = self.parent.get_context()
 		if self.action.icon is not None:
-			self.action.icon.gen_in_context(out, self.parent.get_context())
+			self.action.icon.gen_in_context(out, context)
 		if self.label is not None:
 			self.label.gen(out)
 		out.write('</button>')
