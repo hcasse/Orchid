@@ -14,7 +14,7 @@ my_table = [
 class MyPage(Page):
 
 	def __init__(self, app):
-		self.table = table.View(my_table)
+		self.table = table.TableView(my_table)
 		Page.__init__(
 			self,
 			VGroup([
@@ -52,7 +52,6 @@ class MyPage(Page):
 			return False
 
 	def is_editable(self, row, col):
-		print("DEBUG:", col >= 2)
 		return col >= 2
 
 class MyApp(Application):

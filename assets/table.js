@@ -59,15 +59,13 @@ function table_change(args) {
 var table_edit = {
 	cell: null,
 	input: null,
-	row: 0,
-	col: 0,
 	id: ""
 }
 
 function table_complete() {
 	table_edit.cell.innerHTML = table_edit.input.value;
 	table_edit.cell = null;
-	ui_send({id: table_edit.id, action: "check", value: table_edit.input.value, row: table_edit.row, col: table_edit.col});
+	ui_send({id: table_edit.id, action: "check", value: table_edit.input.value});
 }
 
 function table_onkeypress(event) {
@@ -92,7 +90,7 @@ function table_set_error(args) {
 
 
 function table_on_change() {
-	ui_send({id: table_edit.id, action: "test", value: table_edit.input.value, row: table_edit.row, col: table_edit.col});
+	ui_send({id: table_edit.id, action: "test", value: table_edit.input.value});
 }
 
 function table_on_click(id, event) {
@@ -110,8 +108,6 @@ function table_on_click(id, event) {
 	if(row == 0)
 		return;
 	table_edit.cell = td;
-	table_edit.row = row-1;
-	table_edit.col = col;
 	table_edit.id = id;
 	ui_send({id: id, action: "is_editable", row: row, col: col});
 }

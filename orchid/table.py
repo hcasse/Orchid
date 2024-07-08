@@ -10,23 +10,6 @@ ACTION_REMOVE = 3	# no value
 ACTION_APPEND = 4	# TD count
 ACTION_INSERT = 5	# TD count
 
-TABLE_MODEL = orc.Model(
-	script_paths = [ "table.js" ],
-	style="""
-#table-edit {
-	border: none;
-	padding: 0;
-	margin: 0;
-	box-sizing: bodrer-box;
-	width: 0;
-	min-width: 100%;
-}
-
-.table-error {
-	background-color: peachpuff;
-}
-"""
-)
 
 class TableModel(orc.Subject):
 	"""The model is used to define the lookup of the table in function
@@ -139,16 +122,36 @@ class ListModel(TableModel):
 			obs.update_remove(row)
 
 
-class View(orc.Component):
+class TableView(orc.Component):
 	"""Represents a table made of rows and columns."""
 
+	MODEL = orc.Model(
+		script_paths = [ "table.js" ],
+		style="""
+#table-edit {
+	border: none;
+	padding: 0;
+	margin: 0;
+	box-sizing: bodrer-box;
+	width: 0;
+	min-width: 100%;
+}
+
+.table-error {
+	background-color: peachpuff;
+}
+"""
+)
+
 	def __init__(self,
-			table,
-			no_header = False,
-			model = TABLE_MODEL
-		):
+		table,
+		no_header = False,
+		model = None
+	):
 		"""Initialize a table. The passed argument may a 2-dimension
 		Python list or an instance of table.Model."""
+		if model is None:
+			model = self.MODEL
 		orc.Component.__init__(self, model)
 		self.no_header = no_header
 		if isinstance(table, TableModel):
