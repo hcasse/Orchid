@@ -589,7 +589,8 @@ class ParentComponent:
 	component."""
 
 	def remap_child(self, child):
-		"""Function to call to signal that mapping properties of a child changed. Default implementation does nothing."""
+		"""Function to call to signal that mapping properties of a child
+		changed. Default implementation does nothing."""
 		pass
 
 

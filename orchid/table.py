@@ -1,6 +1,7 @@
 """Orchid module in charge of table display."""
 
 import orchid as orc
+from orchid.util import Buffer
 
 ACTION_TR	= 0		# TR number
 ACTION_TD	= 1		# TD number
@@ -154,14 +155,47 @@ class View(orc.Component):
 			self.table = table
 		else:
 			self.table = ListModel(table)
-		self.table.add_observer(self)
 		self.add_class("table")
-		self.set_style("display", "block")
+		self.set_style("align-self", "start")
+		self.add_class("text-back")
+		self.last_row = None
+		self.last_col = None
+		self.last_value = None
+		self.shown = False
 
-	def gen(self, out):
-		out.write(f'<table onclick="table_on_click(\'{self.get_id()}\', event);"')
-		self.gen_attrs(out)
-		out.write(">")
+	def on_show(self):
+		self.table.add_observer(self)
+		self.shown = True
+
+	def on_hide(self):
+		self.table.remove_observer(self)
+		self.shown = False
+
+	def get_table_model(self):
+		"""Get the table model."""
+		return self.table
+
+	def set_table_model(self, model):
+		"""Change the model of the table."""
+
+		# setup the data structure
+		if self.online() and self.is_shown():
+			self.table.remove_observer(self)
+		if isinstance(model, TableModel):
+			self.table = model
+		else:
+			self.table = ListModel(model)
+		if self.online() and self.shown:
+			self.table.add_observer(self)
+
+		# if required, generate its content
+		if self.online():
+			buf = Buffer()
+			self.gen_content(buf)
+			self.set_content(str(buf))
+
+	def gen_content(self, out):
+		"""Generate the content of the table."""
 		coln = self.table.get_column_count()
 
 		# if any, generate header
@@ -169,7 +203,7 @@ class View(orc.Component):
 			out.write('<tr class="table-header">')
 			for c in range(0, coln):
 				out.write("<th>")
-				self.gen_content(self.table.get_header(c), out)
+				self.gen_cell(self.table.get_header(c), out)
 				out.write("</th>")
 			out.write("</tr>")
 
@@ -178,26 +212,23 @@ class View(orc.Component):
 			out.write("<tr>")
 			for c in range(0, coln):
 				out.write("<td>")
-				self.gen_content(self.table.get_cell(r, c), out)
+				self.gen_cell(self.table.get_cell(r, c), out)
 				out.write("</td>")
 			out.write("</tr>")
 
+	def gen(self, out):
+		out.write(f'<table onclick="table_on_click(\'{self.get_id()}\', event);"')
+		self.gen_attrs(out)
+		out.write(">")
+		self.gen_content(out)
 		out.write("</table>")
 
-	def gen_content(self, content, out):
+	def gen_cell(self, content, out):
 		if content is not None:
 			if isinstance(content, orc.Component):
 				content.gen(out)
 			else:
 				out.write(content)
-
-	def get_table_model(self):
-		"""Get the table model."""
-		return self.table
-
-	def update_all(self):
-		# TODO
-		pass
 
 	def update_cell(self, row, col):
 		"""Called by the model to update a cell value."""
@@ -240,20 +271,43 @@ class View(orc.Component):
 			"values": []
 		})
 
+	def check_edit(self, value):
+		if self.last_row is not None:
+			if self.table.check(self.last_row, self.last_col, value):
+				self.table.set(self.last_row, self.last_col, value)
+			else:
+				self.update_cell(self.last_row, self.last_col)
+		self.last_row = None
+		self.last_col = None
+		self.last_value = None
+
 	def receive(self, msg, handler):
 		action = msg["action"]
-		if action == "check":
-			if self.table.check(msg["row"], msg["col"], msg["value"]):
-				self.table.set(msg["row"], msg["col"], msg["value"])
-			else:
-				self.update_cell(msg["row"], msg["col"])
-		elif action == "is_editable":
-			if self.table.is_editable(msg["row"], msg["col"]):
+
+		# click: start editing
+		if action == "is_editable":
+			if self.last_value is not None:
+				self.check_edit(self.last_value)
+			row, col = msg["row"], msg["col"]
+			if not self.no_header:
+				row -= 1
+			if self.table.is_editable(row, col):
+				self.last_row = row
+				self.last_col = col
 				self.call("table_do_edit", {})
+
+		# check and validation
+		elif action == "check":
+			self.check_edit(msg["value"])
+
+		# test if current value is ok
 		elif action == "test":
-			if self.table.check(msg["row"], msg["col"], msg["value"]):
+			self.last_value = msg["value"]
+			if self.table.check(self.last_row, self.last_col, self.last_value):
 				self.call("table_set_ok", {})
 			else:
 				self.call("table_set_error", {})
+
+		# default behaviour
 		else:
 			orc.Component.receive(self, msg, handler)

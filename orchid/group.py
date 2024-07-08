@@ -63,6 +63,8 @@ class Group(Component, ParentComponent):
 		for child in self.children:
 			child.parent = self
 		self.remap_children()
+		self.expandh = None
+		self.expandv = None
 
 	def finalize(self, page):
 		Component.finalize(self, page)

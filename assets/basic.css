@@ -270,8 +270,6 @@ div.field label {
 
 /* Table */
 .table {
-	background: white;
-	border: 1px solid black;
 	border-collapse: collapse;
 }
 

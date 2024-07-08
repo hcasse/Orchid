@@ -143,7 +143,6 @@ class ListVar(Var, ListModel):
 		ListModel.set(self, i, x)
 
 	def clear(self):
-		print("DEBUG: clear in ListVar")
 		(~self).clear()
 		ListModel.clear(self)
 
