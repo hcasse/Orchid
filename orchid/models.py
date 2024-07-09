@@ -158,3 +158,110 @@ class ListVar(Var, ListModel):
 	def __setitem__(self, i, x):
 		self.set_index(i, x)
 
+
+class TableModel(Subject):
+	"""The model is used to define the lookup of the table in function
+	the displayed cell. The returned value may be components, simple
+	strings or None if there is nothing to display.
+
+	The table the models applies to is stored in the table attribute.
+
+	Notice that, after being displayed, all modifications to the table
+	has to be performed throught the Model object."""
+
+	def __init__(self):
+		Subject.__init__(self)
+		self.component = None
+
+	def get_header(self, column):
+		"""Get the lookup of the given column header."""
+		return None
+
+	def get_column_count(self):
+		"""Get the column count."""
+		return 0
+
+	def get_row_count(self):
+		""""Get the row count."""
+		return 0
+
+	def get_cell(self, row, column):
+		"""Get the lookup of the given cell."""
+		return None
+
+	def set_table(self, table):
+		"""Called to change the table object."""
+		if self.component is not None:
+			self.component.update_all()
+
+	def set(self, row, column, value):
+		"""Change the value of a table element."""
+		if self.component is not None:
+			self.component.update_cell(row, column)
+
+	def append_row(self, content):
+		"""Append a new row to the table."""
+		pass
+
+	def insert_row(self, row, content):
+		"""Insert the content at row position."""
+		pass
+
+	def remove_row(self, row):
+		"""Remove the given row."""
+		pass
+
+	def is_editable(self, row, col):
+		"""Test if the cell at given row and column is editable."""
+		return True
+
+
+class ListTableModel(TableModel):
+	"""Table for a model based on Python list."""
+
+	def __init__(self, table = None, column_count = None):
+		TableModel.__init__(self)
+		self.table = table
+		self.component = None
+		if column_count is None and table is not None and table != []:
+			self.column_count = len (table[0])
+		else:
+			self.column_count = column_count
+
+	def get_header(self, column):
+		return f"Column {column}"
+
+	def get_column_count(self):
+		return self.column_count
+
+	def get_row_count(self):
+		return len(self.table)
+
+	def get_cell(self, row, column):
+		return str(self.table[row][column])
+
+	def set_table(self, table):
+		self.table = table
+		for obs in self.observers:
+			obs.update_all()
+
+	def set(self, row, column, value):
+		self.table[row][column] = value
+		for obs in self.observers:
+			obs.update_cell(row, column)
+
+	def append_row(self, content):
+		self.table.append(content)
+		for obs in self.observers:
+			obs.update_append(content)
+
+	def insert_row(self, row, content):
+		self.table.insert(row, content)
+		for obs in self.observers:
+			obs.update_insert(row, content)
+
+	def remove_row(self, row):
+		del self.table[row]
+		for obs in self.observers:
+			obs.update_remove(row)
+

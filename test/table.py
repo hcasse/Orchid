@@ -14,7 +14,7 @@ my_table = [
 class MyPage(Page):
 
 	def __init__(self, app):
-		self.table = table.TableView(my_table)
+		self.table = table.TableView(my_table, parse=self.parse)
 		Page.__init__(
 			self,
 			VGroup([
@@ -29,8 +29,13 @@ class MyPage(Page):
 			app = app
 		)
 		self.pos = 0
-		self.table.get_table_model().check = self.check
 		self.table.get_table_model().is_editable = self.is_editable
+
+	def parse(self, row, col, val):
+		try:
+			return int(val)
+		except ValueError:
+			return None
 
 	def clear(self):
 		self.table.get_table_model().set(self.pos//4, self.pos%4, str(self.pos))
@@ -43,13 +48,6 @@ class MyPage(Page):
 		self.table.get_table_model().insert_row(2, ["?", "?", "?", "?"])		
 	def remove(self):
 		self.table.get_table_model().remove_row(2)
-
-	def check(self, row, col, val):
-		try:
-			int(val)
-			return True
-		except ValueError:
-			return False
 
 	def is_editable(self, row, col):
 		return col >= 2
