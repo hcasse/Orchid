@@ -17,7 +17,7 @@
 
 """This module manage popups: menus."""
 
-from orchid.base import ICON_MENU, Model, CONTEXT_MENU, ALIGN_LEFT
+from orchid.base import ICON_MENU, Model, Context, ALIGN_LEFT
 from orchid.group import VGroup
 from orchid.button import Button
 import orchid.image
@@ -54,7 +54,7 @@ class Menu(VGroup):
 		pass
 
 	def get_context(self):
-		return CONTEXT_MENU
+		return Context.MENU
 
 	def receive(self, msg, handler):
 		if msg['action'] == 'hide':

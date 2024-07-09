@@ -166,8 +166,8 @@ class Group(Component, ParentComponent):
 		return self.expandv
 
 	def get_context(self):
-		"""Get the group context (one of CONTEXT_* constants)."""
-		return orc.CONTEXT_NONE
+		"""Get the group context (one of Context enumeration value)."""
+		return orc.Context.NONE
 
 	def on_show(self):
 		for child in self.children:

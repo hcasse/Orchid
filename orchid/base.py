@@ -17,10 +17,11 @@
 
 """Orchid base classes and definitions. """
 
+from enum import IntEnum
 import html
 import importlib
-import time
 from threading import Thread
+import time
 from time import sleep
 
 from orchid.util import Buffer, STANDARD_INTERFACE
@@ -28,12 +29,23 @@ from orchid.util import Buffer, STANDARD_INTERFACE
 CLOSE_TIMEOUT=0.250
 
 # type of context
-CONTEXT_NONE = 0
-CONTEXT_TOOLBAR = 1
-CONTEXT_HEADERBAR = 2
-CONTEXT_BUTTONBAR = 3
-CONTEXT_MENU = 4
-CONTEXT_MAIN = 5
+
+class Context(IntEnum):
+	"""Enumeration of component context, mainly to fix lookup."""
+	NONE = 0
+	TOOLBAR = 1
+	HEADERBAR = 2
+	BUTTONBAR = 3
+	MENU = 4
+	MAIN = 5
+
+# deprecated
+CONTEXT_NONE = Context.NONE
+CONTEXT_TOOLBAR = Context.TOOLBAR
+CONTEXT_HEADERBAR = Context.HEADERBAR
+CONTEXT_BUTTONBAR = Context.BUTTONBAR
+CONTEXT_MENU = Context.MENU
+CONTEXT_MAIN = Context.MAIN
 
 # type of icons
 ICON_ERASE = "erase"
@@ -507,8 +519,8 @@ class Component(AbstractComponent):
 		return self.page
 
 	def get_context(self):
-		"""Get the context of the page. One of CONTEXT_XXX constant."""
-		return CONTEXT_NONE
+		"""Get the context of the page. One of Context.XXX enumeration value."""
+		return Context.NONE
 
 	def get_children(self):
 		return []
@@ -729,7 +741,7 @@ class Page(AbstractComponent, ParentComponent):
 		main.set_top_class("top-content")
 
 	def get_context(self):
-		return CONTEXT_MAIN
+		return Context.MAIN
 
 	def on_remove(self, comp):
 		"""Called each time a component is removed."""

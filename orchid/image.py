@@ -17,7 +17,7 @@
 
 """Management of images."""
 
-from orchid.base import Displayable, Model, CONTEXT_NONE
+from orchid.base import Displayable, Model, Context
 
 class Image(Displayable):
 	"""Base class to represent an image (according different sources:
@@ -27,8 +27,7 @@ class Image(Displayable):
 		self.model = model
 
 	def gen(self, out):
-		"""Generate the code for the image. Context is one of
-		CONTEXT_XXX constant."""
+		"""Generate the code for the image."""
 		pass
 
 	def gen_in_context(self, out, context):
@@ -55,7 +54,7 @@ class Icon(Image):
 		self.icon = page.get_theme().get_icon(self.name, self.color)
 
 	def gen(self, out):
-		self.gen_in_context(out, CONTEXT_NONE)
+		self.gen_in_context(out, Context.NONE)
 
 	def gen_in_context(self, out, context):
 		self.icon.gen_in_context(out, context)

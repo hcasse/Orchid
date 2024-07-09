@@ -1,6 +1,6 @@
 """Component for a structured view."""
 
-from orchid.base import Model, CONTEXT_HEADERBAR, CONTEXT_TOOLBAR, MSG_ERROR, \
+from orchid.base import Model, Context, MSG_ERROR, \
 	MSG_WARN, MSG_INFO, ALIGN_CENTER
 from orchid.label import Label
 from orchid.group import HGroup, Spring, HGROUP_MODEL, VGroup, Group
@@ -28,7 +28,7 @@ class Header(HGroup):
 		self.add_class("header")
 
 	def get_context(self):
-		return CONTEXT_HEADERBAR
+		return Context.HEADERBAR
 
 
 class ToolBar(HGroup):
@@ -40,7 +40,7 @@ class ToolBar(HGroup):
 		self.add_class("toolbar")
 
 	def get_context(self):
-		return CONTEXT_TOOLBAR
+		return Context.TOOLBAR
 
 class MessageContainer(VGroup):
 	"""A message container add a banner at the top or at the bottom of another

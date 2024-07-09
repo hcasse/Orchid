@@ -17,8 +17,7 @@
 
 """Definition of basic theme."""
 
-from orchid.base import Model, CONTEXT_HEADERBAR, CONTEXT_TOOLBAR, Theme, \
-	CONTEXT_NONE
+from orchid.base import Model, Context, Theme
 from orchid.image import AssetImage, Image
 
 MESSAGES = {
@@ -192,8 +191,8 @@ class Icon(Image):
 	current icon collection (https://icons.getbootstrap.com/)."""
 
 	CONTEXT = {
-		CONTEXT_HEADERBAR: " headerbar-icon",
-		CONTEXT_TOOLBAR: " toolbar-icon",
+		Context.HEADERBAR: " headerbar-icon",
+		Context.TOOLBAR: " toolbar-icon",
 	}
 
 	def __init__(self, name, color = None):
@@ -202,7 +201,7 @@ class Icon(Image):
 		self.color = color
 
 	def gen(self, out):
-		self.gen_in_context(out, CONTEXT_NONE)
+		self.gen_in_context(out, Context.NONE)
 
 	def gen_in_context(self, out, context):
 		if self.name.startswith("!"):
