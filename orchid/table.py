@@ -37,16 +37,20 @@ class TableView(Component, TableObserver):
 		table,
 		no_header = False,
 		model = None,
+		headers = None,
 		format = lambda row, col, val: str(val),
 		parse = lambda row, col, val: val,
-		headers = None
+		is_editable = lambda row, col: True
 	):
 		"""Initialize a table. The passed argument may a 2-dimension
 		Python list or an instance of table.Model.
 
-		Format and parse arguments are functions, respectively to format
-		and parse table values as performed by format_cell() and parse_cell().
-		Parse has to return None if the value cannot be parsed."""
+		Format(row, col, val) and parse(row, col, val) arguments are functions,
+		respectively to format and parse table values. Parse has to return None
+		if the value cannot be parsed.
+
+		is_editable(row, col) allows to test if a cell can be edited.
+		"""
 		if model is None:
 			model = self.MODEL
 		Component.__init__(self, model)
@@ -62,11 +66,12 @@ class TableView(Component, TableObserver):
 		self.last_col = None
 		self.last_value = None
 		self.shown = False
-		self.format = format
-		self.parse = parse
 		self.headers = headers
 		if self.headers is None:
 			self.no_header = True
+		self.format = format
+		self.parse = parse
+		self.is_editable = is_editable
 
 	def on_show(self):
 		self.table.add_observer(self)
@@ -200,7 +205,7 @@ class TableView(Component, TableObserver):
 			row, col = msg["row"], msg["col"]
 			if not self.no_header:
 				row -= 1
-			if self.table.is_editable(row, col):
+			if self.is_editable(row, col):
 				self.last_row = row
 				self.last_col = col
 				self.call("table_do_edit", {})

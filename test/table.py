@@ -17,6 +17,7 @@ class MyPage(Page):
 		self.table = table.TableView(
 			my_table,
 			parse=self.parse,
+			is_editable=self.is_editable,
 			headers = ["Country", "Capital", "Surface", "Population"]
 		)
 		Page.__init__(
@@ -34,6 +35,9 @@ class MyPage(Page):
 		)
 		self.pos = 0
 		self.table.get_table_model().is_editable = self.is_editable
+
+	def is_editable(self, row, col):
+		return col >= 2
 
 	def parse(self, row, col, val):
 		try:

@@ -239,10 +239,6 @@ class TableModel(Subject):
 		for observer in self.filter_observers(TableObserver):
 			observer.on_row_remove(self, row)
 
-	def is_editable(self, row, col):
-		"""Test if the cell at given row and column is editable."""
-		return True
-
 
 class ListTableModel(TableModel):
 	"""Table for a model based on Python list."""
