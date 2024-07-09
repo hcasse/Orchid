@@ -14,7 +14,11 @@ my_table = [
 class MyPage(Page):
 
 	def __init__(self, app):
-		self.table = table.TableView(my_table, parse=self.parse)
+		self.table = table.TableView(
+			my_table,
+			parse=self.parse,
+			headers = ["Country", "Capital", "Surface", "Population"]
+		)
 		Page.__init__(
 			self,
 			VGroup([

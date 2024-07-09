@@ -1,7 +1,7 @@
 """Orchid module in charge of table display."""
 
 from orchid.base import Component, Model
-from orchid.models import TableModel, ListTableModel
+from orchid.models import TableModel, ListTableModel, TableObserver
 from orchid.util import Buffer
 
 ACTION_TR	= 0		# TR number
@@ -12,7 +12,7 @@ ACTION_APPEND = 4	# TD count
 ACTION_INSERT = 5	# TD count
 
 
-class TableView(Component):
+class TableView(Component, TableObserver):
 	"""Represents a table made of rows and columns."""
 
 	MODEL = Model(
@@ -38,7 +38,8 @@ class TableView(Component):
 		no_header = False,
 		model = None,
 		format = lambda row, col, val: str(val),
-		parse = lambda row, col, val: val
+		parse = lambda row, col, val: val,
+		headers = None
 	):
 		"""Initialize a table. The passed argument may a 2-dimension
 		Python list or an instance of table.Model.
@@ -63,6 +64,9 @@ class TableView(Component):
 		self.shown = False
 		self.format = format
 		self.parse = parse
+		self.headers = headers
+		if self.headers is None:
+			self.no_header = True
 
 	def on_show(self):
 		self.table.add_observer(self)
@@ -90,10 +94,7 @@ class TableView(Component):
 			self.table.add_observer(self)
 
 		# if required, generate its content
-		if self.online():
-			buf = Buffer()
-			self.gen_content(buf)
-			self.set_content(str(buf))
+		self.on_table_set(self.table)
 
 	def gen_content(self, out):
 		"""Generate the content of the table."""
@@ -103,23 +104,22 @@ class TableView(Component):
 		if not self.no_header:
 			out.write('<tr class="table-header">')
 			for col in range(0, coln):
-				out.write(f"<th>{self.table.get_header(col)}</th>")
+				out.write(f"<th>{self.headers[col]}</th>")
 			out.write("</tr>")
 
 		# generate the content
 		for row in range(0, self.table.get_row_count()):
 			out.write("<tr>")
 			for col in range(0, coln):
-				out.write(f"<td>{self.format_cell(row, col)}</td>")
+				val = self.table.get_cell(row, col)
+				out.write(f"<td>{self.format(row, col, val)}</td>")
 			out.write("</tr>")
 
-	def format_cell(self, row, col):
-		"""Format the content of the given cell."""
-		value = self.table.get_cell(row, col)
-		if value is not None:
-			return self.format(row, col, value)
-		else:
-			return ""
+	def on_table_set(self, table):
+		if self.online():
+			buf = Buffer()
+			self.gen_content(buf)
+			self.set_content(str(buf))
 
 	def gen(self, out):
 		out.write(f'<table onclick="table_on_click(\'{self.get_id()}\', event);"')
@@ -128,29 +128,34 @@ class TableView(Component):
 		self.gen_content(out)
 		out.write("</table>")
 
-	def update_cell(self, row, col):
+	def on_cell_set(self, table, row, col, val):
 		"""Called by the model to update a cell value."""
-		act_row = row if self.no_header else row+1
-		self.call("table_change", {
-			"id": self.get_id(),
-			"actions": [ ACTION_TR, act_row, ACTION_TD, col, ACTION_SET, 1 ],
-			"values" : [ self.format_cell(row, col) ]
-		})
+		if self.online():
+			act_row = row if self.no_header else row+1
+			val = self.table.get_cell(row, col)
+			self.call("table_change", {
+				"id": self.get_id(),
+				"actions": [ ACTION_TR, act_row, ACTION_TD, col, ACTION_SET, 1 ],
+				"values" : [ self.format(row, col, val) ]
+			})
 
-	def update_append(self, content):
+	def on_row_append(self, table, vals):
 		"""Called by the model to append a new row."""
-		cnt = len(content)
+		cnt = len(vals)
 		row = self.table.get_row_count()-1
 		self.call("table_change", {
 			"id": self.get_id(),
-			"actions": [ACTION_APPEND, cnt, ACTION_SET, cnt],
-			"values": [self.format(row, col, x) for (col, x) in enumerate(content)]
+			"actions": [
+				ACTION_APPEND, cnt,
+				ACTION_SET, cnt
+			],
+			"values": [self.format(row, col, x) for (col, x) in enumerate(vals)]
 		})
 
-	def update_insert(self, row, content):
+	def on_row_insert(self, table, row, vals):
 		"""Called by the model to insert a new row."""
+		cnt = len(vals)
 		act_row = row if self.no_header else row+1
-		cnt = len(content)
 		self.call("table_change", {
 			"id": self.get_id(),
 			"actions": [
@@ -158,10 +163,10 @@ class TableView(Component):
 				ACTION_INSERT, cnt,
 				ACTION_SET, cnt
 			],
-			"values": [self.format(row, col, x) for (col, x) in enumerate(content)]
+			"values": [self.format(row, col, x) for (col, x) in enumerate(vals)]
 		})
 
-	def update_remove(self, row):
+	def on_row_remove(self, table, row):
 		"""Called by the model to remove a row."""
 		act_row = row if self.no_header else row+1
 		self.call("table_change", {
@@ -173,13 +178,14 @@ class TableView(Component):
 			"values": []
 		})
 
-	def check_edit(self, value):
+	def check_edit(self, val):
 		if self.last_row is not None:
-			value = self.parse(self.last_row, self.last_col, value)
-			if value is not None:
-				self.table.set(self.last_row, self.last_col, value)
+			val = self.parse(self.last_row, self.last_col, val)
+			if val is not None:
+				self.table.set(self.last_row, self.last_col, val)
 			else:
-				self.update_cell(self.last_row, self.last_col)
+				val = self.table.get_cell(self.last_row, self.last_col)
+				self.on_cell_set(self.table, self.last_row, self.last_col, val)
 		self.last_row = None
 		self.last_col = None
 		self.last_value = None

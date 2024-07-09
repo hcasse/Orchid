@@ -17,10 +17,10 @@
 
 """Classes representing models, observers and variables for complex data structures."""
 
-from orchid.base import Subject
+from orchid.base import Subject, Observer
 from orchid.mind import Var, ListType, make_type, type_of_data
 
-class ListObserver:
+class ListObserver(Observer):
 	"""Observer of a list model."""
 
 	def on_set(self, i, x):
@@ -159,6 +159,33 @@ class ListVar(Var, ListModel):
 		self.set_index(i, x)
 
 
+class TableObserver(Observer):
+	"""Observer of a table."""
+
+	def on_table_set(self, table):
+		"""Called the whole table is changed."""
+		pass
+
+	def on_cell_set(self, table, row, col, val):
+		"""Called each time a cell is changed."""
+		pass
+
+	def on_row_append(self, table, vals):
+		"""Called each time a row is appended. Values is the cell values
+		of the appended row."""
+		pass
+
+	def on_row_insert(self, table, row, vals):
+		"""Called each time a row is inserted at position row. Values is
+		the cell values of inserted row."""
+		pass
+
+	def on_row_remove(self, table, row):
+		"""Called each time a row is removed."""
+		pass
+
+
+
 class TableModel(Subject):
 	"""The model is used to define the lookup of the table in function
 	the displayed cell. The returned value may be components, simple
@@ -171,11 +198,6 @@ class TableModel(Subject):
 
 	def __init__(self):
 		Subject.__init__(self)
-		self.component = None
-
-	def get_header(self, column):
-		"""Get the lookup of the given column header."""
-		return None
 
 	def get_column_count(self):
 		"""Get the column count."""
@@ -191,25 +213,31 @@ class TableModel(Subject):
 
 	def set_table(self, table):
 		"""Called to change the table object."""
-		if self.component is not None:
-			self.component.update_all()
+		for observer in self.filter_observers(TableObserver):
+			observer.on_table_set(self)
 
-	def set(self, row, column, value):
+	def set_cell(self, row, col, val):
 		"""Change the value of a table element."""
-		if self.component is not None:
-			self.component.update_cell(row, column)
+		for observer in self.filter_observers(TableObserver):
+			observer.on_cell_set(self, row, col, val)
 
-	def append_row(self, content):
+	def set(self, row, col, value):
+		return self.set_cell(row, col, value)
+
+	def append_row(self, vals):
 		"""Append a new row to the table."""
-		pass
+		for observer in self.filter_observers(TableObserver):
+			observer.on_row_append(self, vals)
 
-	def insert_row(self, row, content):
+	def insert_row(self, row, vals):
 		"""Insert the content at row position."""
-		pass
+		for observer in self.filter_observers(TableObserver):
+			observer.on_row_insert(self, row, vals)
 
 	def remove_row(self, row):
 		"""Remove the given row."""
-		pass
+		for observer in self.filter_observers(TableObserver):
+			observer.on_row_remove(self, row)
 
 	def is_editable(self, row, col):
 		"""Test if the cell at given row and column is editable."""
@@ -222,14 +250,10 @@ class ListTableModel(TableModel):
 	def __init__(self, table = None, column_count = None):
 		TableModel.__init__(self)
 		self.table = table
-		self.component = None
 		if column_count is None and table is not None and table != []:
 			self.column_count = len (table[0])
 		else:
 			self.column_count = column_count
-
-	def get_header(self, column):
-		return f"Column {column}"
 
 	def get_column_count(self):
 		return self.column_count
@@ -242,26 +266,21 @@ class ListTableModel(TableModel):
 
 	def set_table(self, table):
 		self.table = table
-		for obs in self.observers:
-			obs.update_all()
+		super().set_table(self)
 
-	def set(self, row, column, value):
-		self.table[row][column] = value
-		for obs in self.observers:
-			obs.update_cell(row, column)
+	def set_cell(self, row, col, val):
+		self.table[row][col] = val
+		super().set_cell(row, col, val)
 
-	def append_row(self, content):
-		self.table.append(content)
-		for obs in self.observers:
-			obs.update_append(content)
+	def append_row(self, vals):
+		self.table.append(vals)
+		super().append_row(vals)
 
-	def insert_row(self, row, content):
-		self.table.insert(row, content)
-		for obs in self.observers:
-			obs.update_insert(row, content)
+	def insert_row(self, row, vals):
+		self.table.insert(row, vals)
+		super().insert_row(row, vals)
 
 	def remove_row(self, row):
 		del self.table[row]
-		for obs in self.observers:
-			obs.update_remove(row)
+		super().remove_row(row)
 
