@@ -14,7 +14,7 @@ class MyPage(Page):
 					Button("hide info", on_click=self.hide_info),
 					Button("hide warn", on_click=self.hide_warn),
 					Button("hide error", on_click=self.hide_error),
-				], align=ALIGN_CENTER)
+				], align=Align.CENTER)
 			)
 
 		Page.__init__(

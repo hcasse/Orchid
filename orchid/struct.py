@@ -1,14 +1,13 @@
 """Component for a structured view."""
 
-from orchid.base import Model, Context, MSG_ERROR, \
-	MSG_WARN, MSG_INFO, ALIGN_CENTER
+from orchid.base import Model, Context, MessageType, Align
 from orchid.label import Label
 from orchid.group import HGroup, Spring, HGROUP_MODEL, VGroup, Group
 
 BACKS = {
-	MSG_ERROR: "error-back",
-	MSG_WARN: "warn-back",
-	MSG_INFO: "info-back"
+	MessageType.ERROR: "error-back",
+	MessageType.WARN: "warn-back",
+	MessageType.INFO: "info-back"
 }
 
 
@@ -73,13 +72,14 @@ class MessageContainer(VGroup):
 		self.msg_comp.remove(id)
 
 	def show_message(self, msg, type=None):
-		"""Show the message. type may be one of MSG_XXX constant. """
+		"""Show the message. type may be one of MessageType enumeration
+		constant. """
 		comps = []
 		icon = self.get_page().get_theme().get_dialog_icon(type, 16)
 		if icon is not None:
 			comps.append(Label(icon))
 		comps.append(Label(msg))
-		group = HGroup(comps, align=ALIGN_CENTER)
+		group = HGroup(comps, align=Align.CENTER)
 		try:
 			group.add_class(BACKS[type])
 		except KeyError:
@@ -90,12 +90,12 @@ class MessageContainer(VGroup):
 
 	def error(self, msg):
 		"""Show an error and return display identifier."""
-		return self.show_message(msg, MSG_ERROR)
+		return self.show_message(msg, MessageType.ERROR)
 
 	def warn(self, msg):
 		"""Show a warning and return display identifier."""
-		return self.show_message(msg, MSG_WARN)
+		return self.show_message(msg, MessageType.WARN)
 
 	def info(self, msg):
 		"""Show an information and return display identifier.."""
-		return self.show_message(msg, MSG_INFO)
+		return self.show_message(msg, MessageType.INFO)

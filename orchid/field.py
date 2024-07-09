@@ -18,7 +18,7 @@
 """Field components."""
 
 import re
-from orchid.base import Component, Model, ALIGN_JUSTIFY
+from orchid.base import Component, Model, Align
 from orchid.util import Buffer
 from orchid.group import VGroup, Group
 from orchid.label import Label
@@ -572,7 +572,7 @@ class ProposalField(Field):
 		Field.__init__(self, model=PROPOSAL_MODEL, **args)
 		self.propose = propose
 		self.prev = []
-		self.group = VGroup([], align=ALIGN_JUSTIFY)
+		self.group = VGroup([], align=Align.JUSTIFY)
 		self.group.add_class("proposal-popup")
 		self.group.set_style("display", "none")
 		self.add_class("proposal-field")

@@ -18,7 +18,7 @@
 """Group components."""
 
 import orchid.base as orc
-from orchid.base import Model, Component, ParentComponent
+from orchid.base import Model, Component, ParentComponent, Align
 
 GROUP_MODEL = Model(
 	"group",
@@ -50,11 +50,11 @@ class Group(Component, ParentComponent):
 	ANTI_EXPAND = "group-anti-expand"
 
 	ALIGNS = {
-		orc.ALIGN_NONE: None,
-		orc.ALIGN_TOP: "start",
-		orc.ALIGN_BOTTOM: "end",
-		orc.ALIGN_CENTER: "center",
-		orc.ALIGN_JUSTIFY: "stretch"
+		Align.NONE: None,
+		Align.TOP: "start",
+		Align.BOTTOM: "end",
+		Align.CENTER: "center",
+		Align.JUSTIFY: "stretch"
 	}
 
 	def __init__(self, model, comps):
@@ -199,9 +199,9 @@ HGROUP_MODEL = Model(
 class HGroup(Group):
 	"""Creates an horizontal group.
 	* comps: components in the group.
-	* align: vertival alignment of model (one of ALIGN_ constant)."""
+	* align: vertival alignment of model (Align enumeration value)."""
 
-	def __init__(self, comps = None, model = HGROUP_MODEL, align = orc.ALIGN_LEFT):
+	def __init__(self, comps = None, model = HGROUP_MODEL, align = Align.LEFT):
 		if comps is None:
 			comps = []
 		Group.__init__(self, model, comps)
@@ -257,9 +257,9 @@ VGROUP_MODEL = Model(
 class VGroup(Group):
 	"""Display a group of components vertically.
 	* comps: components in the group.
-	* align: horizontal alignment of components (one of ALIGN_ constant)."""
+	* align: horizontal alignment of components (Align enumeration value)."""
 
-	def __init__(self, comps, model = VGROUP_MODEL, align = orc.ALIGN_NONE):
+	def __init__(self, comps, model = VGROUP_MODEL, align = Align.NONE):
 		Group.__init__(self, model, comps)
 		self.add_class("vgroup")
 		align = Group.ALIGNS[align]

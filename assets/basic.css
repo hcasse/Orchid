@@ -73,7 +73,7 @@ body {
 	font-weight: bold;
 }
 
-.text-failed {
+.text-failure {
 	color: red;
 	font-weight: bold;
 }

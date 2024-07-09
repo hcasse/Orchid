@@ -15,7 +15,7 @@ class MyPage(Page):
 					Label("align top"),
 					Button(label="ko"),
 					Label(AssetImage("orchid.svg", width=32))
-				], align=ALIGN_TOP),
+				], align=Align.TOP),
 
 				HGroup([
 					Label("HGroup"),
@@ -23,7 +23,7 @@ class MyPage(Page):
 					Label("align bottom"),
 					Button(label="ko"),
 					Label(AssetImage("orchid.svg", width=32))
-				], align=ALIGN_BOTTOM),
+				], align=Align.BOTTOM),
 
 				HGroup([
 					Label("HGroup"),
@@ -31,7 +31,7 @@ class MyPage(Page):
 					Label("align center"),
 					Button(label="ko"),
 					Label(AssetImage("orchid.svg", width=32))
-				], align=ALIGN_CENTER),
+				], align=Align.CENTER),
 
 				HGroup([
 					Label("HGroup"),
@@ -39,7 +39,7 @@ class MyPage(Page):
 					Label("align justify"),
 					Button(label="ko"),
 					Label(AssetImage("orchid.svg", width=32))
-				], align=ALIGN_JUSTIFY),
+				], align=Align.JUSTIFY),
 
 				HGroup([
 
@@ -49,7 +49,7 @@ class MyPage(Page):
 						Label("align left"),
 						Button(label="ko"),
 						Label(AssetImage("orchid.svg", width=32))
-					], align=ALIGN_LEFT),
+					], align=Align.LEFT),
 
 					VGroup([
 						Label("VGroup"),
@@ -57,7 +57,7 @@ class MyPage(Page):
 						Label("align right"),
 						Button(label="ko"),
 						Label(AssetImage("orchid.svg", width=32))
-					], align=ALIGN_RIGHT),
+					], align=Align.RIGHT),
 
 					VGroup([
 						Label("VGroup"),
@@ -65,7 +65,7 @@ class MyPage(Page):
 						Label("align center"),
 						Button(label="ko"),
 						Label(AssetImage("orchid.svg", width=32))
-					], align=ALIGN_CENTER),
+					], align=Align.CENTER),
 
 					VGroup([
 						Label("VGroup"),
@@ -73,7 +73,7 @@ class MyPage(Page):
 						Label("align justify"),
 						Button(label="ko"),
 						Label(AssetImage("orchid.svg", width=32))
-					], align=ALIGN_JUSTIFY)
+					], align=Align.JUSTIFY)
 				])
 
 			]),

@@ -17,7 +17,7 @@
 
 """Orchid base classes and definitions. """
 
-from enum import IntEnum
+from enum import Enum, IntEnum
 import html
 import importlib
 from threading import Thread
@@ -53,38 +53,80 @@ ICON_FORWARD = "forward"
 ICON_BACKWARD = "backward"
 ICON_MENU = "menu"
 
-# position
-POS_CENTER = 0
-POS_BELOW = 1
-POS_ABOVE = 2
-POS_LEFT = 3
-POS_RIGHT = 4
+class Pos(IntEnum):
+	"""Position of a component relatively to another one."""
+	CENTER = 0
+	BELOW = 1
+	ABOVE = 2
+	LEFT = 3
+	RIGHT = 4
+
+# deprecated
+POS_CENTER = Pos.CENTER
+POS_BELOW = Pos.BELOW
+POS_ABOVE = Pos.ABOVE
+POS_LEFT = Pos.LEFT
+POS_RIGHT = Pos.RIGHT
 
 
-# direction
-DIR_NORTH = 0
-DIR_NORTH_EAST = 1
-DIR_EAST = 2
-DIR_SOUTH_EAST = 3
-DIR_SOUTH = 4
-DIR_SOUTH_WEST = 5
-DIR_WEST = 6
-DIR_NORTH_EAST = 7
-DIR_CENTER = 8
+class Dir(IntEnum):
+	"""Defines a direction."""
+	NORTH = 0
+	NORTH_EAST = 1
+	EAST = 2
+	SOUTH_EAST = 3
+	SOUTH = 4
+	SOUTH_WEST = 5
+	WEST = 6
+	NORTH_WEST = 7
+	CENTER = 8
 
-# alignment
-ALIGN_NONE = 0
-ALIGN_LEFT = 1
-ALIGN_RIGHT = 2
-ALIGN_TOP = 1
-ALIGN_BOTTOM = 2
-ALIGN_CENTER = 3
-ALIGN_JUSTIFY = 4
+# deprecated
+DIR_NORTH = Dir.NORTH
+DIR_NORTH_EAST = Dir.NORTH_EAST
+DIR_EAST = Dir.EAST
+DIR_SOUTH_EAST = Dir.SOUTH_EAST
+DIR_SOUTH = Dir.SOUTH
+DIR_SOUTH_WEST = Dir.SOUTH_WEST
+DIR_WEST = Dir.WEST
+DIR_NORTH_WEST = Dir.NORTH_WEST
+DIR_CENTER = Dir.CENTER
 
-# message type
-MSG_WARN = "warning"
-MSG_ERROR = "error"
-MSG_INFO = "info"
+class Align(IntEnum):
+	"""Define alignment of component inside its container."""
+	NONE = 0
+	LEFT = 1
+	RIGHT = 2
+	TOP = 1
+	BOTTOM = 2
+	CENTER = 3
+	JUSTIFY = 4
+
+# deprecated
+ALIGN_NONE = Align.NONE
+ALIGN_LEFT = Align.LEFT
+ALIGN_RIGHT = Align.RIGHT
+ALIGN_TOP = Align.TOP
+ALIGN_BOTTOM = Align.BOTTOM
+ALIGN_CENTER = Align.CENTER
+ALIGN_JUSTIFY = Align.JUSTIFY
+
+class MessageType(Enum):
+	"""Type of messages."""
+	ERROR = "error"
+	WARN = "warn"
+	INFO = "info"
+	SUCCESS = "success"
+	FAILURE = "failure"
+
+	def as_css(self):
+		return self.value
+
+
+# deprecated
+MSG_WARN = MessageType.WARN
+MSG_ERROR = MessageType.ERROR
+MSG_INFO = MessageType.INFO
 
 
 def write_nothing(page, out):
@@ -1165,6 +1207,6 @@ class Theme(Model):
 		return None
 
 	def get_dialog_icon(self, type, size=32):
-		"""Get the icon for a dialog. type must be one of MSG_XXX constant.
-		May return None if the type is not supported."""
+		"""Get the icon for a dialog. type must be one of MessageType
+		enumeration value. May return None if the type is not supported."""
 		return None

@@ -18,7 +18,7 @@
 """Data/Process-oriented user interface."""
 
 from orchid.base import AbstractComponent, Component, Page, Model, Subject, \
-	Observer, Session, Application
+	Observer, Session, Application, Pos, Dir, Align, Context, MessageType
 from orchid.button import Button, CheckBox, RadioButton
 from orchid.console import Console
 from orchid.editor import Editor
@@ -40,15 +40,16 @@ from orchid.tabbedpane import TabbedPane, Tab
 from orchid.util import Interface, buffer
 from orchid.view import InteractiveView
 
-SUCCESS = "success"
-FAILED = "failed"
-INFO = "info"
-ERROR = "error"
+# deprecated
+SUCCESS = MessageType.SUCCESS	# "success"
+FAILED = MessageType.FAILURE	# "failed"
+INFO = MessageType.INFO			# "info"
+ERROR = MessageType.ERROR		# "error"
 
-def text(style, content):
-	"""Generate a text colored according to the type. Type may be one
-	of SUCCESS, FAILED or INFO."""
-	return f'<span class="text-{style}">{content}</span>'
+def text(mtype, content):
+	"""Generate a text colored according to the type. MType may be one
+	of MessageType enumeration value."""
+	return f'<span class="text-{mtype.as_css()}">{content}</span>'
 
 
 def var(val, type=None, **args):

@@ -19,7 +19,7 @@
 
 # https://css-tricks.com/some-hands-on-with-the-html-dialog-element/
 
-from orchid.base import Model, Component, Plain, ALIGN_CENTER
+from orchid.base import Model, Component, Plain, Align
 from orchid.button import Button
 from orchid.label import Label
 from orchid.group import VGroup, HGroup, Spring
@@ -262,7 +262,7 @@ class About(Base):
 		buttons = HGroup([
 			Spring(hexpand=True),
 			Button("Ok", on_click=self.hide)
-		], align=ALIGN_CENTER)
+		], align=Align.CENTER)
 		buttons.add_class("dialog-buttons")
 		all.append(buttons)
 

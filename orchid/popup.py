@@ -17,7 +17,7 @@
 
 """This module manage popups: menus."""
 
-from orchid.base import ICON_MENU, Model, Context, ALIGN_LEFT
+from orchid.base import ICON_MENU, Model, Context, Align
 from orchid.group import VGroup
 from orchid.button import Button
 import orchid.image
@@ -34,10 +34,10 @@ MENU_MODEL = Model(
 class Menu(VGroup):
 	"""Menu made of a list of components verticaly placed."""
 
-	def __init__(self, items, align=ALIGN_LEFT):
+	def __init__(self, items, align=Align.LEFT):
 		"""Build the menu with the items (that are usually buttons).
-		align can be set to one of orchid.base.ALIGN_XXX constant
-		(default ALIGN_LEFT)."""
+		align can be set to one of Align enumeration constant
+		(default Align.LEFT)."""
 		VGroup.__init__(self, items, align=align, model=MENU_MODEL)
 		self.add_class("dropdown-content")
 		self.add_class("menu")
