@@ -73,6 +73,18 @@ class TableView(Component, TableObserver):
 		self.parse = parse
 		self.is_editable = is_editable
 
+	def add_row_class(self, row, cls):
+		"""Add a class to a row."""
+		if not self.no_header:
+			cls += 1
+		self.add_class(cls, id=f"{self.get_id()}-body", nth=row)
+
+	def remove_row_class(self, row, cls):
+		"""Remove a class from a row."""
+		if not self.no_header:
+			cls += 1
+		self.remove_class(cls, id=f"{self.get_id()}-body", nth=row)
+
 	def on_show(self):
 		self.table.add_observer(self)
 		self.shown = True
@@ -104,6 +116,7 @@ class TableView(Component, TableObserver):
 	def gen_content(self, out):
 		"""Generate the content of the table."""
 		coln = self.table.get_column_count()
+		out.write(f'<tbody id="{self.get_id()}-body">')
 
 		# if any, generate header
 		if not self.no_header:
@@ -119,6 +132,8 @@ class TableView(Component, TableObserver):
 				val = self.table.get_cell(row, col)
 				out.write(f"<td>{self.format(row, col, val)}</td>")
 			out.write("</tr>")
+
+		out.write('</tbody>')
 
 	def on_table_set(self, table):
 		if self.online():
