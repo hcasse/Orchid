@@ -165,10 +165,35 @@ def make_type(type):
 		return Type.find(type)
 
 
-class Entity:
+class EntityObserver(Observer):
+	"""Entity to detect changes in label, help, doc or icon."""
+
+	def on_label_change(self, new_label):
+		"""Called when the label is changed."""
+		pass
+
+	def on_help_change(self, new_help):
+		"""Called when the help is changed."""
+		pass
+
+	def on_doc_change(self, new_doc):
+		"""Called when the doc URL is changed."""
+		pass
+
+	def on_icon_change(self, new_icon):
+		"""Called when the icon is changed."""
+		pass
+
+
+class Entity(Subject):
 	"""An entity is an object (action, variable) of an application
 	that may be displayed or used by the human user. It is defined
-	with a logic name, a label, help information, dmentation, icon, etc."""
+	with:
+	* logic name,
+	* label for human reader,
+	* help information often displayed as tooltip,
+	* documentation URL,
+	* icon (Image class)."""
 
 	def __init__(self, name=None, label=None, help=None, doc=None, icon=None):
 		"""Type of parameters must be:
@@ -176,7 +201,9 @@ class Entity:
 		* label -- human-readable string,
 		* help -- string with HTML tags,
 		* doc -- URL to documentation,
-		* icon -- orchid.image.Image object."""
+		* icon -- orchid.image.Image object.
+		"""
+		Subject.__init__(self)
 		self.name = name
 		self.label = label
 		self.help = help
@@ -195,8 +222,32 @@ class Entity:
 		else:
 			return self.name
 
+	def set_label(self, label):
+		"""Change the label of the entity."""
+		self.label = label
+		for observer in self.filter_observers(EntityObserver):
+			observer.on_label_change(label)
 
-class Var(Subject, Entity):
+	def set_help(self, help):
+		"""Change the help of the entity."""
+		self.help = help
+		for observer in self.filter_observers(EntityObserver):
+			observer.on_help_change(help)
+
+	def set_doc(self, doc):
+		"""Change the doc of the entity."""
+		self.doc = doc
+		for observer in self.filter_observers(EntityObserver):
+			observer.on_doc_change(doc)
+
+	def set_icon(self, icon):
+		"""Change the icon of the entity."""
+		self.icon = icon
+		for observer in self.filter_observers(EntityObserver):
+			observer.on_icon_change(icon)
+
+
+class Var(Entity):
 	"""A variable that contains a vlue that can be observed.
 	As Python is not strict about types, a type ma also be given.
 	This includes basic types of Python like bool, int, float, str
@@ -204,7 +255,6 @@ class Var(Subject, Entity):
 	to derive automatically consistent UI."""
 
 	def __init__(self, value, type = None, **args):
-		Subject.__init__(self)
 		Entity.__init__(self, **args)
 		self.value = value
 		if type is None:
@@ -450,7 +500,7 @@ class AbstractAction(Entity):
 		return f"<action {self.label}>"
 
 
-class Action(AbstractAction, Subject):
+class Action(AbstractAction):
 	"""Default implementation of an action. An action basically
 	perform an action (method action()) when it is invoked.
 	In addition, an action may ne enabled or not depending on
@@ -459,7 +509,6 @@ class Action(AbstractAction, Subject):
 
 	def __init__(self, fun, enable=TRUE, **args):
 		AbstractAction.__init__(self, **args)
-		Subject.__init__(self)
 		if isinstance(enable, Var):
 			enable = not_null(enable)
 		self.enable_pred = enable

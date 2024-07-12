@@ -177,9 +177,12 @@ a.button-disabled {
 }
 
 button:disabled * {
-	opacity: 0.2;
+	opacity: 0.5;
 }
 
+button span.inter {
+	padding-left: 4px;
+}
 
 /* field style */
 div.field input {
@@ -234,7 +237,7 @@ div.field label {
 .header {
 }
 
-.toolbar {	
+.toolbar {
 }
 
 .console {
@@ -291,7 +294,7 @@ div.field label {
 }
 
 .table tr:last-child td {
-	border-bottom: 1px solid #EEEEEE;	
+	border-bottom: 1px solid #EEEEEE;
 }
 
 
@@ -365,7 +368,7 @@ dialog {
 
 
 .dialog-answer, .dialog-message, .dialog-about {
-	padding: 0;	
+	padding: 0;
 }
 
 .dialog-content {
@@ -444,7 +447,7 @@ dialog {
 .svg-canvas {
 	background: white;
 	border: 1px solid black;
-	padding: 0;	
+	padding: 0;
 }
 
 

@@ -18,7 +18,7 @@
 """Definition of basic theme."""
 
 from orchid.base import Model, Context, Theme
-from orchid.image import AssetImage, Image
+from orchid.image import AssetImage, Image, IconType
 
 MESSAGES = {
 	"warning": "basic/warning.svg",
@@ -29,156 +29,156 @@ MESSAGES = {
 BOOTSTRAP_ICONS = {
 
 	# actions
-	"about": "info-lg", #!
-	"add": "plug-lg",
-	"align-left": "text-left",
-	"align-right": "text-right",
-	"center": "text-center",
-	"chat": "chat-dots",
-	"check": "check",
-	"check-all": "check-all",
-	"configure": "tools",
-	"context-menu": "three-dots-vertical",
-	"cut": "scissors",
-	"debug": "bug-fill",
-	"download": "cloud-download",
-	"eject": "eject-fill",
-	"enter": "box-arrow-in-right",
-	"erase": "eraser-fill",
-	"fast-forward": "fast-forward-fill",
-	"go-back": "back",
-	"go-forward": "forward-fill",
-	"go-front": "front",
-	"go-home": "house-fill",
-	"indent": "text-indentleft",
-	"justify": "justify",
-	"leave": "box-arrow-right",
-	"menu": "list",
-	"paint": "brush-fill",
-	"pause": "pause-fill",
-	"pick": "eyedropper",
-	"pin": "pin-angle-fill",
-	"play": "play-fill",
-	"print": "printer-fill",
-	"process": "gear",
-	"protect": "shield-fill-check",
-	"quit": "power",
-	"record": "record-fill",
-	"remove": "x-lg",
-	"repeat": "repeat",
-	"reply": "reply-fill",
-	"reset": "bootstrap-reboot",	#!
-	"rewind": "rewind-fill",
-	"search": "search",
-	"send": "send",
-	"show": "eye",
-	"shuffle": "shuffle",
-	"skip-backward": "skip-backward-fill",
-	"skip-end": "skip-end-fill",
-	"skip-forward": "skip-forward-fill",
-	"skip-start": "skip-start-fill",
-	"sort-alpha-down": "sort-alpha-down",
-	"sort-alpha-up": "sort-alpha-up",
-	"stop": "stop-fill",
-	"unindent": "text-indent-right",
-	"uplodad": "cloud-upload",
-	"work": "hammer",
-	"zoom-in": "zoom-in",
-	"zoom-out": "zoom-out",
+	IconType.ABOUT: "info-lg", #!
+	IconType.ADD: "plug-lg",
+	IconType.ALIGN_LEFT: "text-left",
+	IconType.ALIGN_RIGHT: "text-right",
+	IconType.CENTER: "text-center",
+	IconType.CHAT: "chat-dots",
+	IconType.CHECK: "check",
+	IconType.CHECK_ALL: "check-all",
+	IconType.CONFIGURE: "tools",
+	IconType.CONTEXT_MENU: "three-dots-vertical",
+	IconType.CUT: "scissors",
+	IconType.DEBUG: "bug-fill",
+	IconType.DOWNLOAD: "cloud-download",
+	IconType.EJECT: "eject-fill",
+	IconType.ENTER: "box-arrow-in-right",
+	IconType.ERASE: "eraser-fill",
+	IconType.FAST_FORWARD: "fast-forward-fill",
+	IconType.GO_BACK: "back",
+	IconType.GO_FORWARD: "forward-fill",
+	IconType.GO_FRONT: "front",
+	IconType.GO_HOME: "house-fill",
+	IconType.INDENT: "text-indentleft",
+	IconType.JUSTIFY: "justify",
+	IconType.LEAVE: "box-arrow-right",
+	IconType.MENU: "list",
+	IconType.PAINT: "brush-fill",
+	IconType.PAUSE: "pause-fill",
+	IconType.PICK: "eyedropper",
+	IconType.PIN: "pin-angle-fill",
+	IconType.PLAY: "play-fill",
+	IconType.PRINT: "printer-fill",
+	IconType.PROCESS: "gear",
+	IconType.PROTECT: "shield-fill-check",
+	IconType.QUIT: "power",
+	IconType.RECORD: "record-fill",
+	IconType.REMOVE: "x-lg",
+	IconType.REPEAT: "repeat",
+	IconType.REPLY: "reply-fill",
+	IconType.RESET: "bootstrap-reboot",	#!
+	IconType.REWIND: "rewind-fill",
+	IconType.SEARCH: "search",
+	IconType.SEND: "send",
+	IconType.SHOW: "eye",
+	IconType.SHUFFLE: "shuffle",
+	IconType.SKIP_BACKWARD: "skip-backward-fill",
+	IconType.SKIP_END: "skip-end-fill",
+	IconType.SKIP_FORWARD: "skip-forward-fill",
+	IconType.SKIP_START: "skip-start-fill",
+	IconType.SORT_DOWN: "sort-alpha-down",
+	IconType.SORT_UP: "sort-alpha-up",
+	IconType.STOP: "stop-fill",
+	IconType.UNINDENT: "text-indent-right",
+	IconType.UPLOAD: "cloud-upload",
+	IconType.WORK: "hammer",
+	IconType.ZOOM_IN: "zoom-in",
+	IconType.ZOOM_OUT: "zoom-out",
 
 	# decorators
-	"add-decorator": "plus-circle-fill",
-	"remove-decorator": "x-circle-fill",
+	IconType.ADD_DECO: "plus-circle-fill",
+	IconType.REMOVE_DECO: "x-circle-fill",
 
 	# symbols
-	"angry": "emoji-angry",
-	"female": "geneder-female",	#!
-	"happy": "emoji-smile",
-	"help": "life-preserver",
-	"info": "info-circle-fill",
-	"layers": "layers",		# !
-	"male": "gender-male",		# !
-	"neutral": "emoji-neutral",
-	"question": "question-circle-fill",
-	"quote": "quote",
-	"warning": "exclamation-triangle-fill",
+	IconType.ANGRY: "emoji-angry",
+	IconType.FEMALE: "geneder-female",	#!
+	IconType.HAPPY: "emoji-smile",
+	IconType.HELP: "life-preserver",
+	IconType.INFO: "info-circle-fill",
+	IconType.LAYERS: "layers",		# !
+	IconType.MALE: "gender-male",		# !
+	IconType.NEUTRAL: "emoji-neutral",
+	IconType.QUESTION: "question-circle-fill",
+	IconType.QUOTE: "quote",
+	IconType.WARNING: "exclamation-triangle-fill",
 
 	# keys
-	"arrow-down": "caret-down-fill",
-	"arrow-left": "caret-left-fill",
-	"arrow-right": "caret-right-fill",
-	"arrow-up": "caret-up-fill",
-	"backspace": "backspace-fill",
-	"braces": "braces",
-	"shift": "shift-fill",
+	IconType.ARROW_DOWN: "caret-down-fill",
+	IconType.ARROW_LEFT: "caret-left-fill",
+	IconType.ARROW_RIGHT: "caret-right-fill",
+	IconType.ARROW_UP: "caret-up-fill",
+	IconType.BACKSPACE: "backspace-fill",
+	IconType.BRACES: "braces",
+	IconType.SHIFT: "shift-fill",
 
 	# objects
-	"alarm": "bell-fill",
-	"bookmark": "bookmark-fill",
-	"bookmarks": "bookmarks-fill",
-	"box": "box2-fill",
-	"calendar": "calendar",
-	"camera": "camera-reels-fill",
-	"clock": "clock",
-	"doc": "book-fill",
-	"drop": "droplet-fill",
-	"event": "calendar-event",
-	"fire": "fire",				# !
-	"flag": "flag-fill",
-	"flower": "flower1",		# !
-	"fullscreen": "fullscreen",
-	"graph": "diagram-3-fill",
-	"hourglass": "hourglass-split",	# !
-	"idea": "lighbulb",
-	"image": "image",
-	"key": "key",
-	"lock": "lock-fill",
-	"magic": "magic",	#!
-	"map": "map",
-	"message": "envelope",
-	"money": "cash-coin",
-	"music": "music-note-beamed",
-	"people": "people-fill",
-	"palette": "palette",	 	#!
-	"paperclip": "paperclip",	#!
-	"pencil": "pencil", #!
-	"person": "person-fill",
-	"piece": "puzzle",
-	"plug": "plug",		#!
-	"point": "geo-alt-fill",
-	"stack": "stack",	#!
-	"star-empty": "star",
-	"star-full": "star-fill",
-	"stats": "bar_char_line-fill",
-	"stopwatch": "stopwatch",
-	"tag": "tag",
-	"target": "bullseye",	#++
-	"thrashcan": "thrash",
-	"todo": "clipboard-check",
-	"wall": "bricks",
-	"virus": "virus",	#!
+	IconType.ALARM: "bell-fill",
+	IconType.BOOKMARK: "bookmark-fill",
+	IconType.BOOKMARKS: "bookmarks-fill",
+	IconType.BOX: "box2-fill",
+	IconType.CALENDAR: "calendar",
+	IconType.CAMERA: "camera-reels-fill",
+	IconType.CLOCK: "clock",
+	IconType.DOC: "book-fill",
+	IconType.DROP: "droplet-fill",
+	IconType.EVENT: "calendar-event",
+	IconType.FIRE: "fire",				# !
+	IconType.FLAG: "flag-fill",
+	IconType.FLOWER: "flower1",		# !
+	IconType.FULLSCREEN: "fullscreen",
+	IconType.GRAPH: "diagram-3-fill",
+	IconType.HOURGLASS: "hourglass-split",	# !
+	IconType.IDEA: "lighbulb",
+	IconType.IMAGE: "image",
+	IconType.KEY: "key",
+	IconType.LOCK: "lock-fill",
+	IconType.MAGIC: "magic",	#!
+	IconType.MAP: "map",
+	IconType.MESSAGE: "envelope",
+	IconType.MONEY: "cash-coin",
+	IconType.MUSIC: "music-note-beamed",
+	IconType.PEOPLE: "people-fill",
+	IconType.PALETTE: "palette",	 	#!
+	IconType.PAPERCLIP: "paperclip",	#!
+	IconType.PENCIL: "pencil", #!
+	IconType.PERSON: "person-fill",
+	IconType.PIECE: "puzzle",
+	IconType.PLUG: "plug",		#!
+	IconType.POINT: "geo-alt-fill",
+	IconType.STACK: "stack",	#!
+	IconType.STAR_EMPTY: "star",
+	IconType.STAR_FULL: "star-fill",
+	IconType.STATS: "bar_char_line-fill",
+	IconType.STOPWATCH: "stopwatch",
+	IconType.TAG: "tag",
+	IconType.TARGET: "bullseye",	#++
+	IconType.TRASHCAN: "thrash",
+	IconType.TODO: "clipboard-check",
+	IconType.WALL: "bricks",
+	IconType.VIRUS: "virus",	#!
 
 	# technology
-	"code": "code",		#!
-	"cpu": "cpu",		#!
-	"database": "database",
-	"desktop": "pc-display",	#!
-	"ethernet": "ethernet",
-	"file": "file-earmark",
-	"folder": "folder",
-	"harddisk": "device-hdd",
-	"headphones": "headphones",
-	"keyboard": "keyboard",
-	"laptop": "laptop",	#!
-	"link": "link", #!
-	"micro": "mic",
-	"mouse": "mouse-fill",
-	"printer": "printer-fill",
-	"screen": "display",
-	"terminal": "terminal",
-	"usbkey": "device-ssd",
-	"wifi": "wifi",
-	"window": "window"
+	IconType.CODE: "code",		#!
+	IconType.CPU: "cpu",		#!
+	IconType.DATABASE: "database",
+	IconType.DESKTOP: "pc-display",	#!
+	IconType.ETHERNET: "ethernet",
+	IconType.FILE: "file-earmark",
+	IconType.FOLDER: "folder",
+	IconType.HARDDISK: "device-hdd",
+	IconType.HEADPHONES: "headphones",
+	IconType.KEYBOARD: "keyboard",
+	IconType.LAPTOP: "laptop",	#!
+	IconType.LINK: "link", #!
+	IconType.MICRO: "mic",
+	IconType.MOUSE: "mouse-fill",
+	IconType.PRINTER: "printer-fill",
+	IconType.SCREEN: "display",
+	IconType.TERMINAL: "terminal",
+	IconType.USBKEY: "device-ssd",
+	IconType.WIFI: "wifi",
+	IconType.WINDOW: "window"
 }
 
 ICONS = BOOTSTRAP_ICONS
@@ -195,20 +195,20 @@ class Icon(Image):
 		Context.TOOLBAR: " toolbar-icon",
 	}
 
-	def __init__(self, name, color = None):
+	def __init__(self, type, color = None):
 		Image.__init__(self, ICON_MODEL)
-		self.name = name
+		self.type = type
 		self.color = color
 
 	def gen(self, out):
 		self.gen_in_context(out, Context.NONE)
 
 	def gen_in_context(self, out, context):
-		if self.name.startswith("!"):
-			icon = self.name[1:]
+		if isinstance(self.type, str) and self.type.startswith('!'):
+			icon = self.type[1:]
 		else:
 			try:
-				icon = ICONS[self.name]
+				icon = ICONS[self.type]
 			except KeyError:
 				icon = ICONS["image"]
 		out.write(f'<i class="bi bi-{icon}')
@@ -230,8 +230,8 @@ class BasicTheme(Theme):
 			"bootstrap-icons/bootstrap-icons.css"
 		])
 
-	def get_icon(self, name, color=None):
-		return Icon(name, color)
+	def get_icon(self, type, color=None):
+		return Icon(type, color)
 
 	def get_dialog_icon(self, type, size=32):
 		if type in MESSAGES:

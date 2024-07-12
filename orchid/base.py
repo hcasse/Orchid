@@ -533,6 +533,10 @@ class AbstractComponent(Displayable, Subject):
 		default implementation applies the style to the page."""
 		self.get_page().add_class(cls)
 
+	def get_config(self, key=None, default=None):
+		"""Get the global configuration or the configuration matching the key."""
+		return self.parent.get_config(key, default)
+
 	#def __str__(self):
 	#	try:
 	#		return f"<component {self.get_id()}>"
@@ -683,7 +687,6 @@ class Page(AbstractComponent, ParentComponent):
 		self.timeout_thread = None
 		self.hidden = []
 		self.set_attr("onbeforeunload", "ui_close();")
-		#self.set_attr("onclick", "ui_complete();")
 		self.set_attr("onload", 'ui_hi();')
 		self.interface = interface
 		self.manager = None
@@ -722,10 +725,10 @@ class Page(AbstractComponent, ParentComponent):
 		"""Get the current session."""
 		return self.session
 
-	def get_config(self):
+	def get_config(self, key=None, default=None):
 		"""Get the global configuration as passed to the run()
-		server command."""
-		return self.manager.config
+		server command or an item from the global configuration."""
+		return self.app.get_config(key, default)
 
 	def add_style_path(self, path):
 		"""Add a style path to the generated model."""
@@ -1115,6 +1118,16 @@ class Application:
 		overloaded to customize the session object."""
 		return Session(self, man)
 
+	def get_config(self, key=None, default=None):
+		"""Get the configuration of the application."""
+		if key is None:
+			return self.config
+		else:
+			try:
+				return self.config[key]
+			except KeyError:
+				return default
+
 
 TIMER_MODEL = Model("timer")
 
@@ -1202,8 +1215,8 @@ class Theme(Model):
 		"""Get the name of the theme."""
 		return self.name
 
-	def get_icon(self, name, color = None):
-		"""Get an icon by name. Possibly with a color if the icon is monochrom."""
+	def get_icon(self, type, color = None):
+		"""Get an icon by type. Possibly with a color if the icon is monochrom."""
 		return None
 
 	def get_dialog_icon(self, type, size=32):

@@ -1,10 +1,12 @@
 """Button class."""
 
 from orchid.base import Component, Model
-from orchid.mind import AbstractAction, EnableObserver, Var, BOOL_TYPE, EnumType
+from orchid.mind import AbstractAction, EnableObserver, Var, BOOL_TYPE, \
+	EnumType, EntityObserver
 from orchid.label import Label
 from orchid.field import LabelledField
 from orchid.image import Image
+from orchid.util import Buffer
 
 
 class ButtonAction(AbstractAction):
@@ -23,7 +25,7 @@ class ButtonAction(AbstractAction):
 			self.on_click()
 
 
-class AbstractButton(Component, EnableObserver):
+class AbstractButton(Component, EnableObserver, EntityObserver):
 	"""Abstract class for buttons supporting tooltip, enabling/disablong,
 	etc."""
 
@@ -113,31 +115,50 @@ class Button(AbstractButton):
 				icon=image,
 				help=help
 			))
-		if self.action.label is None:
-			self.label = None
-		else:
-			self.label = Label(self.action.label)
 		if self.action.help is not None:
 			self.set_attr("title", self.action.help)
 		self.set_attr("onclick", f'ui_onclick("{self.get_id()}");')
-
 
 	def finalize(self, page):
 		AbstractButton.finalize(self, page)
 		if self.action.icon is not None:
 			self.action.icon.finalize(page)
-		if self.label is not None:
-			self.label.finalize(page)
+
+	def on_label_change(self, new_label):
+		self.gen_online()
+
+	def on_icon_change(self, new_icon):
+		new_icon.finalize(self.page)
+		self.gen_online()
+
+	def on_help_change(self, new_help):
+		if new_help == None:
+			self.remove_attr("title")
+		else:
+			self.set_attr("title", new_help)
+
+	def gen_online(self):
+		if self.online():
+			buf = Buffer()
+			self.gen_content(buf)
+			self.set_content(str(buf))
+
+	def gen_content(self, out):
+		context = self.parent.get_context()
+		if self.action.icon is not None:
+			out.write('<span class="icon">')
+			self.action.icon.gen_in_context(out, context)
+			out.write('</span>')
+			if self.action.label is not None:
+				out.write('<span class="inter"></span>')
+		if self.action.label is not None:
+			out.write(f'<span class="label">{self.action.label}</span>')
 
 	def gen(self, out):
 		out.write('<button')
 		self.gen_attrs(out)
 		out.write('>')
-		context = self.parent.get_context()
-		if self.action.icon is not None:
-			self.action.icon.gen_in_context(out, context)
-		if self.label is not None:
-			self.label.gen(out)
+		self.gen_content(out)
 		out.write('</button>')
 		out.write('\n')
 

@@ -5,7 +5,7 @@ from orchid import *
 class MyPage(Page):
 
 	def __init__(self, app):
-		self.star = Button(Icon("star-empty"), enabled = False)
+		self.star = Button(Icon(IconType.STAR_EMPTY), enabled = False)
 
 		self.checkbox = CheckBox("check box",
 			help="This is a check box!")
@@ -18,12 +18,12 @@ class MyPage(Page):
 			VGroup([
 				Button("Clic me!", on_click=self.click),
 				HGroup([
-					Button(image = Icon("play"), on_click=self.click),
-					Button(image = Icon("fast-forward"), on_click=self.click),
-					Button(image = Icon("skip-end"), on_click=self.click),
-					Button(image = Icon("skip-forward"), on_click=self.click),
-					Button(image = Icon("stop"), on_click=self.click),
-					Button(image = Icon("record"), on_click=self.click),
+					Button(image = Icon(IconType.PLAY), on_click=self.click),
+					Button(image = Icon(IconType.FAST_FORWARD), on_click=self.click),
+					Button(image = Icon(IconType.SKIP_END), on_click=self.click),
+					Button(image = Icon(IconType.SKIP_FORWARD), on_click=self.click),
+					Button(image = Icon(IconType.STOP), on_click=self.click),
+					Button(image = Icon(IconType.RECORD), on_click=self.click),
 					self.star
 				]),
 				Button("Button with tool tip!", help="The tooltip!"),
