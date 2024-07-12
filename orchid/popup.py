@@ -20,7 +20,7 @@
 from orchid.base import ICON_MENU, Model, Context, Align
 from orchid.group import VGroup
 from orchid.button import Button
-import orchid.image
+from orchid.image import Icon, IconType
 
 BELOW = 0
 RIGHT = 1
@@ -115,7 +115,7 @@ class MenuButton(Button):
 
 	def __init__(self, menu, label = None, image = None, enabled = True):
 		if image is None:
-			image = orchid.image.Icon(ICON_MENU)
+			image = Icon(IconType.MENU)
 		Button.__init__(self,
 			label=label,
 			image=image,

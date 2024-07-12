@@ -142,6 +142,7 @@ class IconType(IntEnum):
 	PIECE = auto()
 	PLUG = auto()
 	POINT = auto()
+	PROJECT = auto()
 	STACK = auto()
 	STAR_EMPTY = auto()
 	STAR_FULL = auto()

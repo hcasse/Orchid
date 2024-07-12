@@ -144,6 +144,7 @@ BOOTSTRAP_ICONS = {
 	IconType.PENCIL: "pencil", #!
 	IconType.PERSON: "person-fill",
 	IconType.PIECE: "puzzle",
+	IconType.PROJECT: "box2-fill",
 	IconType.PLUG: "plug",		#!
 	IconType.POINT: "geo-alt-fill",
 	IconType.STACK: "stack",	#!
@@ -210,7 +211,7 @@ class Icon(Image):
 			try:
 				icon = ICONS[self.type]
 			except KeyError:
-				icon = ICONS["image"]
+				icon = ICONS[IconType.IMAGE]
 		out.write(f'<i class="bi bi-{icon}')
 		try:
 			out.write(Icon.CONTEXT[context])
