@@ -93,12 +93,8 @@ class Field(Component, LabelledField):
 		self.convert = convert
 		self.validate = validate
 		self.place_holder = place_holder
-		if weight is None:
-			if size is not None:
-				weight = (size, 0)
-			else:
-				weight = (1, 0)
-		self.weight = weight
+		if weight is not None:
+			self.weight = (weight, 0)
 		self.read_only = read_only
 
 		# internal state

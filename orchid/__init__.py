@@ -18,8 +18,8 @@
 """Data/Process-oriented user interface."""
 
 from orchid.base import AbstractComponent, Component, Page, Model, Subject, \
-	Observer, Session, Application, Pos, Dir, Align, Context, MessageType
-from orchid.button import Button, CheckBox, RadioButton
+	Observer, Session, Application, Pos, Dir, Align, Context, MessageType, Timer
+from orchid.button import Button, CheckBox, RadioButton, TwoStateButton
 from orchid.console import Console
 from orchid.editor import Editor
 from orchid.field import Field, ColorField, DateField, TimeField, \
@@ -35,7 +35,7 @@ from orchid.mind import Type, EnumType, RangeType, Entity, Var, \
 	not_null, equals, not_, is_password, if_error, matches
 from orchid.models import ListObserver, ListModel, ListVar
 from orchid.server import run
-from orchid.struct import Header, ToolBar, MessageContainer
+from orchid.struct import Header, ToolBar, MessageContainer, StatusBar
 from orchid.tabbedpane import TabbedPane, Tab
 from orchid.util import Interface, buffer
 from orchid.view import InteractiveView

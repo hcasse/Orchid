@@ -123,6 +123,9 @@ body {
 	border: darkgray solid 1px;
 }
 
+.disabled {
+	opacity: 0.5;
+}
 
 /* general elements */
 
@@ -226,6 +229,10 @@ div.field label {
 
 .toolbar-icon {
 	font-size: 1.5em;
+}
+
+.statusbar-icon {
+	font-size: 1.6em;
 }
 
 .message {

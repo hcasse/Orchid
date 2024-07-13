@@ -36,8 +36,9 @@ class Context(IntEnum):
 	TOOLBAR = 1
 	HEADERBAR = 2
 	BUTTONBAR = 3
-	MENU = 4
-	MAIN = 5
+	STATUSBAR = 4
+	MENU = 5
+	MAIN = 6
 
 # deprecated
 CONTEXT_NONE = Context.NONE

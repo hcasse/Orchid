@@ -386,3 +386,91 @@ class RadioButton(Component, LabelledField):
 	def update(self, subject):
 		if not self.updating:
 			self.update_remote()
+
+
+class TwoStateButton(Component):
+	"""Button that have two states, two icons or one icon and none.
+	It can be controlled by a Boolean variable or directly by commands
+	set_state()."""
+
+	MODEL = Model(
+		"twostate-button",
+		style = """
+.twostate_off {
+}
+"""
+	)
+	EMPTY = "twostate_off"
+	DISABLED = "disabled"
+
+	def __init__(self, icon1, icon2=None, readonly=False, enabled=True):
+		"""" Build a 2-state button with icon1 state 1, icon2 state 2.
+		Alternativelty, icon1  may be a Boolean Var and state 1 icon is
+		taken from its entity. If icon 2 is not provided, state 2 is just
+		an empty place."""
+
+		Component.__init__(self, model=self.MODEL)
+		if isinstance(icon1, Var):
+			assert icon1.get_type() == BOOL_TYPE
+			self.var = icon1
+		else:
+			self.var = Var(True, icon=icon1)
+		self.icon2 = icon2
+		self.readonly = readonly
+		self.enabled = None
+		self.gen_empty()
+		self.set_enabled(enabled)
+
+	def finalize(self, page):
+		super().finalize(page)
+		self.var.icon.finalize(page)
+		if self.icon2 is not None:
+			self.icon2.finalize(page)
+
+	def on_show(self):
+		self.var.add_observer(self)
+
+	def on_hide(self):
+		self.var.remove_observer(self)
+
+	def update(self, subject):
+		self.gen_empty()
+		buf = Buffer()
+		self.gen_content(buf)
+		self.set_content(str(buf))
+
+	def enable(self):
+		if not self.enabled:
+			self.enabled = True
+			self.remove_class(self.DISABLED)
+
+	def disable(self):
+		if self.enabled:
+			self.enabled = False
+			self.add_class(self.DISABLED)
+
+	def gen_empty(self):
+		"""Set or remove for the empty case."""
+		if self.icon2 is None:
+			if not self.var.get():
+				self.add_class(self.EMPTY)
+			else:
+				self.remove_class(self.EMPTY)
+
+
+	def gen_content(self, out):
+		"""Generate the content of the button."""
+		if self.var.get():
+			icon = self.var.icon
+		else:
+			icon = self.icon2
+		if icon is not None:
+			icon.gen_in_context(out, self.parent.get_context())
+
+	def gen(self, out):
+		out.write('<div ')
+		self.gen_attrs(out)
+		out.write('>')
+		self.gen_content(out)
+		out.write('</div>')
+

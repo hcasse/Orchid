@@ -194,6 +194,7 @@ class Icon(Image):
 	CONTEXT = {
 		Context.HEADERBAR: " headerbar-icon",
 		Context.TOOLBAR: " toolbar-icon",
+		Context.STATUSBAR: " statusbar-icon"
 	}
 
 	def __init__(self, type, color = None):

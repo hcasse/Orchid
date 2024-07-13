@@ -99,3 +99,22 @@ class MessageContainer(VGroup):
 	def info(self, msg):
 		"""Show an information and return display identifier.."""
 		return self.show_message(msg, MessageType.INFO)
+
+
+class StatusBar(HGroup):
+
+	MODEL = Model(
+		"status-bar",
+		parent = HGROUP_MODEL
+	)
+
+	def __init__(self, content, model=None):
+		if model is None:
+			model = self.MODEL
+		HGroup.__init__(self, content, model=model)
+
+	def get_context(self):
+		return Context.STATUSBAR
+
+	def expands_horizontal(self):
+		return True
