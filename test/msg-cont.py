@@ -1,23 +1,28 @@
 #!/usr/bin/python3
 
-from orchid import *
+"""Message container test."""
 
-class MyPage(Page):
+import orchid as orc
+
+class MyPage(orc.Page):
 
 	def __init__(self, app):
-		self.cont = MessageContainer(
-				VGroup([
-					Button("clear", on_click=self.clear),
-					Button("show info", on_click=self.show_info),
-					Button("show_warn", on_click=self.show_warn),
-					Button("show_error", on_click=self.show_error),
-					Button("hide info", on_click=self.hide_info),
-					Button("hide warn", on_click=self.hide_warn),
-					Button("hide error", on_click=self.hide_error),
-				], align=Align.CENTER)
+		self.cont = orc.MessageContainer(
+				orc.VGroup([
+					orc.Button("clear", on_click=self.clear),
+					orc.Button("show info", on_click=self.show_info),
+					orc.Button("show_warn", on_click=self.show_warn),
+					orc.Button("show_error", on_click=self.show_error),
+					orc.Button("hide info", on_click=self.hide_info),
+					orc.Button("hide warn", on_click=self.hide_warn),
+					orc.Button("hide error", on_click=self.hide_error),
+				], align=orc.Align.CENTER)
 			)
+		self.info = None
+		self.warn = None
+		self.error = None
 
-		Page.__init__(
+		orc.Page.__init__(
 			self,
 			self.cont,
 			app = app
@@ -45,14 +50,5 @@ class MyPage(Page):
 		self.cont.hide_message(self.error)
 
 
-class MyApp(Application):
-
-	def __init__(self):
-		Application.__init__(self, "MessageContainer test")
-		self.fst = MyPage(self)
-
-	def first(self):
-		return self.fst
-
-run(MyApp(), debug=True)
+orc.Application("MessageContainer test", first=MyPage).run()
 

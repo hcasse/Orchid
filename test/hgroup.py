@@ -1,18 +1,20 @@
 #!/usr/bin/python3
 
-from orchid import *
+"""Horizontal group test."""
 
-class MyPage(Page):
+import orchid as orc
+
+class MyPage(orc.Page):
 
 	def __init__(self, app):
-		Page.__init__(
+		orc.Page.__init__(
 			self,
-			HGroup([
-				Label("Label..."),
-				Field("Type text here!", size=10),
-				Field(size = 2),
-				Button("Done", on_click=self.done),
-				Button("Give up", on_click=self.give_up)
+			orc.HGroup([
+				orc.Label("Label..."),
+				orc.Field("Type text here!", size=10),
+				orc.Field(size = 2),
+				orc.Button("Done", on_click=self.done),
+				orc.Button("Give up", on_click=self.give_up)
 			]),
 			app = app
 		)
@@ -23,13 +25,6 @@ class MyPage(Page):
 	def give_up(self):
 		print("Give up!")
 
-class MyApp(Application):
+orc.Application("HGroup Test", first=MyPage).run()
 
-	def __init__(self):
-		Application.__init__(self, "HGroup Test")
-
-	def first(self):
-		return MyPage(self)
-
-run(MyApp())
 

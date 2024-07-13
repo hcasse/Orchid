@@ -1,19 +1,21 @@
 #!/usr/bin/python3
 
-from orchid import *
+"""Show/hide test."""
 
-class MyPage(Page):
+import orchid as orc
+
+class MyPage(orc.Page):
 
 	def __init__(self, app):
-		self.lookup = HGroup([
-			Field("Lookup"),
-			Button("Close", on_click=self.end_lookup)
+		self.lookup = orc.HGroup([
+			orc.Field("Lookup"),
+			orc.Button("Close", on_click=self.end_lookup)
 		])
-		Page.__init__(
+		orc.Page.__init__(
 			self,
-			VGroup([
-				Button("Lookup", on_click=self.do_lookup),
-				Editor(init = "Edit something."),
+			orc.VGroup([
+				orc.Button("Lookup", on_click=self.do_lookup),
+				orc.Editor(init = "Edit something."),
 				self.lookup
 			]),
 			app = app
@@ -27,14 +29,5 @@ class MyPage(Page):
 		self.lookup.hide()
 
 
-class MyApp(Application):
-
-	def __init__(self):
-		Application.__init__(self, "Show/Hide Test")
-		self.fst = MyPage(self)
-
-	def first(self):
-		return self.fst
-
-run(MyApp(), debug=True)
+orc.Application("Show/Hide Test", first=MyPage).run()
 

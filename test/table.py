@@ -1,8 +1,8 @@
 #!/usr/bin/python3
 
-from orchid import *
-import orchid.table as table
-import orchid.group as group
+"""Table test."""
+
+import orchid as orc
 
 my_table = [
 	[ "Spain", "Madrid", 47325360, 505990 ],
@@ -11,24 +11,24 @@ my_table = [
 	[ "Italy", "Rome", 58853482, 301230 ]
 ]
 
-class MyPage(Page):
+class MyPage(orc.Page):
 
 	def __init__(self, app):
-		self.table = table.TableView(
+		self.table = orc.TableView(
 			my_table,
 			parse=self.parse,
 			is_editable=self.is_editable,
 			headers = ["Country", "Capital", "Surface", "Population"]
 		)
-		Page.__init__(
+		orc.Page.__init__(
 			self,
-			VGroup([
+			orc.VGroup([
 				self.table,
-				HGroup([
-					Button("clear", on_click=self.clear),
-					Button("append", on_click=self.append),
-					Button("insert", on_click=self.insert),
-					Button("remove", on_click=self.remove)
+				orc.HGroup([
+					orc.Button("clear", on_click=self.clear),
+					orc.Button("append", on_click=self.append),
+					orc.Button("insert", on_click=self.insert),
+					orc.Button("remove", on_click=self.remove)
 				])
 			]),
 			app = app
@@ -53,20 +53,9 @@ class MyPage(Page):
 		self.table.get_table_model().append_row(["?", "?", "?", "?"])
 
 	def insert(self):
-		self.table.get_table_model().insert_row(2, ["?", "?", "?", "?"])		
+		self.table.get_table_model().insert_row(2, ["?", "?", "?", "?"])
 	def remove(self):
 		self.table.get_table_model().remove_row(2)
 
-	def is_editable(self, row, col):
-		return col >= 2
-
-class MyApp(Application):
-
-	def __init__(self):
-		Application.__init__(self, "table-test")
-
-	def first(self):
-		return MyPage(self)
-
-run(MyApp())
+orc.Application("Table Test", first=MyPage).run()
 

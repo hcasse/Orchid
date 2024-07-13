@@ -1,17 +1,19 @@
 #!/usr/bin/python3
 
-from orchid import *
+"""Enabling test."""
 
-class MyPage(Page):
+import orchid as orc
+
+class MyPage(orc.Page):
 
 	def __init__(self, app):
-		self.target = Button("Target", on_click=self.close)
-		Page.__init__(
+		self.target = orc.Button("Target", on_click=self.close)
+		orc.Page.__init__(
 			self,
-			VGroup([
+			orc.VGroup([
 				self.target,
-				Button("Enable", on_click=self.do_enable),
-				Button("Disable", on_click=self.do_disable),
+				orc.Button("Enable", on_click=self.do_enable),
+				orc.Button("Disable", on_click=self.do_disable),
 			]),
 			app = app
 		)
@@ -23,13 +25,5 @@ class MyPage(Page):
 		self.target.disable()
 
 
-class MyApp(Application):
-
-	def __init__(self):
-		Application.__init__(self, "MyApp")
-
-	def first(self):
-		return MyPage(self)
-
-run(MyApp())
+orc.Application("Enable Test", first=MyPage).run()
 

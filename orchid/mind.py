@@ -23,9 +23,11 @@ An application, and its different views, can be seen as a set of data on which
 actions applies. This structure may also be used to provide external interface
 to the application."""
 
+from enum import Enum
 import re
 
 from orchid.base import Subject, Observer
+
 
 def is_python_type(t):
 	return isinstance(t, type)
@@ -71,6 +73,8 @@ class BaseType(Type):
 		self.type = type
 		self.null = null
 		self.parser = parser
+		self.record(type, self)
+
 
 	def parse(self, text):
 		return self.parser(text)
@@ -83,17 +87,6 @@ def parse_bool(text):
 		return False
 	else:
 		return None
-
-BOOL_TYPE = BaseType(bool, False, parser=parse_bool)
-INT_TYPE = BaseType(int, 0, parser=int)
-FLOAT_TYPE = BaseType(float, 0., parser=float)
-STR_TYPE = BaseType(str, "", parser=str)
-
-Type.record(bool, BOOL_TYPE)
-Type.record(int, INT_TYPE)
-Type.record(float, FLOAT_TYPE)
-Type.record(str, STR_TYPE)
-
 
 class ListType(Type):
 	"""Type for lists."""
@@ -110,7 +103,6 @@ class ListType(Type):
 
 	def get_null(self):
 		return []
-
 
 class EnumType(Type):
 	"""Type for enumerated values."""
@@ -147,22 +139,42 @@ class RangeType(Type):
 			null = min
 		self.null = null
 
+class Types(Enum):
+	"""Record all existing types."""
 
-def type_of_data(data):
-	if isinstance(data, list):
-		if len(data) == 0:
-			return ListType(Type.find(str))
+	BOOL = BaseType(bool, False, parser=parse_bool)
+	INT = BaseType(int, 0, parser=int)
+	FLOAT = BaseType(float, 0., parser=float)
+	STR = BaseType(str, "", parser=str)
+	LIST = ListType
+	ENUM = EnumType
+	RANGE = RangeType
+
+	@staticmethod
+	def list(item_type):
+		return ListType(item_type)
+
+	@staticmethod
+	def enum(values, null=None):
+		return EnumType(values, null=null)
+
+	@staticmethod
+	def range(min, max, null=None):
+		return RangeType(min, max, null=null)
+
+	@staticmethod
+	def type_of(x):
+		if isinstance(x, type):
+			return Type.find(type)
+		elif isinstance(x, Type):
+			return x
+		elif isinstance(x, list):
+			if len(x) == 0:
+				return ListType(Types.STR)
+			else:
+				return ListType(Types.type_of(x[0]))
 		else:
-			return ListType(type_of_data(data[0]))
-	else:
-		return Type.find(data.__class__)
-
-
-def make_type(type):
-	if isinstance(type, Type):
-		return type
-	else:
-		return Type.find(type)
+			return Type.find(x.__class__)
 
 
 class EntityObserver(Observer):
@@ -258,11 +270,9 @@ class Var(Entity):
 		Entity.__init__(self, **args)
 		self.value = value
 		if type is None:
-			self.type = type_of_data(value)
-		elif isinstance(type, Type):
-			self.type = type
+			self.type = Types.type_of(value)
 		else:
-			self.type = Type.find(type)
+			self.type = Types.type_of(type)
 
 	def get_type(self):
 		return self.type

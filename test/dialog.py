@@ -1,18 +1,17 @@
 #!/usr/bin/python3
 
-from orchid import *
+"""Dialog test."""
+
+import orchid as orc
 from orchid import dialog
-from orchid.group import VGroup
-from orchid.list import *
-from orchid.console import *
 
 class CustomDialog(dialog.Base):
 
 	def __init__(self, page):
-		main = VGroup([
-			Label("Custom list"),
-			ListView(["one", "two", "three"]),
-			Button("Close", on_click=self.close)
+		main = orc.VGroup([
+			orc.Label("Custom list"),
+			orc.ListView(["one", "two", "three"]),
+			orc.Button("Close", on_click=self.close)
 		])
 		dialog.Base.__init__(self, page, main, title="Custom")
 		self.set_style("min-width", "400px")
@@ -22,17 +21,17 @@ class CustomDialog(dialog.Base):
 		self.hide()
 
 
-class MyPage(Page):
+class MyPage(orc.Page):
 
 	def __init__(self, app):
-		self.console = Console(init = "<b>Welcome !</b>")
-		Page.__init__(
+		self.console = orc.Console(init = "<b>Welcome !</b>")
+		orc.Page.__init__(
 			self,
-			VGroup([
-				HGroup([
-					Button("Show base", on_click=self.open),
-					Button("Show answer", on_click=self.open2),
-					Button("Show custom", on_click=self.open3)
+			orc.VGroup([
+				orc.HGroup([
+					orc.Button("Show base", on_click=self.do_open),
+					orc.Button("Show answer", on_click=self.open2),
+					orc.Button("Show custom", on_click=self.open3)
 				]),
 				self.console
 			]),
@@ -41,9 +40,9 @@ class MyPage(Page):
 
 		self.dialog = dialog.Base(
 			self,
-			VGroup([
-				Label('First dialog!'),
-				Button("Close", on_click=self.close)
+			orc.VGroup([
+				orc.Label('First dialog!'),
+				orc.Button("Close", on_click=self.close)
 			])
 		)
 
@@ -57,7 +56,7 @@ class MyPage(Page):
 
 		self.dialog3 = None
 
-	def open(self):
+	def do_open(self):
 		print("DEBUG: open first dialog!")
 		self.dialog.show()
 
@@ -76,15 +75,5 @@ class MyPage(Page):
 		print("DEBUG: close")
 		self.dialog.hide()
 
-
-class MyApp(Application):
-
-	def __init__(self):
-		Application.__init__(self, "dialog test")
-		self.fst = MyPage(self)
-
-	def first(self):
-		return self.fst
-
-run(MyApp(), debug = True)
+orc.Application("Dialog Test", first=MyPage).run()
 

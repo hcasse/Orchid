@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 
-from orchid import *
+"""Testing for model updating."""
 
-MODEL = Model(
+import orchid as orc
+
+MODEL = orc.Model(
 	"my-button",
 	script = """
 		console.log("my-button loaded!");
@@ -14,20 +16,20 @@ MODEL = Model(
 """
 )
 
-class MyButton(Button):
+class MyButton(orc.Button):
 
 	def __init__(self):
-		Button.__init__(self, "Hello!", model = MODEL)
+		orc.Button.__init__(self, "Hello!", model = MODEL)
 		self.add_class("my-style")
 
 
-class MyPage(Page):
+class MyPage(orc.Page):
 
 	def __init__(self, app):
-		self.group = HGroup([
-				Button("run", on_click=self.run)
+		self.group = orc.HGroup([
+				orc.Button("run", on_click=self.run)
 			])
-		Page.__init__(
+		orc.Page.__init__(
 			self,
 			self.group,
 			app = app
@@ -37,14 +39,5 @@ class MyPage(Page):
 		self.group.insert(MyButton())
 
 
-class MyApp(Application):
-
-	def __init__(self):
-		Application.__init__(self, "Model Update Test")
-		self.fst = MyPage(self)
-
-	def first(self):
-		return self.fst
-
-run(MyApp(), debug=True)
+orc.Application("Model Update Test", first=MyPage).run()
 

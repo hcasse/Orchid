@@ -1,93 +1,86 @@
 #!/usr/bin/python3
 
-from orchid import *
+"""Group align test."""
 
-class MyPage(Page):
+import orchid as orc
+
+class MyPage(orc.Page):
 
 	def __init__(self, app):
-		Page.__init__(
+		orc.Page.__init__(
 			self,
-			VGroup([
+			orc.VGroup([
 
-				HGroup([
-					Label("HGroup"),
-					Button(label="ok"),
-					Label("align top"),
-					Button(label="ko"),
-					Label(AssetImage("orchid.svg", width=32))
-				], align=Align.TOP),
+				orc.HGroup([
+					orc.Label("HGroup"),
+					orc.Button(label="ok"),
+					orc.Label("align top"),
+					orc.Button(label="ko"),
+					orc.Label(orc.AssetImage("orchid.svg", width=32))
+				], align=orc.Align.TOP),
 
-				HGroup([
-					Label("HGroup"),
-					Button(label="ok"),
-					Label("align bottom"),
-					Button(label="ko"),
-					Label(AssetImage("orchid.svg", width=32))
-				], align=Align.BOTTOM),
+				orc.HGroup([
+					orc.Label("HGroup"),
+					orc.Button(label="ok"),
+					orc.Label("align bottom"),
+					orc.Button(label="ko"),
+					orc.Label(orc.AssetImage("orchid.svg", width=32))
+				], align=orc.Align.BOTTOM),
 
-				HGroup([
-					Label("HGroup"),
-					Button(label="ok"),
-					Label("align center"),
-					Button(label="ko"),
-					Label(AssetImage("orchid.svg", width=32))
-				], align=Align.CENTER),
+				orc.HGroup([
+					orc.Label("HGroup"),
+					orc.Button(label="ok"),
+					orc.Label("align center"),
+					orc.Button(label="ko"),
+					orc.Label(orc.AssetImage("orchid.svg", width=32))
+				], align=orc.Align.CENTER),
 
-				HGroup([
-					Label("HGroup"),
-					Button(label="ok"),
-					Label("align justify"),
-					Button(label="ko"),
-					Label(AssetImage("orchid.svg", width=32))
-				], align=Align.JUSTIFY),
+				orc.HGroup([
+					orc.Label("HGroup"),
+					orc.Button(label="ok"),
+					orc.Label("align justify"),
+					orc.Button(label="ko"),
+					orc.Label(orc.AssetImage("orchid.svg", width=32))
+				], align=orc.Align.JUSTIFY),
 
-				HGroup([
+				orc.HGroup([
 
-					VGroup([
-						Label("VGroup"),
-						Button(label="ok"),
-						Label("align left"),
-						Button(label="ko"),
-						Label(AssetImage("orchid.svg", width=32))
-					], align=Align.LEFT),
+					orc.VGroup([
+						orc.Label("VGroup"),
+						orc.Button(label="ok"),
+						orc.Label("align left"),
+						orc.Button(label="ko"),
+						orc.Label(orc.AssetImage("orchid.svg", width=32))
+					], align=orc.Align.LEFT),
 
-					VGroup([
-						Label("VGroup"),
-						Button(label="ok"),
-						Label("align right"),
-						Button(label="ko"),
-						Label(AssetImage("orchid.svg", width=32))
-					], align=Align.RIGHT),
+					orc.VGroup([
+						orc.Label("VGroup"),
+						orc.Button(label="ok"),
+						orc.Label("align right"),
+						orc.Button(label="ko"),
+						orc.Label(orc.AssetImage("orchid.svg", width=32))
+					], align=orc.Align.RIGHT),
 
-					VGroup([
-						Label("VGroup"),
-						Button(label="ok"),
-						Label("align center"),
-						Button(label="ko"),
-						Label(AssetImage("orchid.svg", width=32))
-					], align=Align.CENTER),
+					orc.VGroup([
+						orc.Label("VGroup"),
+						orc.Button(label="ok"),
+						orc.Label("align center"),
+						orc.Button(label="ko"),
+						orc.Label(orc.AssetImage("orchid.svg", width=32))
+					], align=orc.Align.CENTER),
 
-					VGroup([
-						Label("VGroup"),
-						Button(label="ok"),
-						Label("align justify"),
-						Button(label="ko"),
-						Label(AssetImage("orchid.svg", width=32))
-					], align=Align.JUSTIFY)
+					orc.VGroup([
+						orc.Label("VGroup"),
+						orc.Button(label="ok"),
+						orc.Label("align justify"),
+						orc.Button(label="ko"),
+						orc.Label(orc.AssetImage("orchid.svg", width=32))
+					], align=orc.Align.JUSTIFY)
 				])
 
 			]),
 			app = app
 		)
 
-class MyApp(Application):
-
-	def __init__(self):
-		Application.__init__(self, "Group Align Test")
-		self.fst = MyPage(self)
-
-	def first(self):
-		return self.fst
-
-run(MyApp(), debug=True)
+orc.Application("Group Align Test", first=MyPage).run()
 

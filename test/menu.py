@@ -1,33 +1,35 @@
 #!/usr/bin/python3
 
-from orchid import *
-from orchid import popup
 
-class MyPage(Page):
+"""Menu test."""
+
+import orchid as orc
+
+class MyPage(orc.Page):
 
 	def make_menu(self):
-		return popup.MenuButton(
-			popup.Menu([
-				Button("Menu 1", on_click=self.menu1),
-				Button("Menu 2", on_click=self.menu2),
-				Button("Menu 3 long")
+		return orc.MenuButton(
+			orc.Menu([
+				orc.Button("Menu 1", on_click=self.menu1),
+				orc.Button("Menu 2", on_click=self.menu2),
+				orc.Button("Menu 3 long")
 			])
 		)
 
 	def __init__(self, app):
-		Page.__init__(self,
-			VGroup([
-				HGroup([
+		orc.Page.__init__(self,
+			orc.VGroup([
+				orc.HGroup([
 					self.make_menu(),
-					Spring(hexpand=True),
+					orc.Spring(hexpand=True),
 					self.make_menu()
 				]),
-				Editor(),
-				HGroup([
+				orc.Editor(),
+				orc.HGroup([
 					self.make_menu(),
-					Spring(hexpand=True),
+					orc.Spring(hexpand=True),
 					self.make_menu()
-				])				
+				])
 			]),
 			app = app)
 
@@ -38,13 +40,6 @@ class MyPage(Page):
 		print("DEBUG: menu2!")
 
 
-class MyApp(Application):
+orc.Application("Lenu Test", first=MyPage).run()
 
-	def __init__(self):
-		Application.__init__(self, "MyApp")
-
-	def first(self):
-		return MyPage(self)
-
-run(MyApp(), debug=True)
 

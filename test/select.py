@@ -1,6 +1,8 @@
 #!/usr/bin/python3
 
-from orchid import *
+"""Select list test."""
+
+import orchid as orc
 
 CHOICES1 = [
 	"choice 1",
@@ -13,18 +15,18 @@ CHOICES2 = [
 	"blue"
 ]
 
-class MyPage(Page):
+class MyPage(orc.Page):
 
 	def __init__(self, app):
-		self.select = Select(CHOICES1)
-		Page.__init__(
+		self.select = orc.Select(CHOICES1)
+		orc.Page.__init__(
 			self,
-			VGroup([
-				HGroup([
-					Button("Choices 1", on_click=self.set_choice1),
-					Button("Choices 2", on_click=self.set_choice2),
-					Button("Append", on_click=self.do_append),
-					Button("Remvoe last", on_click=self.do_remove)
+			orc.VGroup([
+				orc.HGroup([
+					orc.Button("Choices 1", on_click=self.set_choice1),
+					orc.Button("Choices 2", on_click=self.set_choice2),
+					orc.Button("Append", on_click=self.do_append),
+					orc.Button("Remvoe last", on_click=self.do_remove)
 				]),
 				self.select
 			]),
@@ -44,15 +46,6 @@ class MyPage(Page):
 		self.select.remove_choice(len(self.select.choices)-1)
 
 
-class MyApp(Application):
-
-	def __init__(self):
-		Application.__init__(self, "Select Test")
-		self.fst = MyPage(self)
-
-	def first(self):
-		return self.fst
-
-run(MyApp(), debug = True)
+orc.Application("Select Test", first=MyPage).run()
 
 

@@ -1,26 +1,28 @@
 #!/usr/bin/python3
 
-from orchid import *
+"""Status bar test."""
 
-class MyPage(Page):
+import orchid as orc
+
+class MyPage(orc.Page):
 
 	def __init__(self, app):
-		self.counter = Var(0)
-		self.twostate = Var(True, icon=Icon(IconType.FLOWER))
-		self.tscomp = TwoStateButton(self.twostate, icon2=Icon(IconType.FIRE))
-		Page.__init__(
+		self.counter = orc.Var(0)
+		self.twostate = orc.Var(True, icon=orc.Icon(orc.IconType.FLOWER))
+		self.tscomp = orc.TwoStateButton(self.twostate, icon2=orc.Icon(orc.IconType.FIRE))
+		orc.Page.__init__(
 			self,
-			VGroup([
-				HGroup([
-					Button("Increment", on_click=self.increment),
-					Button("Decrement", on_click=self.decrement),
-					Button("Disable", on_click=self.tscomp.disable),
-					Button("Enabled", on_click=self.tscomp.enable)
+			orc.VGroup([
+				orc.HGroup([
+					orc.Button("Increment", on_click=self.increment),
+					orc.Button("Decrement", on_click=self.decrement),
+					orc.Button("Disable", on_click=self.tscomp.disable),
+					orc.Button("Enabled", on_click=self.tscomp.enable)
 				]),
-				Editor(init="MyEditor!"),
-				StatusBar([
-					hspring(),
-					Field(self.counter),
+				orc.Editor(init="MyEditor!"),
+				orc.StatusBar([
+					orc.hspring(),
+					orc.Field(self.counter),
 					self.tscomp
 				])
 			]),
@@ -39,13 +41,5 @@ class MyPage(Page):
 		self.set_twostate()
 
 
-class MyApp(Application):
-
-	def __init__(self):
-		Application.__init__(self, "StatusBar Test")
-
-	def first(self):
-		return MyPage(self)
-
-run(MyApp())
+orc.Application("StatusBar Test", first=MyPage).run()
 

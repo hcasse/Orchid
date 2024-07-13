@@ -17,7 +17,7 @@
 
 """This module manage popups: menus."""
 
-from orchid.base import ICON_MENU, Model, Context, Align
+from orchid.base import Model, Context, Align
 from orchid.group import VGroup
 from orchid.button import Button
 from orchid.image import Icon, IconType

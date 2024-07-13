@@ -1,34 +1,28 @@
 #!/usr/bin/python3
 
-from orchid import *
+"""Expading horizontal group test."""
 
-class MyPage(Page):
+import orchid as orc
+
+class MyPage(orc.Page):
 
 	def __init__(self, app):
-		ed1 = Editor("I'm an editor!\nOk!")
-		ed2 = Editor("I'm a second editor!\nko!\ntwice first editor!")
+		ed1 = orc.Editor("I'm an editor!\nOk!")
+		ed2 = orc.Editor("I'm a second editor!\nko!\ntwice first editor!")
 		ed2.weight = (2, 1)
-		Page.__init__(
+		orc.Page.__init__(
 			self,
-			VGroup([
-				HGroup([
-					Button("Button"),
+			orc.VGroup([
+				orc.HGroup([
+					orc.Button("Button"),
 					ed1,
-					Button("interval"),
+					orc.Button("interval"),
 					ed2,
-					Label("at end")
+					orc.Label("at end")
 				]),
 			]),
 			app = app
 		)
 
-class MyApp(Application):
-
-	def __init__(self):
-		Application.__init__(self, "Expand HGroup")
-
-	def first(self):
-		return MyPage(self)
-
-run(MyApp())
+orc.Application("Expand HGroup", first=MyPage).run()
 

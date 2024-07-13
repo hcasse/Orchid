@@ -17,7 +17,7 @@
 
 """SplitPane implementation."""
 
-from orchid import Model
+from orchid.base import Model
 from orchid.group import Group
 
 MODEL = Model(

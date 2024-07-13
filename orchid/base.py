@@ -24,6 +24,7 @@ from threading import Thread
 import time
 from time import sleep
 
+from orchid import server
 from orchid.util import Buffer, STANDARD_INTERFACE
 
 CLOSE_TIMEOUT=0.250
@@ -1084,8 +1085,24 @@ class Application:
 		website = None,
 		icon = None,
 		style_paths = None,
-		theme = "basic"
+		theme = "basic",
+		first = lambda _: None,
+		session = lambda app, man: None
 	):
+		"""Build an applications. Parameters encompasses:
+		* version (as a string)
+		* authors (as a string)
+		* licence (as a string)
+		* description (as a string)
+		* website (URL)
+		* icon (path to icon file)
+		* style_paths (list of paths to find .css files)
+		* theme (theme to use for the applications pages)
+		* first (function called with application as paramter to
+			build the first page, typically class of main page)
+		* session (constructor of session taking application, manager as parameter)
+		"""
+
 		if authors is None:
 			authors = []
 		if style_paths is None:
@@ -1100,24 +1117,31 @@ class Application:
 		self.style_paths = style_paths
 		self.theme = theme
 		self.config = {}
+		self.first_class = first
+		self.session_cons = session
+
+	def run(self, **args):
+		"""Run the server for the application.
+		Parameters are passed as is to the server."""
+		server.run(self, **args)
 
 	def get_theme(self):
 		"""Get the theme of the application."""
 		return self.theme
 
-	def first(self):
-		"""Function called to get the first page."""
-		return None
-
 	def configure(self, config):
 		"""Function called to configure the application."""
 		self.config = config
+
+	def first(self):
+		"""Get the first page."""
+		return self.first_class(self)
 
 	def new_session(self, man):
 		"""Called to create a new session for the application.
 		Default return the base class Session. This function can be
 		overloaded to customize the session object."""
-		return Session(self, man)
+		return self.session_cons(self, man)
 
 	def get_config(self, key=None, default=None):
 		"""Get the configuration of the application."""

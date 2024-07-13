@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 
-from orchid import *
+"""SVG injection test."""
+
+import orchid as orc
 from orchid.svg import Canvas, Content
 from orchid.util import Buffer
-from orchid.server import Provider
 
 # https://www.sarasoueidan.com/blog/svg-coordinate-systems/
 
@@ -23,14 +24,14 @@ class LED(Content):
 		self.add_event("onmouseup", self.on_mouse_up)
 
 	def on_click(self):
-		print("Click %s!" % self.color)
+		print(f"Click {self.color}!" )
 		self.invert()
 
 	def on_mouse_down(self):
-		print("Pushed %s!" % self.color)
+		print(f"Pushed {self.color}!")
 
 	def on_mouse_up(self):
-		print("Release %s!" % self.color)
+		print("Release {self.color}!")
 
 	def set(self, color1, color2):
 		if self.parent.online():
@@ -55,18 +56,18 @@ class LED(Content):
 			self.off()
 		else:
 			self.on()
-	
+
 
 COLORS = ["red", "green", "Gold", "MediumPurple", "YellowGreen"]
 
-class MyPage(Page):
+class MyPage(orc.Page):
 
 	def __init__(self, app):
 		self.on = False
 
 		# prepare SVG
 		buf = Buffer()
-		with open("led.svg") as input:
+		with open("led.svg", encoding="utf8") as input:
 			l = input.readline()
 			while not l.startswith("<svg"):
 				l = input.readline()
@@ -85,27 +86,18 @@ class MyPage(Page):
 		x = 0
 		for color in COLORS:
 			shape = self.canvas.record(LED(x, 0, self.image, color))
-			buts.append(Button(color, on_click=shape.invert))
+			buts.append(orc.Button(color, on_click=shape.invert))
 			x = x + 50
 
 		# build UI
-		Page.__init__(
+		orc.Page.__init__(
 			self,
-			VGroup([
-				HGroup(buts),
+			orc.VGroup([
+				orc.HGroup(buts),
 				self.canvas
 			]),
 			app = app)
 
 
-class MyApp(Application):
-
-	def __init__(self):
-		Application.__init__(self, "SVG Inject Test")
-		self.fst = MyPage(self)
-
-	def first(self):
-		return self.fst
-
-run(MyApp())
+orc.Application("SVG Inject Test", first=MyPage).run()
 

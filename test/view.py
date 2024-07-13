@@ -1,17 +1,19 @@
 #!/usr/bin/python3
 
-from orchid import *
+"""View test."""
 
-class MyPage(Page):
+import orchid as orc
+
+class MyPage(orc.Page):
 
 	def __init__(self, app):
-		self.view = InteractiveView()
-		Page.__init__(
+		self.view = orc.InteractiveView()
+		orc.Page.__init__(
 			self,
-			VGroup([
+			orc.VGroup([
 				self.view,
-				Button("Pikachu", on_click=self.do_pikachu),
-				Button("Ninetales", on_click=self.do_ninetales)
+				orc.Button("Pikachu", on_click=self.do_pikachu),
+				orc.Button("Ninetales", on_click=self.do_ninetales)
 			]),
 			app = app
 		)
@@ -23,13 +25,5 @@ class MyPage(Page):
 		self.view.display(path = "ninetales.svg")
 
 
-class MyApp(Application):
-
-	def __init__(self):
-		Application.__init__(self, "MyApp")
-
-	def first(self):
-		return MyPage(self)
-
-run(MyApp())
+orc.Application("View Test", first=MyPage).run()
 

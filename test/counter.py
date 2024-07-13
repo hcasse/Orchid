@@ -1,15 +1,19 @@
 #!/usr/bin/env python3
 
-from orchid import *
+"""Custom component test."""
 
-MODEL = Model(
-	script = """
+import orchid as orc
+
+class Counter(orc.Component):
+
+	MODEL = orc.Model(
+		script = """
 		function counter_onclick(id, event) {
-			if(event.button == 0) 
+			if(event.button == 0)
 				ui_send({id: id, action: "click"});
 		}
 	""",
-	style = """
+		style = """
 		.counter {
 			border: 2px solid red;
 			padding: 4px;
@@ -19,13 +23,11 @@ MODEL = Model(
 			background: yellow;
 		}
 	"""
-)
-
-class Counter(Component):
+	)
 
 	def __init__(self, message):
-		Component.__init__(self, MODEL)
-		self.message = message;
+		orc.Component.__init__(self, self.MODEL)
+		self.message = message
 		self.count = 0
 		self.set_attr('onclick',
 			f"counter_onclick('{self.get_id()}', event);")
@@ -35,26 +37,26 @@ class Counter(Component):
 		return f'{self.message} {self.count}'
 
 	def gen(self, out):
-		out.write('<div');
-		self.gen_attrs(out);
+		out.write('<div')
+		self.gen_attrs(out)
 		out.write('>')
 		out.write(self.display())
 		out.write('</div>')
 
-	def receive(self, message, handler):
-		if message['action'] == 'click':
+	def receive(self, msg, handler):
+		if msg['action'] == 'click':
 			self.count = self.count + 1
 			self.set_content(self.display())
 		else:
-			Component.receive(self, message, handler)
+			orc.Component.receive(self, msg, handler)
 
 
-class MyPage(Page):
+class MyPage(orc.Page):
 
 	def __init__(self, app):
-		Page.__init__(
+		orc.Page.__init__(
 			self,
-			VGroup([
+			orc.VGroup([
 				Counter("Counter 1:"),
 				Counter("Counter 2:")
 			]),
@@ -62,13 +64,4 @@ class MyPage(Page):
 		)
 
 
-class MyApp(Application):
-
-	def __init__(self):
-		Application.__init__(self, "Counter Test")
-		self.fst = MyPage(self)
-
-	def first(self):
-		return self.fst
-
-run(MyApp(), debug=True)
+orc.Application("Counter Test", first=MyPage).run()

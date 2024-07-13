@@ -24,19 +24,22 @@ from orchid.console import Console
 from orchid.editor import Editor
 from orchid.field import Field, ColorField, DateField, TimeField, \
 	DateTimeField, PasswordField, EmailField, RangeField, \
-	Select, as_natural, as_re, Form
+	Select, as_natural, as_re, Form, ProposalField
 from orchid.group import HGroup, VGroup, Spring, LayeredPane, hspring, vspring
 from orchid.image import Icon, Image, AssetImage, IconType
 from orchid.label import Label, MessageLabel, Banner
 from orchid.listview import ListView
 from orchid import mind
-from orchid.mind import Type, EnumType, RangeType, Entity, Var, \
+from orchid.mind import Type, Types, Entity, Var, \
 	EnableObserver, AbstractPredicate, Predicate, AbstractAction, Action, \
 	not_null, equals, not_, is_password, if_error, matches
 from orchid.models import ListObserver, ListModel, ListVar
+from orchid.popup import Menu, MenuButton
 from orchid.server import run
+from orchid.split import SplitPane
 from orchid.struct import Header, ToolBar, MessageContainer, StatusBar
 from orchid.tabbedpane import TabbedPane, Tab
+from orchid.table import TableView
 from orchid.util import Interface, buffer
 from orchid.view import InteractiveView
 

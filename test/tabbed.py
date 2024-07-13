@@ -1,11 +1,13 @@
 #!/usr/bin/python3
 
-from orchid import *
+"""Tabbed pane test."""
 
-class MyTab(Tab):
+import orchid as orc
+
+class MyTab(orc.Tab):
 
 	def __init__(self, label, text):
-		self.component = Editor(text)
+		self.component = orc.Editor(text)
 		self.label = label
 
 	def get_label(self):
@@ -24,25 +26,25 @@ class MyTab(Tab):
 		print("Released", self.label)
 
 
-class MyPage(Page):
+class MyPage(orc.Page):
 
 	def __init__(self, app):
 		self.num = 0
 		self.cnt = 3
 
-		self.tab = TabbedPane([
+		self.tab = orc.TabbedPane([
 			MyTab("one", "One !\nHere\n"),
 			MyTab("two", "Another tab!"),
 			MyTab("three", "Last tab!")
 		])
 
-		Page.__init__(
+		orc.Page.__init__(
 			self,
-			VGroup([
-				HGroup([
-					Button("add", on_click=self.add),
-					Button("remove", on_click=self.remove),
-					Button("first", on_click=self.first)
+			orc.VGroup([
+				orc.HGroup([
+					orc.Button("add", on_click=self.add),
+					orc.Button("remove", on_click=self.remove),
+					orc.Button("first", on_click=self.first)
 				]),
 				self.tab
 			]),
@@ -50,7 +52,7 @@ class MyPage(Page):
 		)
 
 	def add(self):
-		self.tab.insert(MyTab("new %d" % self.num, "another text %d" % self.num))
+		self.tab.insert(MyTab(f"new {self.num}", "another text {self.num}"))
 		self.num = self.num + 1
 		self.cnt = self.cnt + 1
 
@@ -62,13 +64,5 @@ class MyPage(Page):
 		self.tab.select(self.tab.get_tab(0))
 
 
-class MyApp(Application):
-
-	def __init__(self):
-		Application.__init__(self, "TabbedPane Test")
-
-	def first(self):
-		return MyPage(self)
-
-run(MyApp(), debug=True)
+orc.Application("TabbedPane Test", first=MyPage).run()
 

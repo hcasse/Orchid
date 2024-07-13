@@ -1,9 +1,8 @@
 #!/usr/bin/python3
 
-from orchid import *
-from orchid.list import *
-import orchid.group as group
-from orchid import popup
+"""List view test."""
+
+import orchid as orc
 
 my_list = [
 	"Rome",
@@ -27,31 +26,31 @@ alt_list = [
 	"Germany"
 ]
 
-class MyPage(Page):
+class MyPage(orc.Page):
 
 	def __init__(self, app):
 		self.count = 0
 		self.selection = []
 
-		self.menu = popup.Menu([
-				Button("Menu 1", on_click=self.menu1),
-				Button("Menu 2", on_click=self.menu2)
+		self.menu = orc.Menu([
+				orc.Button("Menu 1", on_click=self.menu1),
+				orc.Button("Menu 2", on_click=self.menu2)
 			])
 
-		self.component = ListView(my_list,
+		self.component = orc.ListView(my_list,
 			selection = self.selection,
 			context_menu = self.menu)
 		self.items = self.component.get_items()
-		Page.__init__(
+		orc.Page.__init__(
 			self,
-			VGroup([
+			orc.VGroup([
 				self.component,
-				HGroup([
-					Button("clear", on_click=self.clear),
-					Button("insert", on_click=self.insert),
-					Button("remove", on_click=self.remove),
-					Button("set", on_click=self.set),
-					Button("change", on_click=self.change)
+				orc.HGroup([
+					orc.Button("clear", on_click=self.clear),
+					orc.Button("insert", on_click=self.insert),
+					orc.Button("remove", on_click=self.remove),
+					orc.Button("set", on_click=self.set),
+					orc.Button("change", on_click=self.change)
 				])
 			]),
 			app = app
@@ -62,7 +61,7 @@ class MyPage(Page):
 		self.component.get_items().clear()
 
 	def insert(self):
-		item = "item %d" % self.count
+		item = f"item {self.count}"
 		if self.selection:
 			self.items.insert(self.selection[0], item)
 		else:
@@ -87,13 +86,6 @@ class MyPage(Page):
 		print("DEBUG: menu2!")
 
 
-class MyApp(Application):
+orc.Application("ListView Test", first=MyPage).run()
 
-	def __init__(self):
-		Application.__init__(self, "list-test")
-
-	def first(self):
-		return MyPage(self)
-
-run(MyApp(), debug=True)
 

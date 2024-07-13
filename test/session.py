@@ -1,21 +1,24 @@
 #!/usr/bin/python3
 
-from orchid import *
+"""Session test."""
+
+import orchid as orc
 
 
-class MySession(Session):
+class MySession(orc.Session):
 
 	def __init__(self, app, man):
-		Session.__init__(self, app, man)
+		orc.Session.__init__(self, app, man)
 		self.cnt = 0
+		self.label = None
 
 	def get_index(self):
-		self.label = Label("0")
-		return Page(
-			VGroup([
-				Label("Session %d" % self.get_number()),
+		self.label = orc.Label("0")
+		return orc.Page(
+			orc.VGroup([
+				orc.Label(f"Session {self.get_number()}"),
 				self.label,
-				Button("Increment", on_click=self.on_click)
+				orc.Button("Increment", on_click=self.on_click)
 			]),
 			app = self.app
 		)
@@ -25,13 +28,6 @@ class MySession(Session):
 		self.label.set_text(str(self.cnt))
 
 
-class MyApp(Application):
-
-	def __init__(self):
-		Application.__init__(self, "session-test")
-
-	def new_session(self, man):
-		return MySession(self, man)
-
-run(MyApp(), server = True)
+orc.Application("Session Test", session=MySession) \
+	.run(server=True, debug=True)
 

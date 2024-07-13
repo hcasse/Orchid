@@ -1,21 +1,23 @@
 #!/usr/bin/python3
 
-from orchid import *
+"""Test on-line group  changes."""
 
-class MyPage(Page):
+import orchid as orc
+
+class MyPage(orc.Page):
 
 	def __init__(self, app):
-		self.target = HGroup([
-			Button("Button 0"),
-			Button("Button 1")
+		self.target = orc.HGroup([
+			orc.Button("Button 0"),
+			orc.Button("Button 1")
 		])
-		Page.__init__(
+		orc.Page.__init__(
 			self,
-			VGroup([
-				HGroup([
-					Button("Add", on_click=self.add),
-					Button("Remove", on_click=self.remove),
-					Button("Middle", on_click=self.middle)
+			orc.VGroup([
+				orc.HGroup([
+					orc.Button("Add", on_click=self.add),
+					orc.Button("Remove", on_click=self.remove),
+					orc.Button("Middle", on_click=self.middle)
 				]),
 				self.target
 			]),
@@ -24,23 +26,15 @@ class MyPage(Page):
 
 	def add(self):
 		n = len(self.target.get_children())
-		self.target.insert(Button("Button %d" % n))
+		self.target.insert(orc.Button(f"Button {n}"))
 
 	def middle(self):
 		n = len(self.target.get_children())
-		self.target.insert(Button("Button X"), n//2)
+		self.target.insert(orc.Button("Button X"), n//2)
 
 	def remove(self):
 		n = len(self.target.get_children())
 		self.target.remove(n - 1)
 
-class MyApp(Application):
-
-	def __init__(self):
-		Application.__init__(self, "Change Group Test")
-
-	def first(self):
-		return MyPage(self)
-
-run(MyApp())
+orc.Application("Change Group Test", first=MyPage).run()
 

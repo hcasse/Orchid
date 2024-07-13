@@ -18,7 +18,7 @@
 """Classes representing models, observers and variables for complex data structures."""
 
 from orchid.base import Subject, Observer
-from orchid.mind import Var, ListType, make_type, type_of_data
+from orchid.mind import Var, Types
 
 class ListObserver(Observer):
 	"""Observer of a list model."""
@@ -112,9 +112,9 @@ class ListVar(Var, ListModel):
 			list = []
 		if type is None:
 			if item_type is not None:
-				type = ListType(make_type(item_type))
+				type = Types.list(Types.type_of(item_type))
 			else:
-				type = type_of_data(list)
+				type = Types.type_of(list)
 		Var.__init__(self, list, type, **args)
 
 	def size(self):

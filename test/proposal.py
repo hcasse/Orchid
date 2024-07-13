@@ -1,7 +1,8 @@
 #!/usr/bin/python3
 
-from orchid import *
-from orchid.field import ProposalField
+"""Proposal field test."""
+
+import orchid as orc
 
 TEXTS = [
 	"this",
@@ -15,15 +16,15 @@ TEXTS = [
 	"it"
 ]
 
-class MyPage(Page):
+class MyPage(orc.Page):
 
 	def __init__(self, app):
-		Page.__init__(
+		orc.Page.__init__(
 			self,
-			VGroup([
-				ProposalField(label="Proposal", propose=self.propose),
-				EmailField(label="Email", place_holder="Email"),
-				Editor(init="my editor!")
+			orc.VGroup([
+				orc.ProposalField(label="Proposal", propose=self.propose),
+				orc.EmailField(label="Email", place_holder="Email"),
+				orc.Editor(init="my editor!")
 			]),
 			app = app
 		)
@@ -38,14 +39,5 @@ class MyPage(Page):
 		return res
 
 
-class MyApp(Application):
-
-	def __init__(self):
-		Application.__init__(self, "MyApp")
-		self.fst = MyPage(self)
-
-	def first(self):
-		return self.fst
-
-run(MyApp(), debug=True)
+orc.Application("Proposal Field Test", first=MyPage).run()
 

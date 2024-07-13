@@ -1,22 +1,23 @@
 #!/usr/bin/python3
 
-from orchid import *
-from orchid import struct
+"""Simple application test."""
 
-class MyPage(Page):
+import orchid as orc
+
+class MyPage(orc.Page):
 
 	def __init__(self, app):
-		Page.__init__(
+		orc.Page.__init__(
 			self,
-			VGroup([
-				struct.Header(
+			orc.VGroup([
+				orc.Header(
 					"app-test",
 					[
-						Button("click here", on_click=self.clicked),
-						Button(image = Icon("quit"), on_click=self.close)
+						orc.Button("click here", on_click=self.clicked),
+						orc.Button(image = orc.Icon(orc.IconType.QUIT), on_click=self.close)
 					]
 				),
-				Editor(init = "Hello, World!")
+				orc.Editor(init = "Hello, World!")
 			]),
 			app = app
 		)
@@ -24,14 +25,5 @@ class MyPage(Page):
 	def clicked(self):
 		print("DEBUG: clicked!")
 
-class MyApp(Application):
-
-	def __init__(self):
-		Application.__init__(self, "app-test")
-		self.fst = MyPage(self)
-
-	def first(self):
-		return self.fst
-
-run(MyApp(), debug=True)
+orc.Application("Application Test", first=MyPage).run()
 

@@ -1,9 +1,8 @@
 """Button class."""
 
 from orchid.base import Component, Model
-from orchid.mind import AbstractAction, EnableObserver, Var, BOOL_TYPE, \
+from orchid.mind import AbstractAction, EnableObserver, Var, Types, \
 	EnumType, EntityObserver
-from orchid.label import Label
 from orchid.field import LabelledField
 from orchid.image import Image
 from orchid.util import Buffer
@@ -132,7 +131,7 @@ class Button(AbstractButton):
 		self.gen_online()
 
 	def on_help_change(self, new_help):
-		if new_help == None:
+		if new_help is None:
 			self.remove_attr("title")
 		else:
 			self.set_attr("title", new_help)
@@ -203,7 +202,7 @@ class CheckBox(Component, LabelledField):
 		Component.__init__(self, CHECK_BOX_MODEL)
 		if var is not None:
 			self.var = var
-			assert var.get_type() == BOOL_TYPE
+			assert var.get_type() == Types.BOOL
 		else:
 			self.var = Var(value, label=label, help=help)
 		self.set_value(value)
@@ -411,7 +410,7 @@ class TwoStateButton(Component):
 
 		Component.__init__(self, model=self.MODEL)
 		if isinstance(icon1, Var):
-			assert icon1.get_type() == BOOL_TYPE
+			assert icon1.get_type() == Types.BOOL
 			self.var = icon1
 		else:
 			self.var = Var(True, icon=icon1)

@@ -1,30 +1,30 @@
 #!/usr/bin/python3
 
-from orchid import *
-from orchid.field import *
-from orchid.button import *
+"""Form test."""
 
-class MyPage(Page):
+import orchid as orc
+
+class MyPage(orc.Page):
 
 	def __init__(self, app):
-		Page.__init__(
+		orc.Page.__init__(
 			self,
-			VGroup([
-				Label("Fulfill the form below:"),
-				Form([
-					Field(label="Name"),
-					EmailField(label="EMail"),
-					DateField(label="Birth date"),
-					DateTimeField(label="Now"),
-					TimeField(label="Time"),
-					PasswordField(label="Password"),
-					RangeField(0, 10, label="Range"),
-					ProposalField(propose=self.propose, label="Count"),
-					Select(["Frodon", "Sam", "Merry", "Pippin"], label="Hobbit"),
-					CheckBox(label="Pro Sauron?"),
-					RadioButton(["Aragorn", "Legolas", "Gimli"], label="Hero")
+			orc.VGroup([
+				orc.Label("Fulfill the form below:"),
+				orc.Form([
+					orc.Field(label="Name"),
+					orc.EmailField(label="EMail"),
+					orc.DateField(label="Birth date"),
+					orc.DateTimeField(label="Now"),
+					orc.TimeField(label="Time"),
+					orc.PasswordField(label="Password"),
+					orc.RangeField(0, 10, label="Range"),
+					orc.ProposalField(propose=self.propose, label="Count"),
+					orc.Select(["Frodon", "Sam", "Merry", "Pippin"], label="Hobbit"),
+					orc.CheckBox(label="Pro Sauron?"),
+					orc.RadioButton(["Aragorn", "Legolas", "Gimli"], label="Hero")
 				]),
-				Button("Apply", on_click=self.apply)
+				orc.Button("Apply", on_click=self.apply)
 			]),
 			app = app
 		)
@@ -35,14 +35,5 @@ class MyPage(Page):
 	def propose(self, value):
 		return ["one", "two", "three"]
 
-class MyApp(Application):
-
-	def __init__(self):
-		Application.__init__(self, "Form Test")
-		self.fst = MyPage(self)
-
-	def first(self):
-		return self.fst
-
-run(MyApp(), debug=True)
+orc.Application("Form Test", first=MyPage).run()
 

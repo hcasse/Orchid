@@ -1,19 +1,21 @@
 #!/usr/bin/python3
 
-from orchid import *
+"""Entity change test."""
 
-class MyPage(Page):
+import orchid as orc
+
+class MyPage(orc.Page):
 
 	def __init__(self, app):
-		self.action = Action(fun=self.on_click,
-			label = "Test", icon = Icon(IconType.MAGIC))
-		Page.__init__(
+		self.action = orc.Action(fun=self.on_click,
+			label = "Test", icon = orc.Icon(orc.IconType.MAGIC))
+		orc.Page.__init__(
 			self,
-			VGroup([
-				Button(self.action),
-				HGroup([
-					Button("Change label", on_click=self.change_label),
-					Button("Change icon", on_click=self.change_icon)
+			orc.VGroup([
+				orc.Button(self.action),
+				orc.HGroup([
+					orc.Button("Change label", on_click=self.change_label),
+					orc.Button("Change icon", on_click=self.change_icon)
 				])
 			]),
 			app = app
@@ -26,17 +28,8 @@ class MyPage(Page):
 		self.action.set_label("Changed!")
 
 	def change_icon(self):
-		self.action.set_icon(Icon(IconType.BOX))
+		self.action.set_icon(orc.Icon(orc.IconType.BOX))
 
 
-class MyApp(Application):
-
-	def __init__(self):
-		Application.__init__(self, "Entity Update Test")
-		self.fst = MyPage(self)
-
-	def first(self):
-		return self.fst
-
-run(MyApp(), debug=True)
+orc.Application("Entity Update Test", first=MyPage).run()
 

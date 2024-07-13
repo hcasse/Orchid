@@ -1,30 +1,23 @@
 #!/usr/bin/python3
 
-from orchid import *
-from orchid.split import SplitPane
+"""Split pane test."""
 
-class MyPage(Page):
+import orchid as orc
+
+class MyPage(orc.Page):
 
 	def __init__(self, app):
-		Page.__init__(
+		orc.Page.__init__(
 			self,
-			SplitPane(
-				Editor(init = "Hello, World!"),
-				Editor(init = "second"),
+			orc.SplitPane(
+				orc.Editor(init = "Hello, World!"),
+				orc.Editor(init = "second"),
 				pos=30
 			),
 			app = app
 		)
 
 
-class MyApp(Application):
-
-	def __init__(self):
-		Application.__init__(self, "SplitPane Test")
-
-	def first(self):
-		return MyPage(self)
-
-run(MyApp())
+orc.Application("SplitPane Test", first=MyPage).run()
 
 

@@ -1,27 +1,29 @@
 #!/usr/bin/python3
 
-from orchid import *
+"""Layered pane test."""
 
-class MyPage(Page):
+import orchid as orc
+
+class MyPage(orc.Page):
 
 	def __init__(self, app):
 
-		self.layer = LayeredPane([
-			Editor(init = "Layer 0!"),
-			Editor(init = "Layer 1!"),
-			Console(init = "coucou!")
+		self.layer = orc.LayeredPane([
+			orc.Editor(init = "Layer 0!"),
+			orc.Editor(init = "Layer 1!"),
+			orc.Console(init = "coucou!")
 		])
-		
-		Page.__init__(
+
+		orc.Page.__init__(
 			self,
-			VGroup([
-				HGroup([
-					Button("Layer 0", on_click=self.set_zero),
-					Button("Layer 1", on_click=self.set_one),
-					Button("Layer 2", on_click=self.set_two),
+			orc.VGroup([
+				orc.HGroup([
+					orc.Button("Layer 0", on_click=self.set_zero),
+					orc.Button("Layer 1", on_click=self.set_one),
+					orc.Button("Layer 2", on_click=self.set_two),
 				]),
 				self.layer,
-				Label("below")
+				orc.Label("below")
 			]),
 			app = app
 		)
@@ -36,14 +38,5 @@ class MyPage(Page):
 		self.layer.set_layer(2)
 
 
-class MyApp(Application):
-
-	def __init__(self):
-		Application.__init__(self, "layered-test")
-		self.fst = MyPage(self)
-
-	def first(self):
-		return self.fst
-
-run(MyApp(), debug=True)
+orc.Application("Layered Pane Test", first=MyPage).run()
 

@@ -1,39 +1,32 @@
 #!/usr/bin/python3
 
-from orchid import *
+"""Dynamic group changes."""
 
-class MyPage(Page):
+import orchid as orc
+
+class MyPage(orc.Page):
 
 	def __init__(self, app):
-		self.hgroup = HGroup([
-			Button("Add", on_click=self.add),
-			Button("Remove", on_click=self.remove)
+		self.hgroup = orc.HGroup([
+			orc.Button("Add", on_click=self.add),
+			orc.Button("Remove", on_click=self.remove)
 		])
 		self.edit = None
-		Page.__init__(
+		orc.Page.__init__(
 			self,
-			VGroup([
+			orc.VGroup([
 				self.hgroup,
-				Editor(init = "Basic editor")
+				orc.Editor(init = "Basic editor")
 			]),
 			app = app
 		)
 
 	def add(self):
-		self.edit = Editor(init="Second editor.")
+		self.edit = orc.Editor(init="Second editor.")
 		self.hgroup.insert(self.edit)
 
 	def remove(self):
 		self.hgroup.remove(self.edit)
 
-class MyApp(Application):
-
-	def __init__(self):
-		Application.__init__(self, "Group Dynamic Test")
-		self.fst = MyPage(self)
-
-	def first(self):
-		return self.fst
-
-run(MyApp(), debug=True)
+orc.Application("Group Dynamic Test", first=MyPage).run()
 

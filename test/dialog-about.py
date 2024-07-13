@@ -1,17 +1,19 @@
 #!/usr/bin/python3
 
-from orchid import *
+"""Test for about dialog."""
+
+import orchid as orc
 from orchid import dialog
 
-class MyPage(Page):
+class MyPage(orc.Page):
 
 	def __init__(self, app):
-		self.console = Console(init = "<b>Welcome !</b>")
-		Page.__init__(
+		self.console = orc.Console(init = "<b>Welcome !</b>")
+		orc.Page.__init__(
 			self,
-			VGroup([
-				HGroup([
-					Button("About", on_click=self.about),
+			orc.VGroup([
+				orc.HGroup([
+					orc.Button("About", on_click=self.about),
 				]),
 			]),
 			app = app
@@ -23,27 +25,18 @@ class MyPage(Page):
 			self.dialog = dialog.About(self)
 		self.dialog.show()
 
-
-class MyApp(Application):
-
-	def __init__(self):
-		Application.__init__(self,
-			"message dialog test",
-			version="1.0.2",
-			icon="orchid.svg",
-			description="""
+orc.Application(
+	"message dialog test",
+	version="1.0.2",
+	icon="orchid.svg",
+	description="""
 Incredible application.
 Made by myself.
 But in fact it's a test!
 """,
-			license="LGPL v3",
-			copyright="Copyright (c) 2024, myself <myself@here.fr>",
-			website="https://github.com/hcasse/Orchid"
-		)
-		self.fst = MyPage(self)
-
-	def first(self):
-		return self.fst
-
-run(MyApp(), debug = True)
+	license="LGPL v3",
+	copyright="Copyright (c) 2024, myself <myself@here.fr>",
+	website="https://github.com/hcasse/Orchid",
+	first=MyPage
+).run()
 

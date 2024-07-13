@@ -1,34 +1,36 @@
 #!/usr/bin/python3
 
-from orchid import *
+"""Button test."""
 
-class MyPage(Page):
+import orchid as orc
+
+class MyPage(orc.Page):
 
 	def __init__(self, app):
-		self.star = Button(Icon(IconType.STAR_EMPTY), enabled = False)
+		self.star = orc.Button(orc.Icon(orc.IconType.STAR_EMPTY), enabled = False)
 
-		self.checkbox = CheckBox("check box",
+		self.checkbox = orc.CheckBox("check box",
 			help="This is a check box!")
 
-		self.radio = RadioButton(
+		self.radio = orc.RadioButton(
 			["choice 1", "choice 2", "choice 3"])
 
-		Page.__init__(
+		orc.Page.__init__(
 			self,
-			VGroup([
-				Button("Clic me!", on_click=self.click),
-				HGroup([
-					Button(image = Icon(IconType.PLAY), on_click=self.click),
-					Button(image = Icon(IconType.FAST_FORWARD), on_click=self.click),
-					Button(image = Icon(IconType.SKIP_END), on_click=self.click),
-					Button(image = Icon(IconType.SKIP_FORWARD), on_click=self.click),
-					Button(image = Icon(IconType.STOP), on_click=self.click),
-					Button(image = Icon(IconType.RECORD), on_click=self.click),
+			orc.VGroup([
+				orc.Button("Clic me!", on_click=self.click),
+				orc.HGroup([
+					orc.Button(image = orc.Icon(orc.IconType.PLAY), on_click=self.click),
+					orc.Button(image = orc.Icon(orc.IconType.FAST_FORWARD), on_click=self.click),
+					orc.Button(image = orc.Icon(orc.IconType.SKIP_END), on_click=self.click),
+					orc.Button(image = orc.Icon(orc.IconType.SKIP_FORWARD), on_click=self.click),
+					orc.Button(image = orc.Icon(orc.IconType.STOP), on_click=self.click),
+					orc.Button(image = orc.Icon(orc.IconType.RECORD), on_click=self.click),
 					self.star
 				]),
-				Button("Button with tool tip!", help="The tooltip!"),
-				HGroup([self.checkbox, Button("invert", on_click=self.invert_checkbox)]),
-				HGroup([self.radio, Button("next", on_click=self.next)])
+				orc.Button("Button with tool tip!", help="The tooltip!"),
+				orc.HGroup([self.checkbox, orc.Button("invert", on_click=self.invert_checkbox)]),
+				orc.HGroup([self.radio, orc.Button("next", on_click=self.next)])
 			]),
 			app = app
 		)
@@ -47,13 +49,5 @@ class MyPage(Page):
 		print("Clicked!")
 
 
-class MyApp(Application):
-
-	def __init__(self):
-		Application.__init__(self, "buttons")
-
-	def first(self):
-		return MyPage(self)
-
-run(MyApp(), debug=True)
+orc.Application("Buttons Test", first=MyPage).run(debug=True)
 

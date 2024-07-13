@@ -1,31 +1,32 @@
 #!/usr/bin/python3
 
-from orchid import *
-from orchid.mind import *
+"""Field tests."""
 
-class MyPage(Page):
+import orchid as orc
+
+class MyPage(orc.Page):
 
 	def __init__(self, app):
-		self.my_field = Field("Set test", init="ok")
-		self.my_text = Var("")
+		self.my_field = orc.Field("Set test", init="ok")
+		self.my_text = orc.Var("")
 		self.my_text.add_observer(self.update_text)
-		Page.__init__(
+		orc.Page.__init__(
 			self,
-			VGroup([
-				Field("Type text:", var=self.my_text),
-				Field("Type natural:", validate=as_natural),
-				Field("Type binary:", validate=as_re("[01]+")),
-				Field("With place holder:", place_holder="a place holder"),
-				Field("Help message:", help="the help message"),
-				ColorField(label="Color:", help="ok", init="#00FF00"),
-				DateField(label="Date"),
-				TimeField(label="Time"),
-				DateTimeField(label="Date, Time"),
-				PasswordField(label="Password"),
-				EmailField(label="EMail"),
-				RangeField(0, 10, label="Range"),
+			orc.VGroup([
+				orc.Field("Type text:", var=self.my_text),
+				orc.Field("Type natural:", validate=orc.as_natural),
+				orc.Field("Type binary:", validate=orc.as_re("[01]+")),
+				orc.Field("With place holder:", place_holder="a place holder"),
+				orc.Field("Help message:", help="the help message"),
+				orc.ColorField(label="Color:", help="ok", init="#00FF00"),
+				orc.DateField(label="Date"),
+				orc.TimeField(label="Time"),
+				orc.DateTimeField(label="Date, Time"),
+				orc.PasswordField(label="Password"),
+				orc.EmailField(label="EMail"),
+				orc.RangeField(0, 10, label="Range"),
 				self.my_field,
-				Button("Let's go!", on_click=self.go)
+				orc.Button("Let's go!", on_click=self.go)
 			]),
 			app = app
 		)
@@ -42,13 +43,5 @@ class MyPage(Page):
 	def give_up(self):
 		print("Give up!")
 
-class MyApp(Application):
-
-	def __init__(self):
-		Application.__init__(self, "HGroup Test")
-
-	def first(self):
-		return MyPage(self)
-
-run(MyApp(), debug=True)
+orc.Application("Field Test", first=MyPage).run()
 

@@ -1,24 +1,26 @@
 #!/usr/bin/python3
 
-from orchid import *
+"""Editor test."""
 
-class MyPage(Page):
+import orchid as orc
+
+class MyPage(orc.Page):
 
 	def __init__(self, app):
-		self.edit1 = Editor(init = "Hello, World!")
-		self.edit2 = Editor(init = "<b>first</b>")
-		self.edit3 = Editor(init = "second")
-		Page.__init__(
+		self.edit1 = orc.Editor(init = "Hello, World!")
+		self.edit2 = orc.Editor(init = "<b>first</b>")
+		self.edit3 = orc.Editor(init = "second")
+		orc.Page.__init__(
 			self,
-			VGroup([
-				HGroup([
-					Label("Editor test"),
-					Button("Get 1", on_click=self.get_edit1),
-					Button("Get 2", on_click=self.get_edit2),
-					Button("Get 3", on_click=self.get_edit3)
+			orc.VGroup([
+				orc.HGroup([
+					orc.Label("Editor test"),
+					orc.Button("Get 1", on_click=self.get_edit1),
+					orc.Button("Get 2", on_click=self.get_edit2),
+					orc.Button("Get 3", on_click=self.get_edit3)
 				]),
 				self.edit1,
-				HGroup([
+				orc.HGroup([
 					self.edit2,
 					self.edit3
 				])
@@ -42,13 +44,5 @@ class MyPage(Page):
 		print("DEBUG: got", content, "from", editor.get_id())
 
 
-class MyApp(Application):
-
-	def __init__(self):
-		Application.__init__(self, "Editor Test")
-
-	def first(self):
-		return MyPage(self)
-
-run(MyApp())
+orc.Application("Editor Test", first=MyPage).run()
 
