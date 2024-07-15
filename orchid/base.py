@@ -1087,7 +1087,7 @@ class Application:
 		style_paths = None,
 		theme = "basic",
 		first = lambda _: None,
-		session = lambda app, man: None
+		session = None
 	):
 		"""Build an applications. Parameters encompasses:
 		* version (as a string)
@@ -1118,6 +1118,8 @@ class Application:
 		self.theme = theme
 		self.config = {}
 		self.first_class = first
+		if session is None:
+			session = Session
 		self.session_cons = session
 
 	def run(self, **args):

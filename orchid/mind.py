@@ -23,7 +23,6 @@ An application, and its different views, can be seen as a set of data on which
 actions applies. This structure may also be used to provide external interface
 to the application."""
 
-from enum import Enum
 import re
 
 from orchid.base import Subject, Observer
@@ -75,9 +74,11 @@ class BaseType(Type):
 		self.parser = parser
 		self.record(type, self)
 
-
 	def parse(self, text):
 		return self.parser(text)
+
+	def __str__(self):
+		return str(self.type)
 
 def parse_bool(text):
 	text = text.lowercase()
@@ -139,7 +140,7 @@ class RangeType(Type):
 			null = min
 		self.null = null
 
-class Types(Enum):
+class Types:
 	"""Record all existing types."""
 
 	BOOL = BaseType(bool, False, parser=parse_bool)
