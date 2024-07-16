@@ -27,7 +27,7 @@ MODEL = Model(
 		style = """
 .tabbed-label {
 }
-.tabbed-current {	
+.tabbed-current {
 }
 .tabbed-labelbar {
 	flex-wrap: wrap-reverse;
@@ -41,46 +41,42 @@ MODEL = Model(
 class Tab:
 	"""Interface to a tab."""
 
+	def __init__(self, label, component):
+		self.label = label
+		self.component = component
+
 	def get_label(self):
 		"""Get he label of the tab."""
-		return None
+		return self.label
 
 	def get_component(self):
 		"""Get the component of the tab."""
-		return None
-
-	def on_show(self):
-		"""Called when the tab is shown."""
-		pass
-
-	def on_hide(self):
-		"""Called when a tab is hidden."""
-
-	def on_release(self):
-		"""Called when a tab is released."""
-		pass
+		return self.component
 
 
 class TabbedPane(VGroup):
-	"""Implements tabbed pane i.e. a list of layered pane accesible
+	"""Implements tabbed pane i.e. a list of layered pane accessible
 	from a list of labels displayed at top. The tabs parameters must
-	be a list of Tab objects."""
+	be a list of Tab objects. Tabs is a list of (string label, component)
+	or of Tab."""
 
-	def __init__(self, tabs, model=MODEL):
-		self.tabs = tabs
+	def __init__(self, tabs = [], model=MODEL):
+		self.tabs = []
 		labs = []
 		for tab in tabs:
+			if not isinstance(tab, Tab):
+				tab = Tab(tab[0], tab[1])
+			self.tabs.append(tab)
 			labs.append(self.make_label(tab))
 		self.labs = HGroup(labs)
 		self.labs.add_class("tabbed-labelbar")
-		self.panes = LayeredPane([tab.get_component() for tab in tabs])
+		self.panes = LayeredPane([tab.get_component() for tab in self.tabs])
 		self.panes.add_class("tabbed-body")
 		self.current = -1
 		if tabs:
 			self.select(0)
 		VGroup.__init__(self, [self.labs, self.panes], model)
 		self.add_class("tabbed")
-		self.vexpand = None
 
 	def get_tabs(self):
 		"""Get the list of tabs."""
@@ -94,11 +90,17 @@ class TabbedPane(VGroup):
 		return but
 
 	def get_index(self, tab):
-		"""Get the index of the given tab. If the tab is not in this
+		"""Get the index of the given tab or component. If the tab is not in this
 		pane, return None."""
-		try:
-			return self.tabs.index(tab)
-		except ValueError:
+		if isinstance(tab, Tab):
+			try:
+				return self.tabs.index(tab)
+			except ValueError:
+				return None
+		else:
+			for (i, tab) in enumerate(self.tabs):
+				if tab.get_component() is tab:
+					return i
 			return None
 
 	def select(self, i):
@@ -110,12 +112,12 @@ class TabbedPane(VGroup):
 			return
 		if self.current >= 0:
 			self.labs.get_children()[self.current].remove_class("tabbed-current")
-			self.get_tab(self.current).on_hide()
+			self.get_tab(self.current).get_component().on_hide()
 		self.current = i
 		if i >= 0:
 			self.labs.get_children()[self.current].add_class("tabbed-current")
 			self.panes.set_layer(i)
-			self.get_tab(self.current).on_show()
+			self.get_tab(self.current).get_component().on_show()
 
 	def get_tab(self, i):
 		"""Get the tab which number is i."""
@@ -124,30 +126,36 @@ class TabbedPane(VGroup):
 	def expands_horizontal(self):
 		return True
 
-	def insert(self, child, i = -1):
+	def insert_tab(self, tab, label=None, i=-1):
+		"""Insert a tab or a component at position i. If the tab is a component,
+		the label must also be given."""
+		if not isinstance(tab, Tab):
+			tab = Tab(label, tab)
 		if i < 0:
-			self.append(child)
+			self.append_tab(tab)
 		else:
 			self.tabs.insert(i, child)
 			self.complete_tab(i, child)
 
-	def append(self, tab):
+	def append_tab(self, tab, label=None):
+		"""Append a tab to the list of tabs. tab may be a Tab or a component and
+		in this case, a label must be given."""
 		self.tabs.append(tab)
 		self.complete_tab(len(self.tabs)-1, tab)
 
 	def complete_tab(self, i, tab):
+		""""After adding a new tab, finalize the setup."""
 		self.labs.insert(self.make_label(tab), i)
 		self.panes.insert(tab.get_component(), i)
 		if len(self.tabs) == 1:
 			self.select(0)
 
-	def remove(self, i):
-		"""Remove a tab. i may be the tab number or the tab to remove."""
-		if isinstance(i, Tab):
-			tab = i
-			i = self.tabs.index(i)
+	def remove_tab(self, tab):
+		"""Remove a tab. tab may be a tab, the number of a tab or the component."""
+		if isinstance(tab, int):
+			i = tab
 		else:
-			tab = self.get_tab(i)
+			i = self.tabs.index(tab)
 		fix = False
 		if i == self.current:
 			l = len(self.tabs)
@@ -161,6 +169,5 @@ class TabbedPane(VGroup):
 		del self.tabs[i]
 		self.labs.remove(i)
 		self.panes.remove(i)
-		tab.on_release()
 		if fix:
 			self.current -= 1

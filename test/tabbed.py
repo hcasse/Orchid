@@ -4,28 +4,6 @@
 
 import orchid as orc
 
-class MyTab(orc.Tab):
-
-	def __init__(self, label, text):
-		self.component = orc.Editor(text)
-		self.label = label
-
-	def get_label(self):
-		return self.label
-
-	def get_component(self):
-		return self.component
-
-	def on_show(self):
-		print("Shown", self.label)
-
-	def on_hide(self):
-		print("Hidden", self.label)
-
-	def on_release(self):
-		print("Released", self.label)
-
-
 class MyPage(orc.Page):
 
 	def __init__(self, app):
@@ -33,9 +11,9 @@ class MyPage(orc.Page):
 		self.cnt = 3
 
 		self.tab = orc.TabbedPane([
-			MyTab("one", "One !\nHere\n"),
-			MyTab("two", "Another tab!"),
-			MyTab("three", "Last tab!")
+			("one", orc.Editor("One !\nHere\n")),
+			("two", orc.Editor("Another tab!")),
+			("three", orc.Editor("Last tab!"))
 		])
 
 		orc.Page.__init__(
@@ -52,13 +30,13 @@ class MyPage(orc.Page):
 		)
 
 	def add(self):
-		self.tab.insert(MyTab(f"new {self.num}", "another text {self.num}"))
+		self.tab.insert_tab(orc.Editor("another text {self.num}"), label=f"new {self.num}")
 		self.num = self.num + 1
 		self.cnt = self.cnt + 1
 
 	def remove(self):
 		self.cnt = self.cnt - 1
-		self.tab.remove(self.cnt)
+		self.tab.remove_tab(self.cnt)
 
 	def first(self):
 		self.tab.select(self.tab.get_tab(0))

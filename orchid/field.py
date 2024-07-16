@@ -153,7 +153,7 @@ class Field(Component, LabelledField):
 
 	def update_remote(self):
 		if self.online():
-			self.get_page().set_direct_attr(f"{self.get_id()}-field", "value", str(~self.var))
+			self.get_page().set_direct_attr(f"{self.get_id()}-field", "value", str(~self.var) if ~self.var is not None else "")
 
 	def update(self, subject):
 		if not self.updating:

@@ -60,11 +60,11 @@ class Group(Component, ParentComponent):
 	def __init__(self, model, comps):
 		Component.__init__(self, model)
 		self.children = list(comps)
+		self.expandh = None
+		self.expandv = None
 		for child in self.children:
 			child.parent = self
 		self.remap_children()
-		self.expandh = None
-		self.expandv = None
 
 	def finalize(self, page):
 		Component.finalize(self, page)
@@ -340,7 +340,6 @@ LAYERED_PANE_MODEL = Model(
 
 .layered-child {
 	display: block;
-	flex-grow: 1;
 	box-sizing: border-box;
 }
 
@@ -360,8 +359,6 @@ class LayeredPane(Group):
 
 	def __init__(self, comps, model = LAYERED_PANE_MODEL):
 		Group.__init__(self, model, comps)
-		#self.hexpand = None
-		#self.vexpand = None
 		self.add_class("layered-parent")
 		self.current = -1
 		for child in self.get_children():
@@ -369,13 +366,24 @@ class LayeredPane(Group):
 		if self.children != []:
 			self.set_layer(0)
 
+	def on_show(self):
+		if self.current >= 0:
+			self.get_children()[self.current].on_show()
+
+	def on_hide(self):
+		if self.current >= 0:
+			self.get_children()[self.current].on_hide()
+
 	def set_layer(self, num):
+		"""Set the current layer."""
 		if num == self.current:
 			return
 		if self.current >= 0:
 			self.children[self.current].remove_class("layered-active")
+			self.on_hide()
 		if self.current >= 0:
 			self.children[self.current].add_class("layered-inactive")
+			self.on_show()
 		self.children[num].remove_class("layered-inactive")
 		self.children[num].add_class("layered-active")
 		self.current = num
