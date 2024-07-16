@@ -60,7 +60,9 @@ class TabbedPane(VGroup):
 	be a list of Tab objects. Tabs is a list of (string label, component)
 	or of Tab."""
 
-	def __init__(self, tabs = [], model=MODEL):
+	def __init__(self, tabs = None, model=MODEL):
+		if tabs is None:
+			tabs = []
 		self.tabs = []
 		labs = []
 		for tab in tabs:
@@ -98,8 +100,8 @@ class TabbedPane(VGroup):
 			except ValueError:
 				return None
 		else:
-			for (i, tab) in enumerate(self.tabs):
-				if tab.get_component() is tab:
+			for (i, t) in enumerate(self.tabs):
+				if tab.get_component() is t:
 					return i
 			return None
 
@@ -134,8 +136,8 @@ class TabbedPane(VGroup):
 		if i < 0:
 			self.append_tab(tab)
 		else:
-			self.tabs.insert(i, child)
-			self.complete_tab(i, child)
+			self.tabs.insert(i, tab)
+			self.complete_tab(i, tab)
 
 	def append_tab(self, tab, label=None):
 		"""Append a tab to the list of tabs. tab may be a Tab or a component and
