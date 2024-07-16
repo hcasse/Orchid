@@ -142,6 +142,8 @@ class TabbedPane(VGroup):
 	def append_tab(self, tab, label=None):
 		"""Append a tab to the list of tabs. tab may be a Tab or a component and
 		in this case, a label must be given."""
+		if not isinstance(tab, Tab):
+			tab = Tab(label, tab)
 		self.tabs.append(tab)
 		self.complete_tab(len(self.tabs)-1, tab)
 
