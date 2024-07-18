@@ -112,9 +112,9 @@ class ListVar(Var, ListModel):
 			list = []
 		if type is None:
 			if item_type is not None:
-				type = Types.list(Types.type_of(item_type))
+				type = Types.list(Types.of(item_type))
 			else:
-				type = Types.type_of(list)
+				type = Types.of(list)
 		Var.__init__(self, list, type, **args)
 
 	def size(self):
@@ -279,4 +279,96 @@ class ListTableModel(TableModel):
 	def remove_row(self, row):
 		del self.table[row]
 		super().remove_row(row)
+
+
+class SetObserver(Observer):
+	"""Observer on set operations."""
+
+	def on_clear(self, set):
+		"""Called when the set is cleared."""
+		pass
+
+	def on_change(self, set):
+		"""Called when the set is completely changed."""
+		pass
+
+	def on_add(self, set, item):
+		"""Called when an item is added to the set."""
+		pass
+
+	def on_remove(self, set, item):
+		"""Called when an element is removed from the set."""
+		pass
+
+
+class SetModel(Subject):
+	"""Model for sets."""
+
+	def __init__(self):
+		Subject.__init__(self)
+
+	def clear(self):
+		"""Called to clear the set."""
+		for observer in self.filter_observers(SetObserver):
+			observer.on_clear(self)
+
+	def change(self, set):
+		"""Called to change the set."""
+		for observer in self.filter_observers(SetObserver):
+			observer.on_change(self, set)
+
+	def add(self, item):
+		"""Add an item to the set."""
+		for observer in self.filter_observers(SetObserver):
+			observer.on_add(self, item)
+
+	def remove(self, item):
+		"""Remove an item from the set."""
+		for observer in self.filter_observers(SetObserver):
+			observer.on_remove(self, item)
+
+	def contains(self, item):
+		"""Test if the set contains the item."""
+		return False
+
+	def __contains__(self, item):
+		return self.contains(item)
+
+
+class SetVar(Var, SetModel):
+	"""Variable containing a set (or any container with same methods as sets
+	i.e. clear, add, remove)."""
+
+	def __init__(self, set, item_type=None, type=None, **args):
+		if type is None:
+			if item_type is not None:
+				type = Types.set(Types.of(item_type))
+			elif type is None:
+				type = Types.of(set)
+		Var.__init__(self, set, type=type, **args)
+		SetModel.__init__(self)
+
+	def set(self, value):
+		Var.set(self, value)
+		SetModel.change(self, value)
+
+	def change(self, set):
+		self.set(set)
+
+	def clear(self):
+		SetModel.clear(self)
+		(~self).clear()
+
+	def add(self, item):
+		if item not in ~self:
+			(~self).add(item)
+			SetModel.add(self, item)
+
+	def remove(self, item):
+		if item in ~self:
+			(~self).remove(item)
+			SetModel.remove(self, item)
+
+	def contains(self, item):
+		return item in ~self
 

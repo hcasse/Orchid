@@ -77,10 +77,12 @@ class MessageLabel(Label, ProxyInterface):
 			self.preds = preds
 
 	def on_show(self):
+		Label.on_show(self)
 		for pred in self.preds:
 			pred.add_error_observer(self)
 
 	def on_hide(self):
+		Label.on_hide(self)
 		for pred in self.preds:
 			pred.remove_error_observer(self)
 

@@ -86,10 +86,12 @@ class TableView(Component, TableObserver):
 		self.remove_class(cls, id=f"{self.get_id()}-body", nth=row)
 
 	def on_show(self):
+		Component.on_show(self)
 		self.table.add_observer(self)
 		self.shown = True
 
 	def on_hide(self):
+		Component.on_hide(self)
 		self.table.remove_observer(self)
 		self.shown = False
 

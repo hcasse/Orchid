@@ -231,6 +231,10 @@ div.field label {
 	font-size: 1.5em;
 }
 
+.default-icon {
+	font-size: 11px;
+}
+
 .statusbar-icon {
 	font-size: 1.6em;
 }

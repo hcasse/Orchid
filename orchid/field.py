@@ -22,7 +22,7 @@ from orchid.base import Component, Model, Align
 from orchid.util import Buffer
 from orchid.group import VGroup, Group
 from orchid.label import Label
-from orchid.mind import Var, EnumType
+from orchid.mind import Var, EnumType, Type, Types
 
 
 class LabelledField:
@@ -43,8 +43,44 @@ FIELD_MODEL = Model(
 function field_change(id, value) {
 	ui_send({id: id, action: "change", value: value});
 }
+""",
+	style = """
+div.field {
+	display: flex;
+	min-width: 0;
+}
+
+div.field input {
+	flex-grow: 1;
+	flex-basis: 0;
+	min-width: 0;
+}
 """
 )
+
+
+class WrapType(Type):
+	"""Wrap type to support convert and validate functions of fields."""
+
+	def __init__(self, type, as_text, parse):
+		self.type = type
+		self.as_text_fun = as_text
+		self.parse_fun = parse
+
+	def get_null(self):
+		return self.type.get_null()
+
+	def as_text(self, value):
+		if self.as_text_fun is None:
+			return self.type.as_text(value)
+		else:
+			return self.as_text_fun(value)
+
+	def parse(self, text):
+		if self.parse_fun is None:
+			return self.type.parse(text)
+		else:
+			return self.parse_fun(text)
 
 
 class Field(Component, LabelledField):
@@ -54,26 +90,29 @@ class Field(Component, LabelledField):
 	* label - to be displayed in front of field.
 	* init - initial value.
 	* size - field size in characters.
-	* validate - validate the raw string content and return the value. Return None else.
+	* validate - valdiate the value (returning a boolean).
 	* weight - weight of the field in the horizontal display.
 	* place_holder - palce holder text.
 	* read_only - field read-only (mainly used to display information).
 	* help - help message displayed as tooltip.
+	* as_text - transform the value into string.
+	* parse - parse the value in string or return None if there is an error.
 
 	Convenient validating functions: is_valid_natural(), is_valid_re()."""
 
 	def __init__(self,
 		label = None,
 		init = None,
-		size = None,
-		validate = lambda x: x,
+		size = 0,
 		weight = None,
 		place_holder = None,
 		read_only = False,
 		help = None,
-		convert = lambda x: x,
 		enabled = True,
 		model = FIELD_MODEL,
+		validate = lambda x: True,
+		as_text = None,
+		parse = None,
 		var = None
 	):
 		Component.__init__(self, model)
@@ -82,22 +121,20 @@ class Field(Component, LabelledField):
 		if isinstance(label, Var):
 			self.var = label
 		elif var is None:
-			self.var = self.make_var(init,
-				label=label,
-				help=help)
+			self.var = self.make_var(init, as_text, parse,
+				label=label, help=help)
 		else:
 			self.var = var
 
 		# other attributes
 		self.size = size
-		self.convert = convert
-		self.validate = validate
 		self.place_holder = place_holder
 		if weight is not None:
 			self.weight = (weight, 0)
 		self.read_only = read_only
 
 		# internal state
+		self.validate = validate
 		self.valid = None
 		self.add_class("field")
 		self.check(self.var.get())
@@ -105,12 +142,15 @@ class Field(Component, LabelledField):
 		self.set_enabled(enabled)
 		self.updating = False
 
-	def make_var(self, init, **args):
+	def make_var(self, init, as_text, parse, **args):
 		"""Build a variable for the current field."""
 		if init is None:
-			return Var("", **args)
+			type = Types.STR
 		else:
-			return Var(init)
+			type = Types.of(init)
+		if as_text is not None or parse is not None:
+			type = WrapType(type, as_text, parse)
+		return Var(init, type=type, **args)
 
 	def get_var(self):
 		"""Get the variable containing the value of the field."""
@@ -142,13 +182,15 @@ class Field(Component, LabelledField):
 		"""Set the current value."""
 		self.record_var(val)
 		self.update_remote()
-		self.set_validity(self.validate(str(val)) is not None)
+		self.set_validity(self.validate(val))
 
 	def on_show(self):
+		Component.on_show(self)
 		self.var.add_observer(self)
 		self.updating = False
 
 	def on_hide(self):
+		Component.on_hide(self)
 		self.var.remove_observer(self)
 
 	def update_remote(self):
@@ -156,12 +198,12 @@ class Field(Component, LabelledField):
 			self.get_page().set_direct_attr(
 				f"{self.get_id()}-field",
 				"value",
-				str(~self.var) if ~self.var is not None else "")
+				self.var.get_type().as_text(~self.var))
 
 	def update(self, subject):
 		if not self.updating:
 			self.update_remote()
-			self.set_validity(self.validate(str(~self.var)) is not None)
+			self.set_validity(self.validate(~self.var) is not None)
 
 	def gen_custom(self, out):
 		"""Called to generate custom attributes (used for specialization).
@@ -186,7 +228,7 @@ class Field(Component, LabelledField):
 		self.gen_custom(out)
 		val = self.get_value()
 		if val is not None:
-			self.gen_attr(out, "value", val)
+			self.gen_attr(out, "value", self.var.get_type().as_text(val))
 		self.gen_attr(out, "oninput", f'field_change("{self.get_id()}", this.value);')
 
 	def gen_label(self, out):
@@ -231,15 +273,15 @@ class Field(Component, LabelledField):
 
 	def check(self, content):
 		"""Check the current value."""
-		if content is None:
+		if content is None or content == "":
 			self.set_validity(True)
 			return
-		content = self.validate(content)
-		if content is None:
+		value = self.var.get_type().parse(content)
+		if value is None or not self.validate(value):
 			self.set_validity(False)
 		else:
-			if self.var.get() != content:
-				self.record_var(content)
+			if ~self.var != value:
+				self.record_var(value)
 			self.set_validity(True)
 
 	def receive(self, msg, handler):
@@ -248,6 +290,9 @@ class Field(Component, LabelledField):
 			self.check(content)
 		else:
 			Component.receive(self, msg, handler)
+
+	def expands_horizontal(self):
+		return True
 
 
 class ColorField(Field):
@@ -316,13 +361,16 @@ class RangeField(Field):
 	def __init__(self, min, max, **args):
 		self.min = min
 		self.max = max
-		Field.__init__(self, validate=as_natural, **args)
+		Field.__init__(self, parse=as_natural, **args)
 
-	def make_var(self, init, **args):
+	def make_var(self, init, as_text, parse, **args):
 		if init is None:
-			return Var(None, type=int, **args)
+			type = Types.INT
 		else:
-			return Var(init, **args)
+			type = Types.of(init)
+		if as_text is not None or parse is not None:
+			type = WrapType(type, as_text, parse)
+		return Var(init, type, **args)
 
 	def gen_custom(self, out):
 		self.gen_attr(out, "type", "range")
@@ -367,10 +415,12 @@ class Select(Component, LabelledField):
 		self.updating = False
 
 	def on_show(self):
+		Component.on_show(self)
 		self.var.add_observer(self)
 		self.updating = False
 
 	def on_hide(self):
+		Component.on_hide(self)
 		self.var.remove_observer(self)
 
 	def set_enabled(self, enabled=True):

@@ -301,6 +301,7 @@ class AbstractComponent(Displayable, Subject):
 		self.attrs = {}
 		self.parent = None
 		self.page = None
+		self.shown = False
 
 	def get_page(self):
 		"""Get the page containing the component."""
@@ -621,11 +622,11 @@ class Component(AbstractComponent):
 
 	def on_show(self):
 		"""Called when the component is shown. The default implementation does nothing."""
-		pass
+		self.shown = True
 
 	def on_hide(self):
 		"""Called when the component is hidden."""
-		pass
+		self.shown = False
 
 	def show(self):
 		"""Show the current item."""
@@ -640,13 +641,16 @@ class Component(AbstractComponent):
 
 	def is_shown(self):
 		"""Test if the current component is shown."""
-		return self.get_style("display", "") != "none"
+		return self.shown
 
 
-class ParentComponent:
+class ParentComponent(Component):
 	"""Interface implemented by any component containing other
 	components. All components are contained in a parent
 	component."""
+
+	def __init__(self, model):
+		Component.__init__(self, model)
 
 	def remap_child(self, child):
 		"""Function to call to signal that mapping properties of a child
@@ -671,13 +675,12 @@ class PageObserver:
 		pass
 
 
-class Page(AbstractComponent, ParentComponent):
+class Page(AbstractComponent):
 	"""Implements a page ready to be displayed."""
 
 	def __init__(self, main = None, parent = None,
 	app = None, title = None, style = "default.css", theme = "basic", interface=STANDARD_INTERFACE):
 		AbstractComponent.__init__(self)
-		ParentComponent.__init__(self)
 		self.messages = []
 		self.is_online = False
 		self.parent = parent

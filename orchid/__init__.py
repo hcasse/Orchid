@@ -33,7 +33,9 @@ from orchid import mind
 from orchid.mind import Type, Types, Entity, Var, \
 	EnableObserver, AbstractPredicate, Predicate, AbstractAction, Action, \
 	not_null, equals, not_, is_password, if_error, matches
-from orchid.models import ListObserver, ListModel, ListVar
+from orchid.models import \
+	ListObserver, ListModel, ListVar, \
+	SetObserver, SetModel, SetVar
 from orchid.popup import Menu, MenuButton
 from orchid.server import run
 from orchid.split import SplitPane

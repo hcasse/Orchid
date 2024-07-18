@@ -101,14 +101,14 @@ class TabbedPane(VGroup):
 				return None
 		else:
 			for (i, t) in enumerate(self.tabs):
-				if tab.get_component() is t:
+				if t.get_component() is tab:
 					return i
 			return None
 
 	def select(self, i):
 		"""Select the current shown tab. i may be the index of the tab
 		or the tab itself."""
-		if isinstance(i, Tab):
+		if not isinstance(i, int):
 			i = self.get_index(i)
 		if i == self.current:
 			return
@@ -120,6 +120,10 @@ class TabbedPane(VGroup):
 			self.labs.get_children()[self.current].add_class("tabbed-current")
 			self.panes.set_layer(i)
 			self.get_tab(self.current).get_component().on_show()
+
+	def get_select(self):
+		"""Get the index of the current tab. Return -1 if there is no tab."""
+		return self.current
 
 	def get_tab(self, i):
 		"""Get the tab which number is i."""

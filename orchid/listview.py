@@ -76,9 +76,11 @@ class ListView(Component, ListObserver):
 			page.add_hidden(self.context_menu)
 
 	def on_show(self):
+		Component.on_show(self)
 		self.items.add_observer(self)
 
 	def on_hide(self):
+		Component.on_hide(self)
 		self.items.remove_observer(self)
 
 	def get_items(self):

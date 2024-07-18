@@ -30,7 +30,7 @@ BOOTSTRAP_ICONS = {
 
 	# actions
 	IconType.ABOUT: "info-lg", #!
-	IconType.ADD: "plug-lg",
+	IconType.ADD: "plus-lg",
 	IconType.ALIGN_LEFT: "text-left",
 	IconType.ALIGN_RIGHT: "text-right",
 	IconType.CENTER: "text-center",
@@ -217,7 +217,7 @@ class Icon(Image):
 		try:
 			out.write(Icon.CONTEXT[context])
 		except KeyError:
-			pass
+			out.write(" default-icon")
 		out.write('"')
 		if self.color is not None:
 			out.write(f' style="color: {self.color}"')

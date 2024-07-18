@@ -40,11 +40,13 @@ class AbstractButton(Component, EnableObserver, EntityObserver):
 			)
 
 	def on_show(self):
+		Component.on_show(self)
 		self.action.add_enable_observer(self)
 		if not self.action.is_enabled():
 			self.set_attr("disabled", None)
 
 	def on_hide(self):
+		Component.on_hide(self)
 		self.action.remove_enable_observer(self)
 
 	def enable(self):
@@ -213,10 +215,12 @@ class CheckBox(Component, LabelledField):
 		self.updating = False
 
 	def on_show(self):
+		Component.on_show(self)
 		self.var.add_observer(self)
 		self.updating = True
 
 	def on_hide(self):
+		Component.on_hide(self)
 		self.var.remove_observer(self)
 
 	def update_remote(self):
@@ -322,10 +326,12 @@ class RadioButton(Component, LabelledField):
 		return f"{self.get_id()}-{n}"
 
 	def on_show(self):
+		Component.on_show(self)
 		self.var.add_observer(self)
 		self.updating = False
 
 	def on_hide(self):
+		Component.on_hide(self)
 		self.var.remove_observer(self)
 
 	def record_var(self, n):
@@ -427,9 +433,11 @@ class TwoStateButton(Component):
 			self.icon2.finalize(page)
 
 	def on_show(self):
+		Component.on_show(self)
 		self.var.add_observer(self)
 
 	def on_hide(self):
+		Component.on_hide(self)
 		self.var.remove_observer(self)
 
 	def update(self, subject):

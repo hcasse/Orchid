@@ -27,6 +27,12 @@ import re
 
 from orchid.base import Subject, Observer
 
+class TypeException(Exception):
+	"""Raised if a variable cannot be typed."""
+
+	def __init__(self, msg):
+		self.msg = msg
+
 
 def is_python_type(t):
 	return isinstance(t, type)
@@ -105,6 +111,22 @@ class ListType(Type):
 	def get_null(self):
 		return []
 
+class SetType(Type):
+	"""Type for sets."""
+
+	def __init__(self, item_type):
+		Type.__init__(self)
+		self.type = set
+		self.null = set()
+		self.item_type = item_type
+
+	def get_item_type(self):
+		"""Get the type of items in the list."""
+		return self.get_item_type
+
+	def get_null(self):
+		return set()
+
 class EnumType(Type):
 	"""Type for enumerated values."""
 
@@ -153,18 +175,30 @@ class Types:
 
 	@staticmethod
 	def list(item_type):
+		"""Build a list type with given item type."""
 		return ListType(item_type)
 
 	@staticmethod
 	def enum(values, null=None):
+		"""Build an enumeration type with the given values."""
 		return EnumType(values, null=null)
 
 	@staticmethod
 	def range(min, max, null=None):
+		"""Build a range type in [min, max] interval."""
 		return RangeType(min, max, null=null)
 
 	@staticmethod
-	def type_of(x):
+	def set(item_type):
+		"""Build a set type with the given element type."""
+		return SetType(item_type)
+
+	@staticmethod
+	def of(x):
+		"""Get the mind type for x. x may be one of:
+		* Python's type.
+		* Mind type.
+		* oteher object which type will be determined."""
 		if isinstance(x, type):
 			return Type.find(type)
 		elif isinstance(x, Type):
@@ -173,7 +207,12 @@ class Types:
 			if len(x) == 0:
 				return ListType(Types.STR)
 			else:
-				return ListType(Types.type_of(x[0]))
+				return ListType(Types.of(x[0]))
+		elif isinstance(x, set):
+			if len(x) == 0:
+				return SetType(Types.STR)
+			else:
+				return SetType(Types.of(next(iter(x))))
 		else:
 			return Type.find(x.__class__)
 
@@ -271,9 +310,11 @@ class Var(Entity):
 		Entity.__init__(self, **args)
 		self.value = value
 		if type is None:
-			self.type = Types.type_of(value)
+			self.type = Types.of(value)
 		else:
-			self.type = Types.type_of(type)
+			self.type = Types.of(type)
+		if self.type is None:
+			self.type = Types.STR
 
 	def get_type(self):
 		return self.type
@@ -303,6 +344,24 @@ class Var(Entity):
 	def __or__(self, x):
 		return or_(not_null(self), x)
 
+	def __eq__(self, x):
+		return eq(self, x)
+
+	def __ne__(self, x):
+		return ne(self, x)
+
+	def __lt__(self, x):
+		return lt(self, x)
+
+	def __le__(self, x):
+		return le(self, x)
+
+	def __gt__(self, x):
+		return gt(self, x)
+
+	def __ge__(self, x):
+		return ge(self, x)
+
 
 class PredicateError(Exception):
 	"""Raised as soon as there is a predicate error."""
@@ -330,6 +389,29 @@ class EnableObserver(Observer):
 		pass
 
 
+class VarSet:
+	"""Set of variable using only "is" to test ownership."""
+
+	def __init__(self, vars = None):
+		if vars is None:
+			self.vars = []
+		else:
+			self.vars = list(vars)
+
+	def __iter__(self):
+		return iter(self.vars)
+
+	def __contains__(self, x):
+		return any(x is y for y in self.vars)
+
+	def __or__(self, added):
+		vars = list(self.vars)
+		for x in added:
+			if x not in self:
+				vars.append(x)
+		return VarSet(vars)
+
+
 class PredicateHandler(Subject, Observer):
 	"""Manage the predicate by observing the used variables. If a variable is
 	changed and the predicate value is changed, update its observers."""
@@ -338,7 +420,7 @@ class PredicateHandler(Subject, Observer):
 		Subject.__init__(self)
 		Observer.__init__(self)
 		self.pred = pred
-		self.vars = set()
+		self.vars = VarSet()
 		self.pred.collect_vars(self.vars)
 		self.value = None
 
@@ -437,9 +519,9 @@ class Predicate(AbstractPredicate):
 	def __init__(self, vars = None, fun = lambda: True ):
 		AbstractPredicate.__init__(self)
 		if vars is None:
-			self.vars = set()
+			self.vars = []
 		else:
-			self.vars = set(vars)
+			self.vars = vars
 		self.fun = fun
 
 	def collect_vars(self, vars):
@@ -661,5 +743,38 @@ def matches(var, expr):
 	return Match()
 
 
+def gt(x, y):
+	"""Build a predicate that x is greater than y."""
+	return Predicate(
+		[v for v in [x, y] if isinstance(v, Var)],
+		fun=lambda: get_value(x) > get_value(y)
+	)
 
+def ge(x, y):
+	"""Build a predicate that x is greater or equal than y."""
+	return Predicate(
+		[v for v in [x, y] if isinstance(v, Var)],
+		fun=lambda: get_value(x) >= get_value(y)
+	)
 
+def lt(x, y):
+	"""Build a predicate that x is lower than y."""
+	return gt(y, x)
+
+def le(x, y):
+	"""Build a predicate that x is lower or equal than y."""
+	return ge(y, x)
+
+def eq(x, y):
+	"""Build a predicate that x is lower than y."""
+	return Predicate(
+		[v for v in [x, y] if isinstance(v, Var)],
+		fun=lambda: get_value(x) == get_value(y)
+	)
+
+def ne(x, y):
+	"""Build a predicate that x is lower than y."""
+	return Predicate(
+		[v for v in [x, y] if isinstance(v, Var)],
+		fun=lambda: get_value(x) != get_value(y)
+	)

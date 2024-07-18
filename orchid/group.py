@@ -39,7 +39,7 @@ GROUP_MODEL = Model(
 )
 
 
-class Group(Component, ParentComponent):
+class Group(ParentComponent):
 	"""Groups allows to display several components together. The place
 	associated to each group component depends on its weight
 	(obtained by calling Component.get_weight())."""
@@ -58,7 +58,7 @@ class Group(Component, ParentComponent):
 	}
 
 	def __init__(self, model, comps):
-		Component.__init__(self, model)
+		ParentComponent.__init__(self, model)
 		self.children = list(comps)
 		self.expandh = None
 		self.expandv = None
@@ -170,11 +170,13 @@ class Group(Component, ParentComponent):
 		return orc.Context.NONE
 
 	def on_show(self):
+		ParentComponent.on_show(self)
 		for child in self.children:
-			if child.is_shown():
+			if not child.is_shown():
 				child.on_show()
 
 	def on_hide(self):
+		ParentComponent.on_hide(self)
 		for child in self.children:
 			if child.is_shown():
 				child.on_hide()
@@ -217,6 +219,7 @@ class HGroup(Group):
 			child.remove_class(self.EXPAND)
 			child.remove_class(self.NOT_EXPAND)
 			child.set_style("flex-grow", hw)
+			child.set_style("flex-basis", 0)
 		elif child.expands_horizontal():
 			child.remove_class(self.NOT_EXPAND)
 			child.add_class(self.EXPAND)
@@ -273,6 +276,7 @@ class VGroup(Group):
 			child.remove_class(self.EXPAND)
 			child.add_class(self.NOT_EXPAND)
 			child.set_style("flex-grow", vw)
+			child.set_style("flex-basis", 0)
 		elif child.expands_vertical():
 			child.remove_class(self.NOT_EXPAND)
 			child.add_class(self.EXPAND)
@@ -379,14 +383,14 @@ class LayeredPane(Group):
 		if num == self.current:
 			return
 		if self.current >= 0:
-			self.children[self.current].remove_class("layered-active")
-			self.on_hide()
-		if self.current >= 0:
 			self.children[self.current].add_class("layered-inactive")
-			self.on_show()
-		self.children[num].remove_class("layered-inactive")
-		self.children[num].add_class("layered-active")
+			self.children[self.current].remove_class("layered-active")
+			self.children[self.current].on_hide()
 		self.current = num
+		if self.current >= 0:
+			self.children[self.current].remove_class("layered-inactive")
+			self.children[self.current].add_class("layered-active")
+			self.children[self.current].on_show()
 
 	def map_child(self, child):
 		super().map_child(child)

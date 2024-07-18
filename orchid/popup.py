@@ -66,12 +66,6 @@ class Menu(VGroup):
 		"""Get the on-click code."""
 		return f"popup_menu_top_click('{self.get_id()}');"
 
-	def on_show(self):
-		pass
-
-	def on_hide(self):
-		pass
-
 	def show_menu(self, ref, index = None):
 		"""Show the menu."""
 		if self.shown:

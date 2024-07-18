@@ -14,8 +14,8 @@ class MyPage(orc.Page):
 			self,
 			orc.VGroup([
 				orc.Field("Type text:", var=self.my_text),
-				orc.Field("Type natural:", validate=orc.as_natural),
-				orc.Field("Type binary:", validate=orc.as_re("[01]+")),
+				orc.Field("Type natural:", parse=orc.as_natural),
+				orc.Field("Type binary:", parse=orc.as_re("[01]+")),
 				orc.Field("With place holder:", place_holder="a place holder"),
 				orc.Field("Help message:", help="the help message"),
 				orc.ColorField(label="Color:", help="ok", init="#00FF00"),

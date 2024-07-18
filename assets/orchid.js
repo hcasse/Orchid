@@ -7,6 +7,15 @@ var ui_http = new XMLHttpRequest();
 var ui_busy = true;
 var converter = document.createElement('div')
 
+function ui_index(node) {
+	var i = 0;
+	while(node.previousSibling != null) {
+		node = node.previousSibling;
+		i++;
+	}
+	return i;
+}
+
 function download() {
 	if(this.readyState == 4) {
 		if(this.status == 200) {
@@ -241,12 +250,12 @@ function ui_timer_start(args) {
 	function callback() {
 		ui_send({ id: id, action: "trigger" });
 	}
-	
+
 	if(!ui_timers.has(id)) {
 		if(periodic)
 			ui_timers.set(id, setInterval(callback, time));
 		else
-			ui_timers.set(id, setTimeout(callback, time));			
+			ui_timers.set(id, setTimeout(callback, time));
 	}
 }
 
