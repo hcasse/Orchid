@@ -63,6 +63,7 @@ class WrapType(Type):
 	"""Wrap type to support convert and validate functions of fields."""
 
 	def __init__(self, type, as_text, parse):
+		Type.__init__(self)
 		self.type = type
 		self.as_text_fun = as_text
 		self.parse_fun = parse
@@ -274,10 +275,12 @@ class Field(Component, LabelledField):
 	def check(self, content):
 		"""Check the current value."""
 		if content is None or content == "":
+			self.var.set(None)
 			self.set_validity(True)
 			return
 		value = self.var.get_type().parse(content)
 		if value is None or not self.validate(value):
+			self.var.set(None)
 			self.set_validity(False)
 		else:
 			if ~self.var != value:

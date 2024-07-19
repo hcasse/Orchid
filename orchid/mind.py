@@ -27,13 +27,6 @@ import re
 
 from orchid.base import Subject, Observer
 
-class TypeException(Exception):
-	"""Raised if a variable cannot be typed."""
-
-	def __init__(self, msg):
-		self.msg = msg
-
-
 def is_python_type(t):
 	return isinstance(t, type)
 
@@ -405,11 +398,13 @@ class VarSet:
 		return any(x is y for y in self.vars)
 
 	def __or__(self, added):
-		vars = list(self.vars)
 		for x in added:
 			if x not in self:
-				vars.append(x)
-		return VarSet(vars)
+				self.vars.append(x)
+		return self
+
+	def __str__(self):
+		return f"{', '.join(str(x) for x in self.vars)}"
 
 
 class PredicateHandler(Subject, Observer):

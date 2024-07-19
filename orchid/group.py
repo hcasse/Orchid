@@ -35,6 +35,12 @@ GROUP_MODEL = Model(
 .group-anti-expand {
 	align-self: stretch;
 }
+
+.group-disabled {
+	pointer-events: none;
+	opacity: 0.4;
+	cursor: not-allowed;
+}
 """
 )
 
@@ -180,6 +186,12 @@ class Group(ParentComponent):
 		for child in self.children:
 			if child.is_shown():
 				child.on_hide()
+
+	def disable(self):
+		self.add_class("group-disabled")
+
+	def enable(self):
+		self.remove_class("group-disabled")
 
 
 # HGroup class
@@ -343,7 +355,7 @@ LAYERED_PANE_MODEL = Model(
 }
 
 .layered-child {
-	display: block;
+	display: flex;
 	box-sizing: border-box;
 }
 
