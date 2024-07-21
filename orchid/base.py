@@ -40,6 +40,7 @@ class Context(IntEnum):
 	STATUSBAR = 4
 	MENU = 5
 	MAIN = 6
+	ITEMBAR = 7
 
 # deprecated
 CONTEXT_NONE = Context.NONE

@@ -1,6 +1,6 @@
 """Button class."""
 
-from orchid.base import Component, Model
+from orchid.base import Component, Model, Context
 from orchid.mind import AbstractAction, EnableObserver, Var, Types, \
 	EnumType, EntityObserver
 from orchid.field import LabelledField
@@ -124,6 +124,8 @@ class Button(AbstractButton):
 		AbstractButton.finalize(self, page)
 		if self.action.icon is not None:
 			self.action.icon.finalize(page)
+		if self.parent.get_context() == Context.ITEMBAR:
+			self.add_class("context-item")
 
 	def on_label_change(self, new_label):
 		self.gen_online()

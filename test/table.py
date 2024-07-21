@@ -14,15 +14,21 @@ my_table = [
 class MyPage(orc.Page):
 
 	def __init__(self, app):
+		context_toolbar = orc.MenuButton(orc.Menu([
+				orc.Button("Choice 1", on_click=self.do_choice1),
+				orc.Button("Choice 2", on_click=self.do_choice2)
+			]))
 		self.table = orc.TableView(
 			my_table,
 			parse=self.parse,
 			is_editable=self.is_editable,
-			headers = ["Country", "Capital", "Surface", "Population"]
+			headers = ["Country", "Capital", "Surface", "Population"],
+			context_toolbar=context_toolbar
 		)
 		orc.Page.__init__(
 			self,
 			orc.VGroup([
+				orc.Label("Table test!"),
 				self.table,
 				orc.HGroup([
 					orc.Button("clear", on_click=self.clear),
@@ -35,6 +41,12 @@ class MyPage(orc.Page):
 		)
 		self.pos = 0
 		self.table.get_table_model().is_editable = self.is_editable
+
+	def do_choice1(self):
+		print("DEBUG: choice 1 on row", self.table.get_context_row())
+
+	def do_choice2(self):
+		print("DEBUG: choice 2 on row", self.table.get_context_row())
 
 	def is_editable(self, row, col):
 		return col >= 2

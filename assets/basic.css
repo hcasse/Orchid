@@ -127,6 +127,15 @@ body {
 	opacity: 0.5;
 }
 
+.context-item {
+	background: none;
+	border: 0;
+	font-weight: bold;
+	padding-right: .5em;
+	color: var(--select);
+}
+
+
 /* general elements */
 
 h1.top-title {

@@ -1,6 +1,6 @@
 """Orchid module in charge of table display."""
 
-from orchid.base import Component, Model
+from orchid.base import Component, Model, Context
 from orchid.models import TableModel, ListTableModel, TableObserver
 from orchid.util import Buffer
 
@@ -30,6 +30,27 @@ class TableView(Component, TableObserver):
 .table-error {
 	background-color: peachpuff;
 }
+
+div.table {
+	position: relative;
+	display: flex;
+}
+
+div.table table {
+	flex-grow: 1;
+	flex-basis: 0;
+}
+
+div.table div.dropdown {
+	display: none;
+	position: absolute;
+	right: 0;
+}
+
+div.table:hover div.dropdown {
+	display: inline-block;
+}
+
 """
 )
 
@@ -40,7 +61,8 @@ class TableView(Component, TableObserver):
 		headers = None,
 		format = lambda row, col, val: str(val),
 		parse = lambda row, col, val: val,
-		is_editable = lambda row, col: True
+		is_editable = lambda row, col: True,
+		context_toolbar = None
 	):
 		"""Initialize a table. The passed argument may a 2-dimension
 		Python list or an instance of table.Model.
@@ -50,6 +72,10 @@ class TableView(Component, TableObserver):
 		if the value cannot be parsed.
 
 		is_editable(row, col) allows to test if a cell can be edited.
+
+		context_toolbar is a component that will be displayed contextually
+		for each line, usually a group of buttons. When clicked,
+		get_context_row() can be used to get the row at this time.
 		"""
 		if model is None:
 			model = self.MODEL
@@ -72,6 +98,20 @@ class TableView(Component, TableObserver):
 		self.format = format
 		self.parse = parse
 		self.is_editable = is_editable
+		self.context_toolbar = context_toolbar
+		if self.context_toolbar is not None:
+			self.context_toolbar.parent = self
+			self.set_attr("onmouseover", "table_over(this, event);")
+		self.context_row = -1;
+
+	def finalize(self, page):
+		Component.finalize(self, page)
+		if self.context_toolbar is not None:
+			self.context_toolbar.finalize(page)
+
+	def get_context_row(self):
+		"""Get the context row i.e. row where context tools has been used."""
+		return self.context_row
 
 	def add_row_class(self, row, cls):
 		"""Add a class to a row."""
@@ -115,6 +155,9 @@ class TableView(Component, TableObserver):
 		# if required, generate its content
 		self.on_table_set(self.table)
 
+	def get_context(self):
+		return Context.ITEMBAR
+
 	def gen_content(self, out):
 		"""Generate the content of the table."""
 		coln = self.table.get_column_count()
@@ -144,11 +187,14 @@ class TableView(Component, TableObserver):
 			self.set_content(str(buf))
 
 	def gen(self, out):
-		out.write(f'<table onclick="table_on_click(\'{self.get_id()}\', event);"')
+		out.write(f'<div class="table"><table onclick="table_on_click(\'{self.get_id()}\', event);"')
 		self.gen_attrs(out)
 		out.write(">")
 		self.gen_content(out)
 		out.write("</table>")
+		if self.context_toolbar is not None:
+			self.context_toolbar.gen(out)
+		out.write("</div>")
 
 	def on_cell_set(self, table, row, col, val):
 		"""Called by the model to update a cell value."""
@@ -217,9 +263,11 @@ class TableView(Component, TableObserver):
 
 		# click: start editing
 		if action == "is_editable":
+			row, col = msg["row"], msg["col"]
+			if row == 0 and not self.no_header:
+				return
 			if self.last_value is not None:
 				self.check_edit(self.last_value)
-			row, col = msg["row"], msg["col"]
 			if not self.no_header:
 				row -= 1
 			if self.is_editable(row, col):
@@ -239,6 +287,12 @@ class TableView(Component, TableObserver):
 				self.call("table_set_ok", {})
 			else:
 				self.call("table_set_error", {})
+
+		# select the current context row
+		elif action == "select":
+			self.context_row = msg["idx"]
+			if not self.no_header:
+				self.context_row -= 1
 
 		# default behaviour
 		else:

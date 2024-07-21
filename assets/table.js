@@ -81,7 +81,7 @@ function table_do_edit(args) {
 }
 
 function table_set_ok(args) {
-	table_edit.input.classList.remove("table-error");	
+	table_edit.input.classList.remove("table-error");
 }
 
 function table_set_error(args) {
@@ -105,9 +105,21 @@ function table_on_click(id, event) {
 	for(row = 0; row < tbody.children.length && tbody.children[row] !== tr; row++);
 	if(row == tbody.children.length)
 		return;
-	if(row == 0)
-		return;
 	table_edit.cell = td;
 	table_edit.id = id;
 	ui_send({id: id, action: "is_editable", row: row, col: col});
+}
+
+function table_over(element, event) {
+	var target = event.target;
+	if(target.tagName == "TD")
+		target = target.parentNode;
+	if(target.tagName == "TR") {
+		const i = ui_index(target);
+		const div = element.parentNode;
+		const popup = div.getElementsByTagName("DIV")[0];
+		const y = target.getBoundingClientRect().top - element.getBoundingClientRect().top;
+		popup.style.top = y + "px";
+		ui_replace({id: element.id, action: "select", idx: i});
+	}
 }

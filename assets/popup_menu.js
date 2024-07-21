@@ -13,6 +13,8 @@ function popup_menu_place(popup_id, ref) {
 	// check in the screen
 	const bw = document.body.clientWidth;
 	const bh = document.body.clientHeight;
+	//console.log("DEBUG: body = " + bw + "x" + bh);
+	//console.log("DEBUG: " + x + "," + y + " " + pbox.width + "x" + pbox.height);
 	if(x < 0)
 		x = 0;
 	else if(x + pbox.width > bw)
@@ -20,10 +22,22 @@ function popup_menu_place(popup_id, ref) {
 	if(y + pbox.height > bh)
 		y = rbox.y - pbox.height;
 
+	// fix according absolute
+	//console.log("DEBUG: ref id=" + ref.id);
+	const parent = ref.parentNode;
+	const pos = window.getComputedStyle(parent).position;
+	//console.log("DEBUG: position = " + pos);
+	if(pos == "absolute") {
+		//console.log("DEBUG: absolute!");
+		x -= rbox.left;
+		y -= rbox.top;
+	}
+
 	// set the position
+	//console.log("DEBUG: => " + x + ", " + y);
 	popup.style.left = x + "px";
 	popup.style.top = y + "px";
-	
+
 }
 
 function popup_menu_hide(args) {
@@ -43,5 +57,5 @@ function popup_menu_top_click(id) {
 function popup_menu_show_child(args) {
 	const parent = window.document.getElementById(args.ref);
 	const ref = parent.childNodes.item(args.index);
-	popup_menu_place(args.id, ref);	
+	popup_menu_place(args.id, ref);
 }

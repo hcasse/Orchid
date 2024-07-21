@@ -188,6 +188,16 @@ function ui_post(obj) {
 	ui_messages.push(obj);
 }
 
+function ui_replace(msg) {
+	let done = false;
+	for(let i = 0; i < ui_messages.length; i++)
+		if(ui_messages[i].id == msg.id && ui_messages[i].action == msg.action) {
+			ui_messages[i] = msg;
+			return;
+		}
+	ui_post(msg);
+}
+
 function ui_complete() {
 	if(ui_messages.length == 0)
 		return;

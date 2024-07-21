@@ -427,7 +427,7 @@ class LayeredPane(Group):
 
 	def remove(self, i):
 		Group.remove(self, i)
-		if self.current == i:
+		if self.current >= i:
 			self.current = -1
 
 	def gen(self, out):

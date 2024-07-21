@@ -116,6 +116,7 @@ class MenuButton(Button):
 			enabled=enabled,
 			on_click=self.on_click)
 		self.menu = menu
+		menu.parent = self
 
 	def finalize(self, page):
 		Button.finalize(self, page)
