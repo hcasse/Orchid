@@ -15,14 +15,12 @@ function list_index(id, event) {
 }
 
 function list_on_click(id, event) {
-	//console.log("DEBUG: got click: " + event.button);
 	const index = list_index(id, event);
 	if(index >= 0)
 		ui_send({id: id, action: "select", item: index});
 }
 
 function list_on_context_menu(id, event) {
-	//console.log("DEBUG: context menu: " + event.button);
 	event.preventDefault();
 	const index = list_index(id, event);
 	if(index >= 0)

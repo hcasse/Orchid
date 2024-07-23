@@ -28,7 +28,12 @@ ABOVE = 2
 LEFT = 3
 
 MENU_MODEL = Model(
-	script_paths = [ 'popup_menu.js']
+	script_paths = [ 'popup_menu.js'],
+	style = """
+.dropdown-content {
+	z-index: 100;
+}
+"""
 )
 
 class Menu(VGroup):

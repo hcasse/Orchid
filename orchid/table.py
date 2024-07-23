@@ -34,11 +34,13 @@ class TableView(Component, TableObserver):
 div.table {
 	position: relative;
 	display: flex;
+	align-self: stretch;
 }
 
 div.table table {
 	flex-grow: 1;
 	flex-basis: 0;
+	align-self: start;
 }
 
 div.table div.dropdown {
@@ -86,8 +88,6 @@ div.table:hover div.dropdown {
 		else:
 			self.table = ListTableModel(table)
 		self.add_class("table")
-		self.set_style("align-self", "start")
-		self.add_class("text-back")
 		self.last_row = None
 		self.last_col = None
 		self.last_value = None
@@ -103,11 +103,18 @@ div.table:hover div.dropdown {
 			self.context_toolbar.parent = self
 			self.set_attr("onmouseover", "table_over(this, event);")
 		self.context_row = -1;
+		self.set_attr("onclick", f"table_on_click('{self.get_id()}', event);")
 
 	def finalize(self, page):
 		Component.finalize(self, page)
 		if self.context_toolbar is not None:
 			self.context_toolbar.finalize(page)
+
+	def disable(self):
+		self.add_class("disabled")
+
+	def enable(self):
+		self.remove_class("disabled")
 
 	def get_context_row(self):
 		"""Get the context row i.e. row where context tools has been used."""
@@ -184,35 +191,45 @@ div.table:hover div.dropdown {
 		if self.online():
 			buf = Buffer()
 			self.gen_content(buf)
-			self.set_content(str(buf))
+			self.set_content(str(buf), id=f"{self.get_id()}-table")
+
+	def expands_horizontal(self):
+		return True
+
+	def expands_vertical(self):
+		return True
 
 	def gen(self, out):
-		out.write(f'<div class="table"><table onclick="table_on_click(\'{self.get_id()}\', event);"')
+		out.write(f'<div')
 		self.gen_attrs(out)
-		out.write(">")
+		out.write(f'><table class="table" id="{self.get_id()}-table">')
 		self.gen_content(out)
 		out.write("</table>")
 		if self.context_toolbar is not None:
 			self.context_toolbar.gen(out)
 		out.write("</div>")
 
+	def refresh_cell(self, row, col):
+		"""Referesh the content of a cell."""
+		val = self.table.get_cell(row, col)
+		act_row = row if self.no_header else row+1
+		self.call("table_change", {
+			"id": f"{self.get_id()}-table",
+			"actions": [ ACTION_TR, act_row, ACTION_TD, col, ACTION_SET, 1 ],
+			"values" : [ self.format(row, col, val) ]
+		})
+
 	def on_cell_set(self, table, row, col, val):
 		"""Called by the model to update a cell value."""
 		if self.online():
-			act_row = row if self.no_header else row+1
-			val = self.table.get_cell(row, col)
-			self.call("table_change", {
-				"id": self.get_id(),
-				"actions": [ ACTION_TR, act_row, ACTION_TD, col, ACTION_SET, 1 ],
-				"values" : [ self.format(row, col, val) ]
-			})
+			self.refresh_cell(row, col)
 
 	def on_row_append(self, table, vals):
 		"""Called by the model to append a new row."""
 		cnt = len(vals)
 		row = self.table.get_row_count()-1
 		self.call("table_change", {
-			"id": self.get_id(),
+			"id": f"{self.get_id()}-table",
 			"actions": [
 				ACTION_APPEND, cnt,
 				ACTION_SET, cnt
@@ -225,7 +242,7 @@ div.table:hover div.dropdown {
 		cnt = len(vals)
 		act_row = row if self.no_header else row+1
 		self.call("table_change", {
-			"id": self.get_id(),
+			"id": f"{self.get_id()}-table",
 			"actions": [
 				ACTION_TR, act_row,
 				ACTION_INSERT, cnt,
@@ -238,7 +255,7 @@ div.table:hover div.dropdown {
 		"""Called by the model to remove a row."""
 		act_row = row if self.no_header else row+1
 		self.call("table_change", {
-			"id": self.get_id(),
+			"id": f"{self.get_id()}-table",
 			"actions": [
 				ACTION_TR, act_row,
 				ACTION_REMOVE

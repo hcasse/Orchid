@@ -3,6 +3,7 @@
 // https://developer.mozilla.org/fr/docs/Web/API/Window/requestIdleCallback
 
 var ui_messages = [];
+var ui_answers = null;
 var ui_http = new XMLHttpRequest();
 var ui_busy = true;
 var converter = document.createElement('div')
@@ -60,126 +61,144 @@ function ui_component(msg) {
 	return component;
 }
 
+function ui_process_answers() {
+	var component = null;
+	for(let i = 0; i < ui_answers.length; i++) {
+		a = ui_answers[i];
+		//console.log("executing " + JSON.stringify(a));
+		switch(a.type) {
+			case "call":
+				var f = window[a.fun];
+				if(f == undefined)
+					console.error(`cannot find function ${a.fun}`);
+			else
+				f(a.args);
+			break;
+
+			case "set-style":
+				component = document.getElementById(a.id);
+				component.style[a.attr] = a.val;
+				break;
+			case "set-class":
+				component = document.getElementById(a.id);
+				component.className = a.classes;
+				break;
+			case "add-class":
+				component = ui_component(a);
+				if(component != null)
+					component.classList.add(a.class);
+			break;
+			case "remove-class":
+				component = ui_component(a);
+				if(component != null)
+					component.classList.remove(a.class);
+			break;
+			case "set-attr":
+				component = document.getElementById(a.id);
+				component.setAttribute(a.attr, a.val);
+				break;
+			case "remove-attr":
+				component = document.getElementById(a.id);
+				component.removeAttribute(a.attr);
+				break;
+
+			case "quit":
+				window.close();
+				document.getElementsByTagName("body")[0].innerHTML = "<p>closed.</p>";
+				break;
+			case "download":
+				req = new XMLHttpRequest();
+				req.id = a.id
+				req.onreadystatechange = download
+				req.open("GET", a.path, true);
+				req.send();
+				break;
+
+			case 'set-content':
+				component = document.getElementById(a.id);
+				component.innerHTML = a.content;
+				break;
+			case "clear":
+				component = document.getElementById(a.id);
+				while(component.firstChild)
+					component.removeChild(component.firstChild);
+			break;
+			case "append":
+				converter.innerHTML = a.content
+				component = document.getElementById(a.id);
+				for(const child of converter.children)
+					component.append(child);
+			while(converter.firstChild)
+				converter.removeChild(converter.firstChild);
+			break;
+			case "insert":
+				converter.innerHTML = a.content;
+				component = document.getElementById(a.id);
+				to = component.children[a.pos];
+				component.insertBefore(converter.children[0], to);
+				while(converter.firstChild)
+					converter.firstChild.remove();
+			break;
+			case "remove":
+				component = document.getElementById(a.id);
+				child = component.children[a.pos];
+				component.removeChild(child);
+				break;
+
+			case "show-last":
+				show_last(a.id);
+				break;
+
+			case "model":
+				for(const path of a.style_paths) {
+					elem = document.createElement("link");
+					elem.setAttribute("rel", "stylesheet");
+					elem.setAttribute("href", path);
+					document.head.appendChild(elem);
+				}
+				if(a.script)
+					window.eval(a.script);
+				if(a.style) {
+					elem = document.createElement("style");
+					elem.innerHTML = a.style;
+					document.head.appendChild(elem);
+				}
+				component = null;
+				for(let j = 0; j < a.script_paths.length; j++) {
+					const path = a.script_paths[j];
+					component = document.createElement("script");
+					if(j == a.script_paths.length-1)
+						component.setAttribute("onload", "ui_reanswer();");
+					component.setAttribute("src", path);
+					document.head.appendChild(component);
+				}
+				if(component != null && i != ui_answers.length-1) {
+					ui_answers = ui_answers.slice(i+1);
+					return;
+				}
+				break;
+
+			default:
+				console.error("unknown command: " + JSON.stringify(a));
+				break;
+		}
+	}
+	ui_answers = [];
+	ui_release();
+}
+
+function ui_reanswer() {
+	ui_process_answers();
+}
+
 ui_http.onreadystatechange = function() {
 	if(this.readyState == 4) {
 		if(this.status != 200) {
 			console.error("HTTP error: " + this.status);
 		}
 		else {
-			ans = JSON.parse(this.responseText);
-			var component = null;
-			for(let a of ans.answers) {
-				//console.log("executing " + JSON.stringify(a));
-				switch(a.type) {
-				case "call":
-					var f = window[a.fun];
-					if(f == undefined)
-						console.error(`cannot find function ${a.fun}`);
-					else
-						f(a.args);
-					break;
-
-				case "set-style":
-					component = document.getElementById(a.id);
-					component.style[a.attr] = a.val;
-					break;
-				case "set-class":
-					component = document.getElementById(a.id);
-					component.className = a.classes;
-					break;
-				case "add-class":
-					component = ui_component(a);
-					if(component != null)
-						component.classList.add(a.class);
-					break;
-				case "remove-class":
-					component = ui_component(a);
-					if(component != null)
-						component.classList.remove(a.class);
-					break;
-				case "set-attr":
-					component = document.getElementById(a.id);
-					component.setAttribute(a.attr, a.val);
-					break;
-				case "remove-attr":
-					component = document.getElementById(a.id);
-					component.removeAttribute(a.attr);
-					break;
-
-				case "quit":
-					window.close();
-					document.getElementsByTagName("body")[0].innerHTML = "<p>closed.</p>";
-					break;
-				case "download":
-					req = new XMLHttpRequest();
-					req.id = a.id
-					req.onreadystatechange = download
-					req.open("GET", a.path, true);
-					req.send();
-					break;
-
-				case 'set-content':
-					component = document.getElementById(a.id);
-					component.innerHTML = a.content;
-					break;
-				case "clear":
-					component = document.getElementById(a.id);
-					while(component.firstChild)
-						component.removeChild(component.firstChild);
-					break;
-				case "append":
-					converter.innerHTML = a.content
-					component = document.getElementById(a.id);
-					for(const child of converter.children)
-						component.append(child);
-					while(converter.firstChild)
-						converter.removeChild(converter.firstChild);
-					break;
-				case "insert":
-					converter.innerHTML = a.content;
-					component = document.getElementById(a.id);
-					to = component.children[a.pos];
-					component.insertBefore(converter.children[0], to);
-					while(converter.firstChild)
-						converter.firstChild.remove();
-					break;
-				case "remove":
-					component = document.getElementById(a.id);
-					child = component.children[a.pos];
-					component.removeChild(child);
-					break;
-
-				case "show-last":
-					show_last(a.id);
-					break;
-
-				case "model":
-					for(const path of a.style_paths) {
-						elem = document.createElement("link");
-						elem.setAttribute("rel", "stylesheet");
-						elem.setAttribute("href", path);
-						document.head.appendChild(elem);
-					}
-					for(const path of a.script_paths) {
-						elem = document.createElement("script");
-						elem.setAttribute("src", path);
-						document.head.appendChild(elem);
-					}
-					if(a.script)
-						window.eval(a.script);
-					if(a.style) {
-						elem = document.createElement("style");
-						elem.innerHTML = a.style;
-						document.head.appendChild(elem);
-					}
-					break;
-
-				default:
-					console.error("unknown command: " + JSON.stringify(a));
-					break;
-				}
-			}
-			ui_release();
+			ui_answers = JSON.parse(this.responseText).answers;
+			ui_process_answers();
 		}
 	}
 };

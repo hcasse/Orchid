@@ -125,6 +125,7 @@ body {
 
 .disabled {
 	opacity: 0.5;
+	pointer-events: none;
 }
 
 .context-item {
@@ -292,8 +293,11 @@ div.field label {
 
 
 /* Table */
-.table {
+table.table {
 	border-collapse: collapse;
+	background: white;
+	padding: 8px;
+	border: darkgray solid 1px;
 }
 
 .table-header th {
@@ -313,7 +317,7 @@ div.field label {
 	background-color: lightcyan;
 }
 
-.table tr:last-child td {
+table.table tr:last-child td {
 	border-bottom: 1px solid #EEEEEE;
 }
 

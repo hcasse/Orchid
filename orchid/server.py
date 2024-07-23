@@ -272,7 +272,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
 		debug = self.server.manager.config['debug']
 		prov = self.server.manager.get(self.path)
 		if prov is None:
-			self.log_error(f"bad path: {self.path}")
+			self.log_error(f"bad path: {self.path.replace('%', '%%')}")
 			self.send_response(404)
 			self.end_headers()
 			if debug:
@@ -288,6 +288,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
 	def log_message(self, format, *args):
 		debug = self.server.manager.config['debug']
 		if debug:
+			print("DEBUG:", format, *args)
 			http.server.SimpleHTTPRequestHandler.log_message(self, format, *args)
 
 

@@ -455,9 +455,11 @@ class AbstractComponent(Displayable, Subject):
 		self.send(msg)
 		msg['content'] = self.gen_as_text(content)
 
-	def set_content(self, content):
+	def set_content(self, content, id=None):
 		"""Change the content of an element. Content may be string or component."""
-		msg = {"type": "set-content", "id": self.get_id()}
+		if id is None:
+			id = self.get_id()
+		msg = { "type": "set-content", "id": id }
 		self.send(msg)
 		msg['content'] = self.gen_as_text(content)
 
@@ -600,6 +602,13 @@ class Component(AbstractComponent):
 		elif isinstance(self.weight, int):
 			self.weight = (self.weight, self.weight)
 		return self.weight
+
+	def set_weight(self, weight):
+		"""Change the weight of the component. Only used at build time.
+		Weight may be an integer or a pair (x weight, y weight).
+		Return self and so can be chained."""
+		self.weight = weight
+		return self
 
 	def set_enabled(self, enabled = True):
 		"""Enable/disable a component."""
@@ -968,13 +977,11 @@ class Page(AbstractComponent):
 		"""Publish an URL returning the given text
 		(for big GET operation)."""
 		self.manager.add_text_file(url, text, mime)
-		print("DEBUG: publish", url)
 
 	def publish_file(self, url, path, mime = None):
 		"""Publish an URL returning the content of the file
 		corresponding to the path."""
 		self.manager.add_file(url, path, mime)
-		print("DEBUG: publish", url)
 
 	def publish(self, url, provider):
 		"""Publish an URL with a custom provider."""

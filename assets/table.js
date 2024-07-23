@@ -116,8 +116,7 @@ function table_over(element, event) {
 		target = target.parentNode;
 	if(target.tagName == "TR") {
 		const i = ui_index(target);
-		const div = element.parentNode;
-		const popup = div.getElementsByTagName("DIV")[0];
+		const popup = element.getElementsByTagName("DIV")[0];
 		const y = target.getBoundingClientRect().top - element.getBoundingClientRect().top;
 		popup.style.top = y + "px";
 		ui_replace({id: element.id, action: "select", idx: i});
