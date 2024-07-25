@@ -352,6 +352,7 @@ LAYERED_PANE_MODEL = Model(
 .layered-parent {
 	display: flex;
 	align-items: stretch;
+	overflow: auto;
 }
 
 .layered-child {
