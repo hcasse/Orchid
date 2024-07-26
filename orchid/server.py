@@ -288,7 +288,6 @@ class Handler(http.server.SimpleHTTPRequestHandler):
 	def log_message(self, format, *args):
 		debug = self.server.manager.config['debug']
 		if debug:
-			print("DEBUG:", format, *args)
 			http.server.SimpleHTTPRequestHandler.log_message(self, format, *args)
 
 

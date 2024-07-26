@@ -426,7 +426,7 @@ class PredicateHandler(Subject, Observer):
 		Subject.add_observer(self, observer)
 
 	def remove_observer(self, observer):
-		Subject.remove_observer(self, observer)
+		Subject.rem.ove_observer(self, observer)
 		if not self.get_observers():
 			for var in self.vars:
 				var.remove_observer(self)

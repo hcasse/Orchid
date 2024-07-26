@@ -27,6 +27,7 @@ from orchid.field import Field, ColorField, DateField, TimeField, \
 	Select, as_natural, as_re, Form, ProposalField
 from orchid.group import HGroup, VGroup, Spring, LayeredPane, hspring, vspring
 from orchid.image import Icon, Image, AssetImage, IconType
+from orchid.keygroup import Key, KeyGroup
 from orchid.label import Label, MessageLabel, Banner
 from orchid.listview import ListView
 from orchid import mind

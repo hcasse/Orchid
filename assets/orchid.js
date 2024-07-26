@@ -295,3 +295,7 @@ function ui_timer_stop(args) {
 		ui_timers.delete(id);
 	}
 }
+
+function ui_on_key(key, action, event) {
+
+}
