@@ -19,7 +19,8 @@
 
 from enum import IntEnum, auto
 
-from orchid.base import Displayable, Model, Context
+from orchid.base import Displayable, Model
+from orchid.util import Context
 
 class IconType(IntEnum):
 	"""Type of icons."""

@@ -18,8 +18,8 @@
 """Field components."""
 
 import re
-from orchid.base import Component, Model, Align
-from orchid.util import Buffer
+from orchid.base import Component, Model
+from orchid.util import Buffer, Align
 from orchid.group import VGroup, Group
 from orchid.label import Label
 from orchid.mind import Var, EnumType, Type, Types
@@ -143,6 +143,15 @@ class Field(Component, LabelledField):
 		self.set_enabled(enabled)
 		self.updating = False
 
+	def grab_focus(self, **args):
+		Component.grab_focus(self, id=f"{self.get_id()}-field")
+
+	def find_next_focus(self, component=None):
+		if self.is_enabled():
+			return self
+		else:
+			return None
+
 	def make_var(self, init, as_text, parse, **args):
 		"""Build a variable for the current field."""
 		if init is None:
@@ -156,6 +165,10 @@ class Field(Component, LabelledField):
 	def get_var(self):
 		"""Get the variable containing the value of the field."""
 		return self.var
+
+	def is_enabled(self):
+		"""Test if the field is enabled."""
+		return self.enabled
 
 	def enable(self):
 		"""Enable the field."""

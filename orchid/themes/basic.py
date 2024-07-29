@@ -17,8 +17,9 @@
 
 """Definition of basic theme."""
 
-from orchid.base import Model, Context, Theme
+from orchid.base import Model, Theme
 from orchid.image import AssetImage, Image, IconType
+from orchid.util import Context
 
 MESSAGES = {
 	"warning": "basic/warning.svg",

@@ -1,8 +1,8 @@
 """Orchid module in charge of table display."""
 
-from orchid.base import Component, Model, Context
+from orchid.base import Component, Model
 from orchid.models import TableModel, ListTableModel, TableObserver
-from orchid.util import Buffer
+from orchid.util import Buffer, Context
 
 ACTION_TR	= 0		# TR number
 ACTION_TD	= 1		# TD number
@@ -102,7 +102,7 @@ div.table:hover div.dropdown {
 		if self.context_toolbar is not None:
 			self.context_toolbar.parent = self
 			self.set_attr("onmouseover", "table_over(this, event);")
-		self.context_row = -1;
+		self.context_row = -1
 		self.set_attr("onclick", f"table_on_click('{self.get_id()}', event);")
 
 	def finalize(self, page):
@@ -200,7 +200,7 @@ div.table:hover div.dropdown {
 		return True
 
 	def gen(self, out):
-		out.write(f'<div')
+		out.write('<div')
 		self.gen_attrs(out)
 		out.write(f'><table class="table" id="{self.get_id()}-table">')
 		self.gen_content(out)

@@ -1,6 +1,7 @@
 """Component for a structured view."""
 
-from orchid.base import Model, Context, MessageType, Align
+from orchid.base import Model
+from orchid.util import Context, MessageType, Align
 from orchid.label import Label
 from orchid.group import HGroup, Spring, HGROUP_MODEL, VGroup, Group
 

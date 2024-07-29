@@ -17,8 +17,8 @@
 
 """Group components."""
 
-import orchid.base as orc
-from orchid.base import Model, Component, ParentComponent, Align
+from orchid.base import Model, Component, ParentComponent
+from orchid.util import Align, Context
 
 GROUP_MODEL = Model(
 	"group",
@@ -71,6 +71,7 @@ class Group(ParentComponent):
 		for child in self.children:
 			child.parent = self
 		self.remap_children()
+		self.enabled = True
 
 	def finalize(self, page):
 		Component.finalize(self, page)
@@ -173,7 +174,7 @@ class Group(ParentComponent):
 
 	def get_context(self):
 		"""Get the group context (one of Context enumeration value)."""
-		return orc.Context.NONE
+		return Context.NONE
 
 	def on_show(self):
 		ParentComponent.on_show(self)
@@ -189,9 +190,28 @@ class Group(ParentComponent):
 
 	def disable(self):
 		self.add_class("group-disabled")
+		self.enabled = False
 
 	def enable(self):
 		self.remove_class("group-disabled")
+		self.enabled = True
+
+	def find_next_focus(self, component=None):
+		if not self.enabled:
+			return None
+		elif component is None:
+			for child in self.children:
+				next = child.find_next_focus()
+				if next is not None:
+					return next
+			return None
+		else:
+			i = self.children.index(component) + 1
+			for child in self.children[i:]:
+				next = child.find_next_focus()
+				if next is not None:
+					return next
+			return self.parent.find_next_focus(self)
 
 
 # HGroup class

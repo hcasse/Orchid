@@ -148,6 +148,11 @@ function ui_process_answers() {
 			case "show-last":
 				show_last(a.id);
 				break;
+			case "grab-focus":
+				component = ui_component(a);
+				if(component != null)
+					component.focus();
+				break;
 
 			case "model":
 				for(const path of a.style_paths) {
@@ -296,6 +301,30 @@ function ui_timer_stop(args) {
 	}
 }
 
-function ui_on_key(key, action, event) {
+function ui_on_focus(event) {
+	let target = event.target;
+	if(target == null)
+		return;
+	while(target.id == undefined)
+		target = target.parentNode;
+	ui_send({id: "0", action: "focus", target: target.id});
+}
 
+function ui_handle_key(element, event, keys) {
+
+	// prepare mask
+	let mask = 0;
+	if(event.altKey)
+		mask |= 0x01;
+	if(event.ctrlKey)
+		mask |= 0x02;
+	if(event.metaKey)
+		mask |= 0x04;
+	if(event.shiftKey)
+		mask |= 0x08;
+
+	// look for matching
+	for(const key of keys)
+		if(event.key == key.key && mask == key.mask)
+			ui_send({id: element.id, action: "key", idx: key.action});
 }

@@ -19,11 +19,12 @@
 
 # https://css-tricks.com/some-hands-on-with-the-html-dialog-element/
 
-from orchid.base import Model, Component, Plain, Align
+from orchid.base import Model, Component, Plain
 from orchid.button import Button
 from orchid.label import Label
 from orchid.group import VGroup, HGroup, Spring
 from orchid.image import AssetImage
+from orchid.util import Align
 
 MODEL = Model(
 	name = "orchid.dialog.Base",

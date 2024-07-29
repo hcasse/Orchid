@@ -17,6 +17,7 @@
 
 """Utilty classes for Orchid."""
 
+from enum import Enum, IntEnum
 import sys
 
 class Buffer:
@@ -133,3 +134,110 @@ class ProxyInterface(Interface):
 
 	def set_process(self, percent):
 		self.interface.set_process(percent)
+
+
+class Observer:
+	"""Observer for subject-observer pattern."""
+
+	def update(self, subject):
+		pass
+
+
+class FunctionObserver(Observer):
+	"""An observer implemented as a function."""
+
+	def __init__(self, fun):
+		self.fun = fun
+
+	def update(self, subject):
+		self.fun(subject)
+
+
+class Subject:
+	"""Observer for subject-observer pattern."""
+
+	def __init__(self):
+		self.observers = []
+
+	def get_observers(self):
+		"""Get the list of observers."""
+		return self.observers
+
+	def filter_observers(self, cls):
+		"""Filter observers with the given class."""
+		for obs in self.observers:
+			if isinstance(obs, cls):
+				yield obs
+
+	def add_observer(self, observer):
+		"""Add an observer to the subject. The observer may either implements
+		Observer, or be callable (and will take the subject as parameter).
+
+		Return the build observer that may be passed back to remove_observer()."""
+		if callable(observer):
+			observer = FunctionObserver(observer)
+		self.observers.append(observer)
+		return observer
+
+	def remove_observer(self, observer):
+		"""Remove an observer from the subject."""
+		self.observers.remove(observer)
+
+	def update_observers(self):
+		"""Call the update function of the observers."""
+		for observer in self.observers:
+			observer.update(self)
+
+# type of context
+
+class Context(IntEnum):
+	"""Enumeration of component context, mainly to fix lookup."""
+	NONE = 0
+	TOOLBAR = 1
+	HEADERBAR = 2
+	BUTTONBAR = 3
+	STATUSBAR = 4
+	MENU = 5
+	MAIN = 6
+	ITEMBAR = 7
+
+class Pos(IntEnum):
+	"""Position of a component relatively to another one."""
+	CENTER = 0
+	BELOW = 1
+	ABOVE = 2
+	LEFT = 3
+	RIGHT = 4
+
+class Dir(IntEnum):
+	"""Defines a direction."""
+	NORTH = 0
+	NORTH_EAST = 1
+	EAST = 2
+	SOUTH_EAST = 3
+	SOUTH = 4
+	SOUTH_WEST = 5
+	WEST = 6
+	NORTH_WEST = 7
+	CENTER = 8
+
+class Align(IntEnum):
+	"""Define alignment of component inside its container."""
+	NONE = 0
+	LEFT = 1
+	RIGHT = 2
+	TOP = 1
+	BOTTOM = 2
+	CENTER = 3
+	JUSTIFY = 4
+
+class MessageType(Enum):
+	"""Type of messages."""
+	ERROR = "error"
+	WARN = "warn"
+	INFO = "info"
+	SUCCESS = "success"
+	FAILURE = "failure"
+
+	def as_css(self):
+		return self.value

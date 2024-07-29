@@ -17,7 +17,7 @@
 
 """Classes representing models, observers and variables for complex data structures."""
 
-from orchid.base import Subject, Observer
+from orchid.util import Subject, Observer
 from orchid.mind import Var, Types
 
 class ListObserver(Observer):

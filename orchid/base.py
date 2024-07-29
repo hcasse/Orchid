@@ -17,7 +17,6 @@
 
 """Orchid base classes and definitions. """
 
-from enum import Enum, IntEnum
 import html
 import importlib
 from threading import Thread
@@ -25,168 +24,76 @@ import time
 from time import sleep
 
 from orchid import server
-from orchid.util import Buffer, STANDARD_INTERFACE
+from orchid.mind import Action, AbstractAction
+from orchid.util import Buffer, STANDARD_INTERFACE, Subject, Context
 
 CLOSE_TIMEOUT=0.250
-
-# type of context
-
-class Context(IntEnum):
-	"""Enumeration of component context, mainly to fix lookup."""
-	NONE = 0
-	TOOLBAR = 1
-	HEADERBAR = 2
-	BUTTONBAR = 3
-	STATUSBAR = 4
-	MENU = 5
-	MAIN = 6
-	ITEMBAR = 7
-
-# deprecated
-CONTEXT_NONE = Context.NONE
-CONTEXT_TOOLBAR = Context.TOOLBAR
-CONTEXT_HEADERBAR = Context.HEADERBAR
-CONTEXT_BUTTONBAR = Context.BUTTONBAR
-CONTEXT_MENU = Context.MENU
-CONTEXT_MAIN = Context.MAIN
-
-# type of icons
-ICON_ERASE = "erase"
-ICON_FORWARD = "forward"
-ICON_BACKWARD = "backward"
-ICON_MENU = "menu"
-
-class Pos(IntEnum):
-	"""Position of a component relatively to another one."""
-	CENTER = 0
-	BELOW = 1
-	ABOVE = 2
-	LEFT = 3
-	RIGHT = 4
-
-# deprecated
-POS_CENTER = Pos.CENTER
-POS_BELOW = Pos.BELOW
-POS_ABOVE = Pos.ABOVE
-POS_LEFT = Pos.LEFT
-POS_RIGHT = Pos.RIGHT
-
-
-class Dir(IntEnum):
-	"""Defines a direction."""
-	NORTH = 0
-	NORTH_EAST = 1
-	EAST = 2
-	SOUTH_EAST = 3
-	SOUTH = 4
-	SOUTH_WEST = 5
-	WEST = 6
-	NORTH_WEST = 7
-	CENTER = 8
-
-# deprecated
-DIR_NORTH = Dir.NORTH
-DIR_NORTH_EAST = Dir.NORTH_EAST
-DIR_EAST = Dir.EAST
-DIR_SOUTH_EAST = Dir.SOUTH_EAST
-DIR_SOUTH = Dir.SOUTH
-DIR_SOUTH_WEST = Dir.SOUTH_WEST
-DIR_WEST = Dir.WEST
-DIR_NORTH_WEST = Dir.NORTH_WEST
-DIR_CENTER = Dir.CENTER
-
-class Align(IntEnum):
-	"""Define alignment of component inside its container."""
-	NONE = 0
-	LEFT = 1
-	RIGHT = 2
-	TOP = 1
-	BOTTOM = 2
-	CENTER = 3
-	JUSTIFY = 4
-
-# deprecated
-ALIGN_NONE = Align.NONE
-ALIGN_LEFT = Align.LEFT
-ALIGN_RIGHT = Align.RIGHT
-ALIGN_TOP = Align.TOP
-ALIGN_BOTTOM = Align.BOTTOM
-ALIGN_CENTER = Align.CENTER
-ALIGN_JUSTIFY = Align.JUSTIFY
-
-class MessageType(Enum):
-	"""Type of messages."""
-	ERROR = "error"
-	WARN = "warn"
-	INFO = "info"
-	SUCCESS = "success"
-	FAILURE = "failure"
-
-	def as_css(self):
-		return self.value
-
-
-# deprecated
-MSG_WARN = MessageType.WARN
-MSG_ERROR = MessageType.ERROR
-MSG_INFO = MessageType.INFO
 
 
 def write_nothing(page, out):
 	"""Funcion writing nothing to out."""
 	pass
 
-class Observer:
-	"""Observer for subject-observer pattern."""
 
-	def update(self, subject):
-		pass
+class Key:
+	ALT = 0x01
+	CONTROL = 0x02
+	META = 0x04
+	SHIFT = 0x08
 
+	ENTER = "Enter"
+	TAB = "Tab"
+	SPACE = " "
+	ARROW_DOWN = "ArrowDown"
+	ARROW_LEFT = "ArrowLeft"
+	ARROW_RIGHT = "ArrowRight"
+	ARROW_UP = "ArrowUp"
+	END = "End"
+	HOME = "Home"
+	PAGE_DOWN = "PageDown"
+	PAGE_UP = "PageUp"
+	BACK_SPACE = "BackSpace"
+	CLEAR = "Clear"
+	COPY = "Copy"
+	CUT = "Cut"
+	DELETE = "Delete"
+	INSERT = "Insert"
+	PASTE = "Paste"
+	REDO = "Redo"
+	UNDO = "Undo"
 
-class FunctionObserver(Observer):
-	"""An observer implemented as a function."""
+	F1 = "F1"
+	F2 = "F2"
+	F3 = "F3"
+	F4 = "F4"
+	F5 = "F5"
+	F6 = "F6"
+	F7 = "F7"
+	F8 = "F8"
+	F9 = "F9"
+	F10 = "F10"
+	F11 = "F11"
+	F12 = "F12"
 
-	def __init__(self, fun):
-		self.fun = fun
+	def __init__(self, key, action, mask=0):
+		"""Build a key combination that can trigger an action. The action
+		may be a callable or mind.AbstractAction that is only called
+		if it is enabled. The key is one of constant Key.XXX.
 
-	def update(self, subject):
-		self.fun(subject)
+		mask must be en ORed combination of Key.ALT, Key.CONTROL, Key.META
+		and Key.SHIFT."""
 
+		self.key = key
+		if callable(action):
+			action = Action(action)
+		self.action = action
+		self.mask = mask
 
-class Subject:
-	"""Observer for subject-observer pattern."""
+	def trigger(self, component):
+		"""Called to trigger the action associarted with the key."""
+		if self.action.is_enabled():
+			self.action.perform(component.get_interface())
 
-	def __init__(self):
-		self.observers = []
-
-	def get_observers(self):
-		"""Get the list of observers."""
-		return self.observers
-
-	def filter_observers(self, cls):
-		"""Filter observers with the given class."""
-		for obs in self.observers:
-			if isinstance(obs, cls):
-				yield obs
-
-	def add_observer(self, observer):
-		"""Add an observer to the subject. The observer may either implements
-		Observer, or be callable (and will take the subject as parameter).
-
-		Return the build observer that may be passed back to remove_observer()."""
-		if callable(observer):
-			observer = FunctionObserver(observer)
-		self.observers.append(observer)
-		return observer
-
-	def remove_observer(self, observer):
-		"""Remove an observer from the subject."""
-		self.observers.remove(observer)
-
-	def update_observers(self):
-		"""Call the update function of the observers."""
-		for observer in self.observers:
-			observer.update(self)
 
 class Model:
 	"""Represents a model of component and is used to manage its
@@ -303,6 +210,14 @@ class AbstractComponent(Displayable, Subject):
 		self.parent = None
 		self.page = None
 		self.shown = False
+		self.keys = []
+
+	def key(self, key, action, mask=0):
+		"""Add a key to the component. action may a mind.Action or a function
+		taking no argument. mask is a combination Key.XXX enumeration values.
+		Returns the object itself that makes usable in component construction."""
+		self.keys.append(Key(key, action, mask))
+		return self
 
 	def get_page(self):
 		"""Get the page containing the component."""
@@ -371,6 +286,21 @@ class AbstractComponent(Displayable, Subject):
 			else:
 				out.write(f" {att}=\"{self.make_attr(val)}\"")
 
+		# generate keys
+		if self.keys:
+			map = ",".join(f"{{mask: {k.mask}, key: '{k.key}', action: {i} }}" \
+				for (i, k) in enumerate(self.keys))
+			out.write(f' onkeypress="ui_handle_key(this, event, [{map}]);"')
+
+	def make_msg(self, type, id=None, nth=None):
+		"""Build a standatd message."""
+		if id is None:
+			id = self.get_id()
+		msg = { "id": id, "type": type }
+		if nth is not None:
+			msg["nth"] = nth
+		return msg
+
 	def call(self, fun, args = None):
 		"""Send a message to call a function."""
 		if args is None:
@@ -414,6 +344,7 @@ class AbstractComponent(Displayable, Subject):
 
 		Useful to updte the component state according to changes from
 		the remote page."""
+		# TODO: maybe obsolete.
 		self.attrs[attr] = val
 
 	def get_attr(self, attr, default=None):
@@ -439,6 +370,7 @@ class AbstractComponent(Displayable, Subject):
 	def remove_attr_async(self, attr):
 		"""Remove an attribute of the current component. No propagation is
 		performed to the remote page."""
+		# TODO: maybe obsolete
 		try:
 			del self.attrs[attr]
 			if self.online():
@@ -543,11 +475,48 @@ class AbstractComponent(Displayable, Subject):
 		"""Get the global configuration or the configuration matching the key."""
 		return self.parent.get_config(key, default)
 
-	#def __str__(self):
-	#	try:
-	#		return f"<component {self.get_id()}>"
-	#	except AttributeError:
-	#		return "<page>"
+	def __str__(self):
+		try:
+			return f"<component {self.get_id()}:{self.__class__}>"
+		except AttributeError:
+			return "<page>"
+
+	def is_enabled(self):
+		"""Test if the component is enabled. Default implementation returns True."""
+		return True
+
+	def enable(self):
+		"""Called to enable the component. Default implementation does nothing."""
+		pass
+
+	def disable(self):
+		"""Called to disable the component. Default implementation does nothing."""
+		pass
+
+	def set_enabled(self, enabled):
+		"""Enable/disable according to the enabled parameter."""
+		if enabled:
+			self.enable()
+		else:
+			self.disable()
+
+	def grab_focus(self, **args):
+		"""Grab focus on this component."""
+		self.send(self.make_msg("grab-focus", **args))
+
+	def find_next_focus(self, component=None):
+		"""Lookup for focus following the passed component (if any) or for the
+		current component. Returns the next component for focus or None
+		(default implementation)."""
+		return None
+
+	def next_focus(self):
+		"""Pass focus to the next componen (if any). Default implementation
+		asks parent for next component."""
+		next = self.parent.find_next_focus(self)
+		if next is not None:
+			next.grab_focus()
+
 
 class Component(AbstractComponent):
 	"""Component to build a user-interface. A component may be displayed
@@ -610,21 +579,6 @@ class Component(AbstractComponent):
 		self.weight = weight
 		return self
 
-	def set_enabled(self, enabled = True):
-		"""Enable/disable a component."""
-		if enabled:
-			self.enable()
-		else:
-			self.disable()
-
-	def enable(self):
-		"""Enable the component."""
-		pass
-
-	def disable(self):
-		"""Disable the component."""
-		pass
-
 	def finalize(self, page):
 		"""Called to let component declare additional resources when
 		added to a page."""
@@ -652,6 +606,12 @@ class Component(AbstractComponent):
 	def is_shown(self):
 		"""Test if the current component is shown."""
 		return self.shown
+
+	def receive(self, msg, handler):
+		if msg["action"] == "key":
+			self.keys[msg["idx"]].trigger(self)
+		else:
+			AbstractComponent.receive(self, msg, handler)
 
 
 class ParentComponent(Component):
@@ -701,11 +661,13 @@ class Page(AbstractComponent):
 		self.base_style = style
 		self.timeout_thread = None
 		self.hidden = []
-		self.set_attr("onbeforeunload", "ui_close();")
-		self.set_attr("onload", 'ui_hi();')
 		self.interface = interface
 		self.manager = None
 		self.style_paths = []
+		self.focus_id = None
+		self.set_attr("onbeforeunload", "ui_close();")
+		self.set_attr("onload", 'ui_hi();')
+		self.set_attr("onfocusin", "ui_on_focus(event);")
 
 		# prepare the theme
 		if isinstance(theme, str):
@@ -720,6 +682,31 @@ class Page(AbstractComponent):
 			self.models = {}
 			self.components = {}
 		self.add_model(theme)
+
+	def get_focus(self):
+		"""Get the element that gets the focus. None if no one has the focus."""
+		if self.focus_id is None:
+			return None
+		try:
+			return self.components[self.focus_id]
+		except KeyError:
+			try:
+				i = self.focus_id.index('-')
+				self.focus_id = self.focus_id[:i]
+				return self.components[self.focus_id]
+			except (ValueError, KeyError):
+				return None
+
+	def find_next_focus(self, component=None):
+		return self.main.find_next_focus()
+
+	def next_focus(self):
+		"""Pass focus to next element."""
+		current = self.get_focus()
+		if current is None:
+			self.main.next_focus()
+		else:
+			current.next_focus()
 
 	def get_theme(self):
 		"""Get the current theme of the page."""
@@ -897,6 +884,8 @@ class Page(AbstractComponent):
 			self.on_close()
 		elif a == "hi":
 			pass
+		elif a == "focus":
+			self.focus_id = msg["target"]
 		else:
 			handler.log_error(f"unknown action: {a}")
 

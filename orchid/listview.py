@@ -46,6 +46,7 @@ class ListView(Component, ListObserver):
 		model = MODEL
 	):
 		Component.__init__(self, model)
+		ListObserver.__init__(self)
 		if items is None:
 			items = []
 		if selection is None:

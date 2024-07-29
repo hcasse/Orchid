@@ -17,8 +17,8 @@
 
 """Data/Process-oriented user interface."""
 
-from orchid.base import AbstractComponent, Component, Page, Model, Subject, \
-	Observer, Session, Application, Pos, Dir, Align, Context, MessageType, Timer
+from orchid.base import AbstractComponent, Component, Page, Model, \
+	Session, Application, Timer, Key
 from orchid.button import Button, CheckBox, RadioButton, TwoStateButton
 from orchid.console import Console
 from orchid.editor import Editor
@@ -27,7 +27,6 @@ from orchid.field import Field, ColorField, DateField, TimeField, \
 	Select, as_natural, as_re, Form, ProposalField
 from orchid.group import HGroup, VGroup, Spring, LayeredPane, hspring, vspring
 from orchid.image import Icon, Image, AssetImage, IconType
-from orchid.keygroup import Key, KeyGroup
 from orchid.label import Label, MessageLabel, Banner
 from orchid.listview import ListView
 from orchid import mind
@@ -44,7 +43,8 @@ from orchid.split import SplitPane
 from orchid.struct import Header, ToolBar, MessageContainer, StatusBar
 from orchid.tabbedpane import TabbedPane, Tab
 from orchid.table import TableView
-from orchid.util import Interface, buffer
+from orchid.util import Interface, buffer, Pos, Dir, Align, Context, \
+	MessageType, Observer, Subject
 from orchid.view import InteractiveView
 
 # deprecated

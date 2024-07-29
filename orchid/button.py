@@ -1,11 +1,11 @@
 """Button class."""
 
-from orchid.base import Component, Model, Context
+from orchid.base import Component, Model
 from orchid.mind import AbstractAction, EnableObserver, Var, Types, \
 	EnumType, EntityObserver
 from orchid.field import LabelledField
 from orchid.image import Image
-from orchid.util import Buffer
+from orchid.util import Buffer, Context
 
 
 class ButtonAction(AbstractAction):
@@ -39,6 +39,12 @@ class AbstractButton(Component, EnableObserver, EntityObserver):
 				help=help
 			)
 
+	def find_next_focus(self, component=None):
+		if self.is_enabled():
+			return self
+		else:
+			return None
+
 	def on_show(self):
 		Component.on_show(self)
 		self.action.add_enable_observer(self)
@@ -56,7 +62,7 @@ class AbstractButton(Component, EnableObserver, EntityObserver):
 		self.set_attr("disabled", None)
 
 	def is_enabled(self):
-		return self.action.is_enabled(self)
+		return self.action.is_enabled()
 
 	def get_action(self):
 		"""Get the action of the button."""
@@ -216,6 +222,13 @@ class CheckBox(Component, LabelledField):
 		self.set_enabled(enabled)
 		self.updating = False
 
+	def take_focus(self):
+		self.grab_focus()
+		return True
+
+	def grab_focus(self, **args):
+		Component.grab_focus(f"{self.get_id()}-input")
+
 	def on_show(self):
 		Component.on_show(self)
 		self.var.add_observer(self)
@@ -255,7 +268,8 @@ class CheckBox(Component, LabelledField):
 			out.write('</label>')
 
 	def gen_field(self, out, with_label=True):
-		out.write(f'<div class="checkbox"><input type="checkbox" name="{self.get_id()}"')
+		out.write(f'<div class="checkbox"><input type="checkbox" \
+			name="{self.get_id()}" id="{self.get_id()}-input"')
 		self.gen_attrs(out)
 		out.write('>')
 		if with_label:
@@ -323,6 +337,10 @@ class RadioButton(Component, LabelledField):
 		assert 0 <= choice < len(self.options)
 		self.horizontal = horizontal
 		self.updating = False
+
+	def take_focus(self):
+		self.grab_focus()
+		return True
 
 	def get_option_id(self, n):
 		return f"{self.get_id()}-{n}"
