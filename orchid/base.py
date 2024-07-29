@@ -85,8 +85,9 @@ class Key:
 
 		self.key = key
 		if callable(action):
-			action = Action(action)
-		self.action = action
+			self.action = Action(lambda _: action())
+		else:
+			self.action = action
 		self.mask = mask
 
 	def trigger(self, component):

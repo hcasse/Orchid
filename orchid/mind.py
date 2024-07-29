@@ -738,18 +738,27 @@ def matches(var, expr):
 	return Match()
 
 
+def compare(x, y, f):
+	"""Generate a function that compares x and y taking into account None
+	(return False)."""
+	def g():
+		xv = get_value(x)
+		yv = get_value(y)
+		return xv is not None and yv is not None and f(xv, yv)
+	return g
+
 def gt(x, y):
 	"""Build a predicate that x is greater than y."""
 	return Predicate(
 		[v for v in [x, y] if isinstance(v, Var)],
-		fun=lambda: get_value(x) > get_value(y)
+		fun=compare(x, y, lambda x, y: x > y)
 	)
 
 def ge(x, y):
 	"""Build a predicate that x is greater or equal than y."""
 	return Predicate(
 		[v for v in [x, y] if isinstance(v, Var)],
-		fun=lambda: get_value(x) >= get_value(y)
+		fun=compare(x, y, lambda x, y: x >= y)
 	)
 
 def lt(x, y):
@@ -764,7 +773,7 @@ def eq(x, y):
 	"""Build a predicate that x is lower than y."""
 	return Predicate(
 		[v for v in [x, y] if isinstance(v, Var)],
-		fun=lambda: get_value(x) == get_value(y)
+		fun=compare(x, y, lambda x, y: x == y)
 	)
 
 def ne(x, y):

@@ -83,7 +83,7 @@ class Base(Component):
 
 	def show(self):
 		self.call("dialog_show", {"id": self.get_id()})
-		self.main.on_show()
+		self.main.show()
 
 	def hide(self):
 		self.main.hide()
