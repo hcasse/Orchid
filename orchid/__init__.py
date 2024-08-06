@@ -32,7 +32,7 @@ from orchid.listview import ListView
 from orchid import mind
 from orchid.mind import Type, Types, Entity, Var, \
 	EnableObserver, AbstractPredicate, Predicate, AbstractAction, Action, \
-	not_null, equals, not_, is_password, if_error, matches
+	not_null, equals, not_, is_password, if_error, matches, is_null
 from orchid.models import \
 	ListObserver, ListModel, ListVar, \
 	SetObserver, SetModel, SetVar, \

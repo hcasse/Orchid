@@ -24,7 +24,7 @@ from orchid.button import Button
 from orchid.label import Label
 from orchid.group import VGroup, HGroup, Spring
 from orchid.image import AssetImage
-from orchid.util import Align
+from orchid.util import Align, Buffer
 
 MODEL = Model(
 	name = "orchid.dialog.Base",
@@ -55,39 +55,66 @@ dialog {
 
 class Base(Component):
 
-	def __init__(self, page, main, title=None, no_pad=False, model=MODEL):
+	def __init__(self, page, main=None, title=None, no_pad=False, model=MODEL):
 		Component.__init__(self, model)
-		if not no_pad:
-			main.add_class("dialog-content")
-		if title is not None:
-			main = VGroup([
-				self.make_title(title),
-				main
-			])
+		if main is None:
+			main = Label("No content!")
 		self.main = main
-		main.parent = self
-		main.add_class("dialog-flex")
+		self.title = title
+		self.no_pad = no_pad
 		self.interface = None
+		self.content = None
 		page.add_hidden(self)
 
 	def finalize(self, page):
 		Component.finalize(self, page)
 		self.main.finalize(page)
 
+	def get_content(self):
+		"""Get the content of the dialog."""
+		if self.content is None:
+			if not self.no_pad:
+				self.main.add_class("dialog-content")
+			if self.title is not None:
+				self.content = VGroup([
+					self.make_title(self.title),
+					self.main
+				])
+			else:
+				self.content = self.main
+			self.content.parent = self
+			self.content.add_class("dialog-flex")
+		return self.content
+
+	def set_main(self, component):
+		"""Set the main component."""
+		self.main = component
+		self.content = None
+		self.get_content()
+		self.main.parent = self
+		if self.online():
+			self.main.finalize(self.get_page())
+			self.set_content(self.get_content())
+
 	def gen(self, out):
 		out.write('<dialog')
 		self.gen_attrs(out)
 		out.write('>')
-		self.main.gen(out)
+		self.get_content().gen(out)
 		out.write('</dialog>')
 
 	def show(self):
-		self.call("dialog_show", {"id": self.get_id()})
-		self.main.show()
+		if not self.shown:
+			self.shown = True
+			self.call("dialog_show", {"id": self.get_id()})
+			self.get_content().on_show()
+			#self.grab_focus()
 
 	def hide(self):
-		self.main.hide()
-		self.call("dialog_hide", {"id": self.get_id()})
+		if self.shown:
+			self.get_content().on_hide()
+			self.call("dialog_hide", {"id": self.get_id()})
+			self.shown = False
 
 	def make_title(self, title):
 		"""Generate the title from a component or from a string title."""
@@ -107,6 +134,7 @@ class Base(Component):
 			return self.interface
 
 	def set_interface(self, interface):
+		"""Set the interface used by the dialog."""
 		self.interface = interface
 
 

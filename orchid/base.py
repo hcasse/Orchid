@@ -61,6 +61,7 @@ class Key:
 	PASTE = "Paste"
 	REDO = "Redo"
 	UNDO = "Undo"
+	ESCAPE = "Escape"
 
 	F1 = "F1"
 	F2 = "F2"
@@ -218,6 +219,8 @@ class AbstractComponent(Displayable, Subject):
 		taking no argument. mask is a combination Key.XXX enumeration values.
 		Returns the object itself that makes usable in component construction."""
 		self.keys.append(Key(key, action, mask))
+		if self.online():
+			self.make_keys()
 		return self
 
 	def get_page(self):
@@ -266,6 +269,10 @@ class AbstractComponent(Displayable, Subject):
 	def gen_attrs(self, out):
 		"""Generate common attributes"""
 
+		# generate keys
+		if self.keys:
+			self.make_keys()
+
 		# generate attribute themselves
 		out.write(f' id="{self.get_id()}"')
 
@@ -287,11 +294,11 @@ class AbstractComponent(Displayable, Subject):
 			else:
 				out.write(f" {att}=\"{self.make_attr(val)}\"")
 
-		# generate keys
-		if self.keys:
-			map = ",".join(f"{{mask: {k.mask}, key: '{k.key}', action: {i} }}" \
-				for (i, k) in enumerate(self.keys))
-			out.write(f' onkeypress="ui_handle_key(this, event, [{map}]);"')
+	def make_keys(self):
+		"""Generate the content of attribute to handle keys."""
+		map = ",".join(f"{{mask: {k.mask}, key: '{k.key}', action: {i} }}" \
+			for (i, k) in enumerate(self.keys))
+		self.set_attr('onkeyup', f'ui_handle_key(this, event, [{map}]);')
 
 	def make_msg(self, type, id=None, nth=None):
 		"""Build a standatd message."""
@@ -309,7 +316,8 @@ class AbstractComponent(Displayable, Subject):
 		self.send({"type": "call", "fun": fun, "args": args})
 
 	def set_style(self, attr, val):
-		"""Send a message to set a style."""
+		"""Send a message to set a style. Return component itself for
+		chaining at compilation time."""
 		self.style[attr] = val
 		if self.online():
 			self.send({
@@ -318,6 +326,7 @@ class AbstractComponent(Displayable, Subject):
 				"attr": attr,
 				"val": val
 			})
+		return self
 
 	def get_style(self, attr, default=None):
 		"""Get a style. None if not set."""
@@ -328,7 +337,8 @@ class AbstractComponent(Displayable, Subject):
 
 	def set_attr(self, attr, val=None, id=None):
 		"""Set the value of an attribute of the current component. If on line,
-		propagate the schange to the remote page."""
+		propagate the schange to the remote page. Return component itself
+		for chaining at creation time."""
 		if id is None:
 			id = self.get_id()
 			self.attrs[attr] = val
@@ -338,6 +348,7 @@ class AbstractComponent(Displayable, Subject):
 				"id": id,
 				"attr": attr,
 				"val": val if val is not None else ""})
+		return self
 
 	def set_attr_async(self, attr, val = None):
 		"""Set an attribute for the current component. Do not propagate
@@ -444,7 +455,8 @@ class AbstractComponent(Displayable, Subject):
 				"id": self.get_id()})
 
 	def add_class(self, cls, id=None, nth=-1):
-		"""Add a class of the component."""
+		"""Add a class of the component. Return itself for chaining at
+		creation time."""
 		if id is None:
 			if cls in self.classes:
 				return
@@ -452,6 +464,7 @@ class AbstractComponent(Displayable, Subject):
 			self.classes.append(cls)
 		if self.online():
 			self.send({"type": "add-class", "id": id, "nth": nth, "class": cls})
+		return self
 
 	def has_class(self, cls):
 		"""Test if the class is already set."""
@@ -527,6 +540,7 @@ class Component(AbstractComponent):
 		AbstractComponent.__init__(self)
 		self.model = model
 		self.weight = None
+		self.shown = False
 
 	def get_model(self):
 		"""Get the model of the component."""
@@ -595,14 +609,17 @@ class Component(AbstractComponent):
 
 	def show(self):
 		"""Show the current item."""
-		self.on_show()
-		self.set_style("display", "flex")
+		if not self.shown:
+			self.on_show()
+			if self.online():
+				self.remove_class("hidden")
 
 	def hide(self):
 		"""Hide the current item."""
-		if self.online():
+		if self.shown:
 			self.on_hide()
-		self.set_style("display", "none")
+			if self.online():
+				self.add_class("hidden")
 
 	def is_shown(self):
 		"""Test if the current component is shown."""
@@ -727,6 +744,10 @@ class Page(AbstractComponent):
 	def get_session(self):
 		"""Get the current session."""
 		return self.session
+
+	def get_application(self):
+		"""Get the application containing the page."""
+		return self.session.get_application()
 
 	def get_config(self, key=None, default=None):
 		"""Get the global configuration as passed to the run()

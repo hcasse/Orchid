@@ -12,6 +12,9 @@ div.menu {
 	background-color: #EEEEEE;
 }
 
+.hidden {
+display: none !important;
+}
 
 /* Modal */
 .modal-content {

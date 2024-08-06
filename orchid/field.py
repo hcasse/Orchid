@@ -202,6 +202,7 @@ class Field(Component, LabelledField):
 		Component.on_show(self)
 		self.var.add_observer(self)
 		self.updating = False
+		self.set_value(~self.var)
 
 	def on_hide(self):
 		Component.on_hide(self)
@@ -411,8 +412,15 @@ function select_on_choose(elt) {
 class Select(Component, LabelledField):
 	"""Field to select from a list."""
 
-	def __init__(self, choices, choice=0, label=None, enabled=True, size=None, help=None, var=None):
+	def __init__(self, choices=None, choice=0, label=None, enabled=True, \
+	size=None, help=None, var=None):
+		"""Build a select field. One of parameter choices or var must be given.
+		If var is given, it must have an enumeration type. Otherwise choices
+		must be a list of choices (converted to string with str()) or variable
+		with previous conditions."""
 		Component.__init__(self, SELECT_MODEL)
+		if isinstance(choices, Var):
+			var = choices
 		if var is not None:
 			assert isinstance(var.type, EnumType)
 			assert 0 <= choice < len(var.type.values)

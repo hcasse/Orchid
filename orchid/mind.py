@@ -642,6 +642,11 @@ def not_null(var):
 	empty text, empty list, etc."""
 	return Predicate(vars=[var], fun=lambda: bool(~var))
 
+def is_null(var):
+	"""Generate a predicate that test if the variable is one of None, 0,
+	empty text, empty list, etc."""
+	return Predicate(vars=[var], fun=lambda: not bool(~var))
+
 def equals(x, y):
 	"""Predicate testing if x = y. x and y may be any value and specially
 	variables that will be observed."""
@@ -692,6 +697,7 @@ def is_password(var, size=8, lower=1, upper=1, digit=1, other=1):
 			c += 1
 		return c
 	return Predicate([var], fun=lambda:
+		~var is not None and \
 		len(~var) >= size and \
 		count(filter(str.islower, ~var)) >= lower and \
 		count(filter(str.isupper, ~var)) >= upper and \
@@ -734,7 +740,10 @@ def matches(var, expr):
 	r = re.compile(expr)
 	class Match(Predicate):
 		def check(self):
-			return r.fullmatch(~var) is not None
+			if ~var is None:
+				return False
+			else:
+				return r.fullmatch(~var) is not None
 	return Match()
 
 

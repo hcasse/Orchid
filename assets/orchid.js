@@ -71,9 +71,9 @@ function ui_process_answers() {
 				var f = window[a.fun];
 				if(f == undefined)
 					console.error(`cannot find function ${a.fun}`);
-			else
-				f(a.args);
-			break;
+				else
+					f(a.args);
+				break;
 
 			case "set-style":
 				component = document.getElementById(a.id);
@@ -323,8 +323,14 @@ function ui_handle_key(element, event, keys) {
 	if(event.shiftKey)
 		mask |= 0x08;
 
+	//console.log("DEBUG: mask = " + mask + ", key = " + event.key);
+
 	// look for matching
-	for(const key of keys)
-		if(event.key == key.key && mask == key.mask)
+	for(const key of keys) {
+		//console.log("DEBUG: compare with mask = " + key.mask + ", key = " + key.key);
+		if(event.key == key.key && mask == key.mask) {
+			//console.log("DEBUG: sending !")
 			ui_send({id: element.id, action: "key", idx: key.action});
+		}
+	}
 }

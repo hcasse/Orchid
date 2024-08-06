@@ -21,7 +21,7 @@ class MyPage(orc.Page):
 					orc.Button("Focus 2", on_click=self.focus2),
 					orc.Button("Focus 3", on_click=self.focus3),
 				])
-			]).key(orc.Key.ENTER, lambda _: self.next_focus()),
+			]).key(orc.Key.ENTER, lambda: self.next_focus()),
 			app = app
 		)
 
