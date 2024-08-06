@@ -213,7 +213,7 @@ class Field(Component, LabelledField):
 			self.get_page().set_direct_attr(
 				f"{self.get_id()}-field",
 				"value",
-				self.var.get_type().as_text(~self.var))
+				self.var.get_type().as_text(~self.var) if ~self.var is not None else "")
 
 	def update(self, subject):
 		if not self.updating:
@@ -242,8 +242,8 @@ class Field(Component, LabelledField):
 			self.gen_attr(out, "title", self.var.help)
 		self.gen_custom(out)
 		val = self.get_value()
-		if val is not None:
-			self.gen_attr(out, "value", self.var.get_type().as_text(val))
+		if ~self.var is not None:
+			self.gen_attr(out, "value", self.var.get_type().as_text(~self.var))
 		self.gen_attr(out, "oninput", f'field_change("{self.get_id()}", this.value);')
 
 	def gen_label(self, out):

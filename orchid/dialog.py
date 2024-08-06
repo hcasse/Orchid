@@ -107,14 +107,19 @@ class Base(Component):
 		if not self.shown:
 			self.shown = True
 			self.call("dialog_show", {"id": self.get_id()})
-			self.get_content().on_show()
-			#self.grab_focus()
+			self.on_show()
 
 	def hide(self):
 		if self.shown:
-			self.get_content().on_hide()
+			self.on_hide()
 			self.call("dialog_hide", {"id": self.get_id()})
 			self.shown = False
+
+	def on_show(self):
+		self.get_content().on_show()
+
+	def on_hide(self):
+		self.get_content().on_hide()
 
 	def make_title(self, title):
 		"""Generate the title from a component or from a string title."""
