@@ -216,6 +216,10 @@ class Answer(Base):
 		else:
 			Base.receive(self, msg, handler)
 
+	def get_button(self, i):
+		"""Get the ith button (typically for look customisation)."""
+		return self.buttons[i]
+
 
 MESSAGES = {
 	"warning": "basic/warning.svg",
