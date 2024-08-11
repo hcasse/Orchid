@@ -241,3 +241,6 @@ class MessageType(Enum):
 
 	def as_css(self):
 		return self.value
+
+
+

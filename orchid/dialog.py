@@ -24,7 +24,8 @@ from orchid.button import Button
 from orchid.label import Label
 from orchid.group import VGroup, HGroup, Spring
 from orchid.image import AssetImage
-from orchid.util import Align, Buffer
+from orchid.util import Align
+from orchid.displayable import Text
 
 MODEL = Model(
 	name = "orchid.dialog.Base",
@@ -196,7 +197,8 @@ class Answer(Base):
 		content.append(self.button_bar)
 
 		# initialize the parent
-		Base.__init__(self, page, VGroup(content), title=title, model=ANSWER_MODEL)
+		self.vgroup = VGroup(content)
+		Base.__init__(self, page, self.vgroup, title=title, model=ANSWER_MODEL)
 		self.on_close = on_close
 		self.add_class("dialog-answer")
 
@@ -231,24 +233,24 @@ class Message(Base):
 	"""Display a dialog with a message. Dialog display can
 	be customized with a type.
 
-	The type may "warning", "error", "info".
+	The type is an enumeration value from MessageType.
 
 	In addition, the callback on_close is called when the dialog is closed."""
 
 	def __init__(self, page, message, title=None, type=None, on_close=lambda: None):
 		content = []
-		message = self.make_message(message)
-		message.add_class("dialog-message-text")
+		self.message = Label(message)
+		self.message.add_class("dialog-message-text")
 		icon = page.get_theme().get_dialog_icon(type)
 		if icon is not None:
 			icon = Label(icon)
 			icon.add_class("dialog-icon")
 			content.append(HGroup([
 				icon,
-				message
+				self.message
 			]))
 		else:
-			content.append(message)
+			content.append(self.message)
 		buttons = HGroup([
 			Spring(hexpand=True),
 			Button("Ok", on_click=self.close)
@@ -264,6 +266,10 @@ class Message(Base):
 	def close(self):
 		self.hide()
 		self.on_close()
+
+	def set_message(self, message):
+		"""Change the message of the dialog."""
+		self.message.set_text(message)
 
 
 class About(Base):

@@ -24,8 +24,9 @@ import time
 from time import sleep
 
 from orchid import server
-from orchid.mind import Action, AbstractAction
+from orchid.mind import Action
 from orchid.util import Buffer, STANDARD_INTERFACE, Subject, Context
+from orchid.displayable import Displayable
 
 CLOSE_TIMEOUT=0.250
 
@@ -160,40 +161,6 @@ class Model:
 
 class Handler:
 	"""Interface providing access to the HTTP server handler."""
-
-
-class Displayable:
-	"""Defines an object that may be displayed in the UI but is not
-	interactive. It may be finalized and generated."""
-
-	def finalize(self, page):
-		"""Called before the generation in order to link with the page
-		and possibly ask for resources."""
-		pass
-
-	def gen(self, out):
-		"""Called  to generate the HTML content corresponding to the
-		displayable on the given output (supporting only write() method).
-		The default implementation does nothing."""
-		pass
-
-DISPLAY_NONE = Displayable()
-"""Displayable that displays nothing."""
-
-class Text(Displayable):
-	"""A simple displayable showing a text."""
-
-	def __init__(self, text, style = None):
-		self.text = text
-		self.style = style
-
-	def gen(self, out):
-		out.write("<span")
-		if self.style is not None:
-			out.write(f' class="text-{self.style}"')
-		out.write('>')
-		out.write(self.text)
-		out.write('</span>')
 
 
 class AbstractComponent(Displayable, Subject):
@@ -459,7 +426,7 @@ class AbstractComponent(Displayable, Subject):
 		creation time."""
 		if id is None:
 			if cls in self.classes:
-				return
+				return self
 			id = self.get_id()
 			self.classes.append(cls)
 		if self.online():
@@ -1016,6 +983,12 @@ class Page(AbstractComponent):
 				"id": id,
 				"attr": att
 			})
+
+	def open_url(self, url, target="_self"):
+		"""Open the URL in the given target. Target may be classic target in
+		HTML <a> tags."""
+		if self.online():
+			self.send({ "type": "open", "url": url, "target": target })
 
 
 class Session:

@@ -1,22 +1,24 @@
 """Label component."""
 
 from orchid.base import Component, Model, Displayable
+from orchid.displayable import Text
 from orchid.util import ProxyInterface, STANDARD_INTERFACE, Buffer
 
 LABEL_MODEL = Model()
 
+
 class Label(Component):
 	"""Component displaying the given content that may be plain or an instance of Displayable."""
 
-	def __init__(self, content):
+	def __init__(self, text):
 		Component.__init__(self, LABEL_MODEL)
-		self.content = content
+		self.text = None
+		self.set_text(text)
 		self.add_class("label")
 
 	def finalize(self, page):
 		Component.finalize(self, page)
-		if isinstance(self.content, Displayable):
-			self.content.finalize(page)
+		self.text.finalize(page)
 
 	def gen(self, out):
 		out.write('<div')
@@ -26,14 +28,15 @@ class Label(Component):
 		out.write('</div>\n')
 
 	def gen_content(self, out):
-		if isinstance(self.content, Displayable):
-			self.content.gen(out)
-		else:
-			out.write(self.content)
+		self.text.gen(out)
 
-	def set_text(self, content):
-		self.content = content
+	def set_text(self, text):
+		if isinstance(text, Displayable):
+			self.text = text
+		else:
+			self.text = Text.make(text)
 		if self.online():
+			self.text.finalize(self.get_page())
 			buf = Buffer()
 			self.gen_content(buf)
 			self.set_content(str(buf))
@@ -96,13 +99,13 @@ class MessageLabel(Label, ProxyInterface):
 		self.last_cls = cls
 
 	def clear_message(self):
-		if self.content:
+		if self.text:
 			self.clear_class()
 			self.last_cls = None
 			self.set_text("")
 
 	def set_message(self, style, message):
-		if self.content != message:
+		if self.text != message:
 			self.set_text(message)
 			self.replace_class(style)
 

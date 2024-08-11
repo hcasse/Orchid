@@ -19,12 +19,12 @@
 
 from orchid.base import Model, Theme
 from orchid.image import AssetImage, Image, IconType
-from orchid.util import Context
+from orchid.util import Context, MessageType
 
 MESSAGES = {
-	"warning": "basic/warning.svg",
-	"error": "basic/error.svg",
-	"info": "basic/info.svg"
+	MessageType.WARN: 	"basic/warning.svg",
+	MessageType.ERROR: 	"basic/error.svg",
+	MessageType.INFO:	"basic/info.svg"
 }
 
 BOOTSTRAP_ICONS = {

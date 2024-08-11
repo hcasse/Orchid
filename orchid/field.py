@@ -241,7 +241,6 @@ class Field(Component, LabelledField):
 		if self.var.help is not None:
 			self.gen_attr(out, "title", self.var.help)
 		self.gen_custom(out)
-		val = self.get_value()
 		if ~self.var is not None:
 			self.gen_attr(out, "value", self.var.get_type().as_text(~self.var))
 		self.gen_attr(out, "oninput", f'field_change("{self.get_id()}", this.value);')

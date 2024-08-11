@@ -28,6 +28,10 @@ function download() {
 	}
 }
 
+/*function ui_download(url){
+	window.open(url, '_self');
+}*/
+
 function show_last(id) {
 	const cont = document.getElementById(id);
 	const elt = cont.lastChild
@@ -112,6 +116,9 @@ function ui_process_answers() {
 				req.onreadystatechange = download
 				req.open("GET", a.path, true);
 				req.send();
+				break;
+			case "open":
+				ui_open(a.url, a.target);
 				break;
 
 			case 'set-content':
@@ -257,8 +264,14 @@ function ui_hi() {
 
 // Main actions
 
-function ui_open(addr) {
-	window.open(addr);
+function ui_open(addr, target) {
+	//window.open(addr);
+	console.log("DEBUG: ui_open " + addr);
+	let link = document.createElement("a");
+	//link.download = "ok.tgz";
+	link.href = addr;
+	link.target = target;
+	link.click();
 }
 
 function ui_close() {
