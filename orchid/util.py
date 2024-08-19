@@ -191,7 +191,17 @@ class Subject:
 # type of context
 
 class Context(IntEnum):
-	"""Enumeration of component context, mainly to fix lookup."""
+	"""Enumeration of component context, mainly to fix lookup. The following
+	contexts are supported:
+	* NONE - no context.
+	* TOOLBAR - window-level toolbar.
+	* HEADERBAR - header of the application.
+	* BUTTONBAR - buttonbar in window division.
+	* STATUSBAR - status bar case.
+	* MENU - popup menu.
+	* MAIN - main window level.
+	* ITEMBAR - level of items (typically appearing when mouse is over).
+	"""
 	NONE = 0
 	TOOLBAR = 1
 	HEADERBAR = 2

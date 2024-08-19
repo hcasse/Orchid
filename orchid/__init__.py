@@ -25,7 +25,8 @@ from orchid.editor import Editor
 from orchid.field import Field, ColorField, DateField, TimeField, \
 	DateTimeField, PasswordField, EmailField, RangeField, \
 	Select, as_natural, as_re, Form, ProposalField
-from orchid.group import HGroup, VGroup, Spring, LayeredPane, hspring, vspring
+from orchid.group import HGroup, VGroup, Spring, LayeredPane, hspring, vspring, \
+	HSpace
 from orchid.image import Icon, Image, AssetImage, IconType
 from orchid.label import Label, MessageLabel, Banner
 from orchid.listview import ListView
@@ -40,7 +41,7 @@ from orchid.models import \
 from orchid.popup import Menu, MenuButton
 from orchid.server import run
 from orchid.split import SplitPane
-from orchid.struct import Header, ToolBar, MessageContainer, StatusBar
+from orchid.struct import Header, ToolBar, MessageContainer, StatusBar, ButtonBar
 from orchid.tabbedpane import TabbedPane, Tab
 from orchid.table import TableView
 from orchid.util import Interface, buffer, Pos, Dir, Align, Context, \

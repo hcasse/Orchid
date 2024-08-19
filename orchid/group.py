@@ -213,6 +213,11 @@ class Group(ParentComponent):
 					return next
 			return self.parent.find_next_focus(self)
 
+	def grab_focus(self, **args):
+		child = self.find_next_focus()
+		if child is not None:
+			child.grab_focus(**args)
+
 
 # HGroup class
 
@@ -458,3 +463,21 @@ class LayeredPane(Group):
 		for c in self.children:
 			c.gen(out)
 		out.write('</div>\n')
+
+
+class HSpace(Component):
+	"""Passive object inserting an horizontal space."""
+
+	MODEL = Model("hspace")
+
+	def __init__(self, size="1em"):
+		Component.__init__(self, model=HSpace.MODEL)
+		if isinstance(size, int):
+			size = f"{size}px"
+		self.set_style("min-width", size)
+
+	def gen(self, out):
+		out.write("<span ")
+		self.gen_attrs(out)
+		out.write("></span>")
+

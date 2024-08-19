@@ -575,18 +575,18 @@ class Component(AbstractComponent):
 		self.shown = False
 
 	def show(self):
-		"""Show the current item."""
+		"""Show the current item and return itself."""
 		if not self.shown:
 			self.on_show()
-			if self.online():
-				self.remove_class("hidden")
+			self.remove_class("hidden")
+		return self
 
 	def hide(self):
-		"""Hide the current item."""
+		"""Hide the current item and return itself."""
 		if self.shown:
 			self.on_hide()
-			if self.online():
-				self.add_class("hidden")
+			self.add_class("hidden")
+		return self
 
 	def is_shown(self):
 		"""Test if the current component is shown."""

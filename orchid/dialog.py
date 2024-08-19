@@ -109,12 +109,14 @@ class Base(Component):
 			self.shown = True
 			self.call("dialog_show", {"id": self.get_id()})
 			self.on_show()
+		return self
 
 	def hide(self):
 		if self.shown:
 			self.on_hide()
 			self.call("dialog_hide", {"id": self.get_id()})
 			self.shown = False
+		return self
 
 	def on_show(self):
 		self.get_content().on_show()

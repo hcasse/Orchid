@@ -93,7 +93,8 @@ class Field(Component, LabelledField):
 	* size - field size in characters.
 	* validate - valdiate the value (returning a boolean).
 	* weight - weight of the field in the horizontal display.
-	* place_holder - palce holder text.
+	* place_holder - palce holder text (if True, label is displayed as place
+	  holder and no label is displayed).
 	* read_only - field read-only (mainly used to display information).
 	* help - help message displayed as tooltip.
 	* as_text - transform the value into string.
@@ -235,7 +236,10 @@ class Field(Component, LabelledField):
 		if self.size is not None:
 			self.gen_attr(out, "size", self.size)
 		if self.place_holder is not None:
-			self.gen_attr(out, "placeholder", self.place_holder)
+			if self.place_holder is True:
+				self.gen_attr(out, "placeholder", self.var.label)
+			else:
+				self.gen_attr(out, "placeholder", self.place_holder)
 		if self.read_only:
 			self.gen_attr(out, "readonly")
 		if self.var.help is not None:
@@ -262,7 +266,7 @@ class Field(Component, LabelledField):
 		out.write("<div ")
 		self.gen_attrs(out)
 		out.write(">")
-		if with_label:
+		if with_label and self.place_holder is not True:
 			self.gen_label(out)
 		self.gen_input(out)
 		out.write("</div>")

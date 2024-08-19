@@ -38,8 +38,10 @@ BOOTSTRAP_ICONS = {
 	IconType.CHAT: "chat-dots",
 	IconType.CHECK: "check",
 	IconType.CHECK_ALL: "check-all",
+	IconType.CLOSE: "x-lg",
 	IconType.CONFIGURE: "tools",
 	IconType.CONTEXT_MENU: "three-dots-vertical",
+	IconType.COPY: "copy",
 	IconType.CUT: "scissors",
 	IconType.DEBUG: "bug-fill",
 	IconType.DOWNLOAD: "cloud-download",
@@ -47,6 +49,7 @@ BOOTSTRAP_ICONS = {
 	IconType.ENTER: "box-arrow-in-right",
 	IconType.ERASE: "eraser-fill",
 	IconType.FAST_FORWARD: "fast-forward-fill",
+	IconType.FIND: "search",
 	IconType.GO_BACK: "back",
 	IconType.GO_FORWARD: "forward-fill",
 	IconType.GO_FRONT: "front",
@@ -55,7 +58,9 @@ BOOTSTRAP_ICONS = {
 	IconType.JUSTIFY: "justify",
 	IconType.LEAVE: "box-arrow-right",
 	IconType.MENU: "list",
+	IconType.OPEN: "folder2-open",
 	IconType.PAINT: "brush-fill",
+	IconType.PASTE: "clipboard",
 	IconType.PAUSE: "pause-fill",
 	IconType.PICK: "eyedropper",
 	IconType.PIN: "pin-angle-fill",
@@ -65,11 +70,15 @@ BOOTSTRAP_ICONS = {
 	IconType.PROTECT: "shield-fill-check",
 	IconType.QUIT: "power",
 	IconType.RECORD: "record-fill",
+	IconType.REDO: "arrow-clockwise",
 	IconType.REMOVE: "x-lg",
 	IconType.REPEAT: "repeat",
+	IconType.REPLACE: "pencil-square",
 	IconType.REPLY: "reply-fill",
 	IconType.RESET: "bootstrap-reboot",	#!
 	IconType.REWIND: "rewind-fill",
+	IconType.SAVE: "floppy",
+	IconType.SAVE_AS: "floppy2-fill",
 	IconType.SEARCH: "search",
 	IconType.SEND: "send",
 	IconType.SHOW: "eye",
@@ -81,6 +90,7 @@ BOOTSTRAP_ICONS = {
 	IconType.SORT_DOWN: "sort-alpha-down",
 	IconType.SORT_UP: "sort-alpha-up",
 	IconType.STOP: "stop-fill",
+	IconType.UNDO: "arrow-counterclockwise",
 	IconType.UNINDENT: "text-indent-right",
 	IconType.UPLOAD: "cloud-upload",
 	IconType.WORK: "hammer",
@@ -142,6 +152,7 @@ BOOTSTRAP_ICONS = {
 	IconType.PEOPLE: "people-fill",
 	IconType.PALETTE: "palette",	 	#!
 	IconType.PAPERCLIP: "paperclip",	#!
+	IconType.PATCH: "bandaid",
 	IconType.PENCIL: "pencil", #!
 	IconType.PERSON: "person-fill",
 	IconType.PIECE: "puzzle",
@@ -222,7 +233,7 @@ class Icon(Image):
 		out.write('"')
 		if self.color is not None:
 			out.write(f' style="color: {self.color}"')
-		out.write('"></i>')
+		out.write('></i>')
 
 
 class BasicTheme(Theme):

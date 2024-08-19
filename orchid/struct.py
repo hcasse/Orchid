@@ -32,6 +32,7 @@ class Header(HGroup):
 
 
 class ToolBar(HGroup):
+	"""Represent window-level toolbar."""
 
 	def __init__(self, tools = None):
 		if tools is None:
@@ -41,6 +42,20 @@ class ToolBar(HGroup):
 
 	def get_context(self):
 		return Context.TOOLBAR
+
+
+class ButtonBar(HGroup):
+	"""Represents window division toolbar."""
+
+	def __init__(self, tools = None):
+		if tools is None:
+			tools = []
+		HGroup.__init__(self, tools)
+		self.add_class("buttonbar")
+
+	def get_context(self):
+		return Context.BUTTONBAR
+
 
 class MessageContainer(VGroup):
 	"""A message container add a banner at the top or at the bottom of another
