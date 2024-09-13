@@ -31,6 +31,7 @@ MODEL = Model(
 	style = """
 .list {
 	cursor: default;
+	overflow-y: auto;
 }
 """
 )
@@ -189,7 +190,7 @@ class ListView(Component, ListObserver):
 			else:
 				self.deselect_all()
 				self.select(i)
-		elif action == "menu":
+		elif self.context_menu is not None and action == "menu":
 			i = msg["item"]
 			if self.selection != [msg["item"]]:
 				self.deselect_all()

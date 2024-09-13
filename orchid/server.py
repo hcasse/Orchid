@@ -158,61 +158,78 @@ class Manager:
 		self.super = None
 
 	def add_path(self, path, prov):
+		"""Add a path with the given provider. May override an existing one."""
 		self.paths[path] = prov
 
 	def remove_path(self, path):
+		"""Remove aprovided path."""
 		del self.paths[path]
 
 	def add_file(self, upath, rpath, mime = None):
+		"""Add a provided file (at upath) served as web rpath with the passed
+		MIME type."""
 		prov = FileProvider(rpath, mime)
 		self.paths[upath] = prov
 		return prov
 
 	def add_text_file(self, path, text, mime = "text/plain"):
+		"""Server at URL path as the text as is with passed MIME."""
 		prov = TextProvider(text, mime)
 		self.paths[path] = prov
 		return prov
 
 	def add_provider(self, path, prov):
+		"""Add a provided at the passed path."""
 		self.paths[path] = prov
 		return prov
 
 	def page_path(self, page):
+		"""Build the name of page as it will be served by the server."""
 		return "/page/" + page.get_id()
 
 	def record_page(self, page, prov):
+		"""Record a served page with the passed provided."""
 		self.pages[page.get_id()] = page
 		page.manager = self
 		self.paths[self.page_path(page)] = prov
 
 	def add_page(self, page):
+		"""Add a page to be served."""
 		prov = PageProvider(page)
 		self.record_page(page, prov)
 		return prov
 
 	def add_app(self, app):
+		"""Add a an application to be served basically with its index page."""
 		prov = AppProvider(app, self)
 		self.paths[f"/app/{app.name}"] = prov
 		return prov
 
 	def remove_page(self, page):
+		"""Remove a served page."""
 		page.manager = None
 		del self.pages[page.get_id()]
 		del self.paths[self.page_path(page)]
 
 	def get_page(self, id):
+		"""Get the page the provided ID."""
 		return self.pages[id]
 
 	def get_dirs(self):
+		"""Get the list of directories looked to find a static file."""
 		return self.dirs
 
 	def is_completed(self):
+		"""Test if the server task is completed (no server option and no more
+		page to serve)."""
 		if self.config['server']:
 			return False
 		else:
 			return not self.pages
 
 	def get(self, path):
+		"""Get the provider matching the page. Return None if no provider
+		can be found."""
 		path = os.path.normpath(path)
 		try:
 			return self.paths[path]
@@ -236,6 +253,7 @@ class Manager:
 			os._exit(0)
 
 	def check_connections(self):
+		"""Check which session connections needs to be released."""
 		while True:
 			time.sleep(self.check_time)
 			for session in self.sessions:
@@ -243,6 +261,7 @@ class Manager:
 
 
 class Handler(http.server.SimpleHTTPRequestHandler):
+	"""Handler for a connection."""
 
 	def write(self, text):
 		self.wfile.write(bytes(text, "utf-8"))

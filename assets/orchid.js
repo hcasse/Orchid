@@ -32,19 +32,42 @@ function download() {
 	window.open(url, '_self');
 }*/
 
-function show_last(id) {
-	const cont = document.getElementById(id);
-	const elt = cont.lastChild
-	if(elt == null)
-		return;
-	const etop = elt.offsetTop;
-	const ebot = etop + elt.clientHeight;
-	const ctop = cont.scrollTop;
-	const cbot = ctop + cont.clientHeight;
-	if(etop < ctop)
-		cont.scrollTop -= ctop - etop;
-	else if(ebot > cbot)
-		cont.scrollTop += ebot - cbot;
+function ui_show(parent, child, dir) {
+
+	// horizontal
+	if(dir == null || dir == 0) {
+		const cleft = child.offsetLeft;
+		const cright = cleft + child.clientWidth;
+		const pleft = parent.scrollLeft;
+		const pright = pleft + parent.clientWidth;
+		if(cleft < pleft)
+			parent.scrollLeft -= pleft - cleft;
+		else if(cright > pright)
+			parent.scrollLeft += cright - pright;
+	}
+
+	// vertical
+	else {
+		const ctop = child.offsetTop;
+		const cbot = ctop + child.clientHeight;
+		const ptop = parent.scrollTop;
+		const pbot = ptop + parent.clientHeight;
+		if(ctop < ptop)
+			parent.scrollTop -= ptop - ctop;
+		else if(cbot > pbot)
+			parent.scrollTop += cbot - pbot;
+	}
+}
+
+function ui_show_last(id, dir) {
+	const parent = document.getElementById(id);
+	ui_show(parent, child, dir);
+}
+
+function ui_show_child(id, child, dir) {
+	const parent = document.getElementById(id);
+	const child_elt = document.getElementById(child);
+	ui_show(parent, child_elt, dir);
 }
 
 function ui_component(msg) {
@@ -153,8 +176,12 @@ function ui_process_answers() {
 				break;
 
 			case "show-last":
-				show_last(a.id);
+				ui_show_last(a.id, a.dir);
 				break;
+			case "show-child":
+				ui_show_child(a.id, a.child, a.dir);
+				break;
+
 			case "grab-focus":
 				component = ui_component(a);
 				if(component != null)

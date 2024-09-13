@@ -414,13 +414,6 @@ class AbstractComponent(Displayable, Subject):
 				content.gen(buf)
 		return str(buf)
 
-	def show_last(self):
-		"""If the current element is a container, show its last item."""
-		if self.online():
-			self.send({
-				"type": "show-last",
-				"id": self.get_id()})
-
 	def add_class(self, cls, id=None, nth=-1):
 		"""Add a class of the component. Return itself for chaining at
 		creation time."""
@@ -610,6 +603,15 @@ class ParentComponent(Component):
 	def remap_child(self, child):
 		"""Function to call to signal that mapping properties of a child
 		changed. Default implementation does nothing."""
+		pass
+
+	def show_last(self):
+		"""If the current element is a container, show its last item.
+		Default implementation does nothing."""
+		pass
+
+	def show_child(self, child):
+		"""If the current element is a container, ensure that the child is visible. Default implementation does nothing."""
 		pass
 
 

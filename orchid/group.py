@@ -276,6 +276,23 @@ class HGroup(Group):
 			c.gen(out)
 		out.write('</div>\n')
 
+	def show_last(self):
+		if self.online():
+			self.send({
+				"type": "show-last",
+				"id": self.get_id(),
+				"dir": 0
+			})
+
+	def show_child(self, child):
+		if self.online():
+			self.send({
+				"type": "show-child",
+				"id": self.get_id(),
+				"child": child.get_id(),
+				"dir": 0
+			})
+
 
 # VGroup class
 
@@ -332,6 +349,24 @@ class VGroup(Group):
 		for c in self.children:
 			c.gen(out)
 		out.write('</div>\n')
+
+
+	def show_last(self):
+		if self.online():
+			self.send({
+				"type": "show-last",
+				"id": self.get_id(),
+				"dir": 1
+			})
+
+	def show_child(self, child):
+		if self.online():
+			self.send({
+				"type": "show-child",
+				"id": self.get_id(),
+				"child": child.get_id(),
+				"dir": 1
+			})
 
 
 # Spring component
