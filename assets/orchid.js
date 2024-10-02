@@ -61,6 +61,7 @@ function ui_show(parent, child, dir) {
 
 function ui_show_last(id, dir) {
 	const parent = document.getElementById(id);
+	const child = parent.children[parent.children.length - 1];
 	ui_show(parent, child, dir);
 }
 

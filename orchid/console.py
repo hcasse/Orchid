@@ -48,6 +48,14 @@ class Console(Component):
 		self.append_content(f"<p>{line}</p>")
 		self.show_last()
 
+	def show_last(self):
+		if self.online():
+			self.send({
+				"type": "show-last",
+				"id": self.get_id(),
+				"dir": 1
+			})
+
 	def clear(self):
 		"""Clear the content of the console."""
 		self.clear_content()

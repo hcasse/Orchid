@@ -949,7 +949,7 @@ class Page(AbstractComponent):
 		self.gen_attrs(out)
 		out.write(">\n")
 		self.gen_content(out)
-		out.write('<script>console.log("end of body!");</script>')
+		#out.write('<script>console.log("end of body!");</script>')
 		out.write('</body>')
 		out.write('</html>')
 

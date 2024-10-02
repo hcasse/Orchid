@@ -25,6 +25,7 @@ import os.path
 import re
 import threading
 import time
+from urllib.parse import urlparse
 import webbrowser
 
 class Provider:
@@ -156,6 +157,7 @@ class Manager:
 		self.check_thread = None
 		self.is_server = config['server']
 		self.super = None
+		self.prefix = urlparse(config['proxy']).path
 
 	def add_path(self, path, prov):
 		"""Add a path with the given provider. May override an existing one."""
@@ -230,7 +232,9 @@ class Manager:
 	def get(self, path):
 		"""Get the provider matching the page. Return None if no provider
 		can be found."""
-		path = os.path.normpath(path)
+		path = os.path.normpath(path)[len(self.prefix):]
+		if path == '':
+			path = '/'
 		try:
 			return self.paths[path]
 		except KeyError:
@@ -322,7 +326,8 @@ DEFAULT_CONFIG = {
 	'server': False,
 	'session_timeout': 120 * 60,
 	'session_check_time': 10 * 60,
-	'debug': False
+	'debug': False,
+	'proxy': None
 }
 
 def run(app, **args):
@@ -334,7 +339,12 @@ def run(app, **args):
 	* browser -- if true, open the index page in a browser,
 	* server -- if true, run as a server (no stop on last page close),
 	* session_timeout -- time-out (in s) of a session,
-	* session_check_time -- time (in s) to check for end of a session.
+	* session_check_time -- time (in s) to check for end of a session,
+	* proxy: when Orchid is behind a proxy, the address in the proxy.
+
+	If behind a reverse-proxy (like generic HTTP server), the proxy address is
+	used to let Javascript pass message to this address. The link inside inside
+	generated HTML will be relative to this path.
 
 	Any other application parameter can also be passed this way.
 """
@@ -343,6 +353,8 @@ def run(app, **args):
 	config = dict(DEFAULT_CONFIG)
 	for (k, x) in args.items():
 		config[k] = x
+	if config["proxy"] is None:
+		config["proxy"] = f"http://{config['host']}:{config['port']}"
 
 	# build the manager
 	my_assets = os.path.realpath(os.path.join(os.path.dirname(__file__), "../assets"))
@@ -352,6 +364,7 @@ def run(app, **args):
 	app.configure(config)
 
 	# build the server
+	print("DEBUG: config =", config)
 	server = http.server.HTTPServer((config['host'], config['port']), Handler)
 	server.manager = manager
 	print(f"Server on {config['host']}:{config['port']}")
