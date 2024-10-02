@@ -320,7 +320,7 @@ def open_browser(host, port):
 
 DEFAULT_CONFIG = {
 	'host': 'localhost',
-	'port': 4444,
+	'port': 0,
 	'dirs': [],
 	'browser': True,
 	'server': False,
@@ -364,15 +364,15 @@ def run(app, **args):
 	app.configure(config)
 
 	# build the server
-	print("DEBUG: config =", config)
 	server = http.server.HTTPServer((config['host'], config['port']), Handler)
 	server.manager = manager
-	print(f"Server on {config['host']}:{config['port']}")
+	sname = server.socket.getsockname()
+	if config['server']:
+		print(f"Server on {sname[0]}:{sname[1]}")
 
 	# launch browser if required
 	if config['browser']:
-		threading.Thread(target=
-			partial(open_browser, config['host'], config['port'])) \
+		threading.Thread(target=partial(open_browser, sname[0], sname[1])) \
 			.start()
 
 	# launch supervisor

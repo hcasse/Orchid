@@ -16,4 +16,9 @@ class MyPage(orc.Page):
 			app = app
 		)
 
-orc.Application("Hello World", first=MyPage).run(debug=True, server=True, browser=False, proxy="http://localhost/server")
+orc.Application("Hello World", first=MyPage).run(
+	debug=True,
+	server=True,
+	browser=False,
+	port=4444,
+	proxy="http://localhost/server")
