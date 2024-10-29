@@ -19,6 +19,7 @@
 
 import html
 import importlib
+import os.path
 from threading import Thread
 import time
 from time import sleep
@@ -611,7 +612,8 @@ class ParentComponent(Component):
 		pass
 
 	def show_child(self, child):
-		"""If the current element is a container, ensure that the child is visible. Default implementation does nothing."""
+		"""If the current element is a container, ensure that the child is visible.
+		Default implementation does nothing."""
 		pass
 
 
@@ -956,16 +958,17 @@ class Page(AbstractComponent):
 	def publish_text_file(self, url, text, mime = None):
 		"""Publish an URL returning the given text
 		(for big GET operation)."""
-		self.manager.add_text_file(url, text, mime)
+		self.get_application().add_text_file(url, text, mime)
 
 	def publish_file(self, url, path, mime = None):
 		"""Publish an URL returning the content of the file
-		corresponding to the path."""
-		self.manager.add_file(url, path, mime)
+		corresponding to the path. If url is None, one is built
+		and returned."""
+		return self.get_application().publish_file(url, path, mime)
 
 	def publish(self, url, provider):
 		"""Publish an URL with a custom provider."""
-		self.manager.add_provider(url, provider)
+		self.get_application().add_provider(url, provider)
 
 	def set_direct_attr(self, id, att, val):
 		"""Set the attribute of an element identified with id.
@@ -1069,6 +1072,21 @@ class Session:
 		"""Get the index page for this session."""
 		return self.app.first()
 
+	def publish_text_file(self, url, text, mime = None):
+		"""Publish an URL returning the given text
+		(for big GET operation)."""
+		self.app.add_text_file(url, text, mime)
+
+	def publish_file(self, url, path, mime = None):
+		"""Publish an URL returning the content of the file
+		corresponding to the path. If url is None, one is built
+		and returned."""
+		return self.app.add_file(url, path, mime)
+
+	def publish(self, url, provider):
+		"""Publish an URL with a custom provider."""
+		self.app.add_provider(url, provider)
+
 
 class Application:
 	"""Class representing the application and specially provides the initial page."""
@@ -1118,6 +1136,8 @@ class Application:
 		if session is None:
 			session = Session
 		self.session_cons = session
+		self.manager = None
+		self.file_map = {}
 
 	def run(self, **args):
 		"""Run the server for the application.
@@ -1151,6 +1171,35 @@ class Application:
 				return self.config[key]
 			except KeyError:
 				return default
+
+	def make_url(self, path):
+		"""Build a unique URL for the file at the passed path."""
+		path = os.path.abspath(path)
+		try:
+			return self.file_map[path]
+		except KeyError:
+			base = os.path.basename(path)
+			root, ext = os.path.splitext(base)[1]
+			url = f"/file/{root}-{len(self.file_map)}{ext}"
+			self.file_map[path] = url
+			return url
+
+	def publish_text_file(self, url, text, mime = None):
+		"""Publish an URL returning the given text
+		(for big GET operation)."""
+		self.manager.add_text_file(url, text, mime)
+
+	def publish_file(self, url, path, mime = None):
+		"""Publish an URL returning the content of the file
+		corresponding to the path. An url as None requires
+		a valid URL to be built."""
+		if url is None:
+			url = self.make_url(path)
+		self.manager.add_file(url, path, mime)
+
+	def publish(self, url, provider):
+		"""Publish an URL with a custom provider."""
+		self.manager.add_provider(url, provider)
 
 
 TIMER_MODEL = Model("timer")

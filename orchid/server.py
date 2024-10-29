@@ -361,6 +361,7 @@ def run(app, **args):
 	config = dict(config)
 	config["dirs"] = config["dirs"] + [my_assets]
 	manager = Manager(app, config)
+	app.manager = manager
 	app.configure(config)
 
 	# build the server

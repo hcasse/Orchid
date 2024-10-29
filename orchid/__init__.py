@@ -46,7 +46,7 @@ from orchid.struct import Header, ToolBar, MessageContainer, StatusBar, ButtonBa
 from orchid.tabbedpane import TabbedPane, Tab
 from orchid.table import TableView
 from orchid.util import Interface, buffer, Pos, Dir, Align, Context, \
-	MessageType, Observer, Subject
+	MessageType, Observer, Subject, Buffer
 from orchid.view import InteractiveView
 
 # deprecated

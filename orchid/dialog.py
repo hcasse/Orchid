@@ -25,7 +25,6 @@ from orchid.label import Label
 from orchid.group import VGroup, HGroup, Spring
 from orchid.image import AssetImage
 from orchid.util import Align
-from orchid.displayable import Text
 
 MODEL = Model(
 	name = "orchid.dialog.Base",

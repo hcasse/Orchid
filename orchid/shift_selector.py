@@ -18,7 +18,10 @@
 """ShiftSelector allows to place horizontally several components and to
 navigate using buttons when the components are too wide."""
 
-from orchid import HGroup, Button, Model, Icon, IconType
+from orchid.group import HGroup
+from orchid.button import Button
+from orchid.base import Model
+from orchid.image import Icon, IconType
 
 class ShiftSelector(HGroup):
 
