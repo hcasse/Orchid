@@ -51,10 +51,12 @@ class AbstractButton(Component, EnableObserver, EntityObserver):
 			self.action = action
 		else:
 			self.action = ButtonAction(
-				enabled,
+				True,
 				None,
 				help=help
 			)
+		if not enabled:
+			self.disable()
 
 	def find_next_focus(self, component=None):
 		if self.is_enabled():
@@ -133,12 +135,12 @@ class Button(AbstractButton):
 				image = label
 				label = None
 			AbstractButton.__init__(self, model, action=ButtonAction(
-				enabled,
+				True,
 				on_click,
 				label=label,
 				icon=image,
 				help=help
-			))
+			), enabled=enabled)
 		if self.action.help is not None:
 			self.set_attr("title", self.action.help)
 		self.set_attr("onclick", f'ui_onclick("{self.get_id()}");')
