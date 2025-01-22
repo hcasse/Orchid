@@ -319,7 +319,7 @@ def open_browser(host, port):
 	webbrowser.open(f"http://{host}:{port}")
 
 DEFAULT_CONFIG = {
-	'host': 'localhost',
+	'host': '0.0.0.0', #'localhost',
 	'port': 0,
 	'dirs': [],
 	'browser': True,
