@@ -240,6 +240,7 @@ class CheckBox(Component, LabelledField):
 		self.enabled = True
 		self.set_enabled(enabled)
 		self.updating = False
+		self.add_class("checkbox")
 
 	def take_focus(self):
 		self.grab_focus()
@@ -259,7 +260,7 @@ class CheckBox(Component, LabelledField):
 
 	def update_remote(self):
 		self.call("check_box_set",
-			{"id": self.get_id(), "checked": ~self.var})
+			{"id": self.get_input_id(), "checked": ~self.var})
 
 	def record_var(self, value):
 		self.updating = True
@@ -286,9 +287,14 @@ class CheckBox(Component, LabelledField):
 			out.write(self.var.label)
 			out.write('</label>')
 
+	def get_input_id(self):
+		return f"{self.get_id()}-input"
+
 	def gen_field(self, out, with_label=True):
-		out.write(f'<div class="checkbox"><input type="checkbox" \
-			name="{self.get_id()}" id="{self.get_id()}-input"')
+		out.write(f'<div')
+		Component.gen_attrs(self, out)
+		out.write(f'><input type="checkbox" \
+			name="{self.get_id()}" id="{self.get_input_id()}"')
 		self.gen_attrs(out)
 		out.write('>')
 		if with_label:

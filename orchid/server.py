@@ -243,6 +243,8 @@ class Manager:
 				if os.path.exists(rpath):
 					prov = FileProvider(rpath)
 					self.paths[path] = prov
+					if self.config['debug']:
+						print(f"DEBUG: {path} resolved to {rpath}!")
 					return prov
 			return None
 
