@@ -43,6 +43,11 @@ FIELD_MODEL = Model(
 function field_change(id, value) {
 	ui_send({id: id, action: "change", value: value});
 }
+
+function field_set(args) {
+	let field = window.document.getElementById(args.id);
+	field.value = args.value;
+}
 """,
 	style = """
 div.field {
@@ -211,10 +216,10 @@ class Field(Component, LabelledField):
 
 	def update_remote(self):
 		if self.online():
-			self.get_page().set_direct_attr(
-				f"{self.get_id()}-field",
-				"value",
-				self.var.get_type().as_text(~self.var) if ~self.var is not None else "")
+			self.call("field_set", {
+				"id": f"{self.get_id()}-field",
+				"value": self.var.get_type().as_text(~self.var) if ~self.var is not None else ""
+			})
 
 	def update(self, subject):
 		if not self.updating:
