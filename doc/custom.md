@@ -30,7 +30,7 @@ We have to provide the implementation in Javascript like this:
 
 ```javascript
 function counter_onclick(id, event) {
-	if(event.button == 0) 
+	if(event.button == 0)
 		ui_post({id: id, action: "click"});
 }
 ```
@@ -64,7 +64,7 @@ class Counter(Component):
 			"counter_onclick('%s', event);" % self.get_id())
 ```
 
-The initialization method calls the parent class initializer and set the`count` variable to 0. Then, we set the attribute `onclick` for the generated HTML element to the call to  `counter_onclick()` function and using method `get_id()`, we replace _ID_ by the actual identifier of the component.
+The initialization method calls the parent class initializer and set the `count` variable to 0. Then, we set the attribute `onclick` for the generated HTML element to the call to  `counter_onclick()` function and using method `get_id()`, we replace _ID_ by the actual identifier of the component.
 
 **Notice** that attributes are generated with double-quotes and therefore, Javascript strings has to be expressed between single quote.
 
@@ -144,13 +144,13 @@ run(MyApp())
 
 ## Models and Lookup
 
-Until now, we have defined the component in Python and the generated code but we do not  talk about the generation of function `counter_click()`. In fact, as this code is common to all instances of `Counter`, its declaration is grouped in a `Model` object:
+Until now, we have defined the component in Python and the generated code but we did not talk about the generation of function `counter_click()`. In fact, as this code is common to all instances of `Counter`, its declaration is grouped in a `Model` object:
 
 ```python
 MODEL = Model(
 	script = """
 		function counter_onclick(id, event) {
-			if(event.button == 0) 
+			if(event.button == 0)
 				ui_post({id: id, action: "click"});
 		}
 """

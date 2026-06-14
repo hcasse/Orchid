@@ -17,7 +17,7 @@ Basically the components, depending on their weight, occupies the whole space de
 
 If no weight is defined for a component, they calculated from functions `expands_horizontal`() or `expands_vertical`() depending on the group direction. Another way to assign a *weight* to a component is to assign the `weight` attribute of the component.
 
-The *weights* are used as CSS `flex-grow` parameter (https://www.w3schools.com/cssref/css3_pr_flex-grow.php) that, to be short, assigns a minimal place to each component and share the remaining according to the weights.
+The *weights* are used as CSS `flex-grow` parameter [CSS flex](https://www.w3schools.com/cssref/css3_pr_flex-grow.php) that, to be short, assigns a minimal place to each component and share the remaining according to the weights.
 
 Inserting blanks in the group, for example to implement left/right/center alignment or other, can be achieved using `Spring` objects. They represents invisible objects that allocates place according to their constructor parameters:
   * `hexpand` -- if True, expands horizontally

@@ -311,8 +311,10 @@ class Field(Component, LabelledField):
 
 	def receive(self, msg, handler):
 		if msg["action"] == "change":
+			self.updating = True
 			content = msg["value"]
 			self.check(content)
+			self.updating = False
 		else:
 			Component.receive(self, msg, handler)
 
