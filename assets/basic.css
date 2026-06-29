@@ -73,6 +73,11 @@ body {
 	font-weight: bold;
 }
 
+.text-error {
+	color: red;
+	font-weight: bold;
+}
+
 .text-failure {
 	color: red;
 	font-weight: bold;

@@ -128,7 +128,7 @@ class ListView(Component, ListObserver):
 			self.set_content(buffer(self.gen_content))
 
 	def on_append(self, x):
-		print(f"DEBUG: append{x}")
+		#print(f"DEBUG: append{x}")
 		self.deselect_all()
 		item = self.make(x)
 		self.get_children().append(item)
@@ -166,13 +166,13 @@ class ListView(Component, ListObserver):
 
 	def get_children(self):
 		if self.children is None:
-			print("DEBUG: get_children()!")
+			#print("DEBUG: get_children()!")
 			self.children = []
 			for i in range(0, self.items.size()):
 				item = self.items.get_index(i)
-				print(f"DEBUG: ======> {item}")
+				#print(f"DEBUG: ======> {item}")
 				self.children.append(self.make(item))
-			print("DEBUG: get_children() end!")
+			#print("DEBUG: get_children() end!")
 		return self.children
 
 	def index_of(self, id):

@@ -509,7 +509,7 @@ class AbstractPredicate:
 
 
 class Predicate(AbstractPredicate):
-	"""A predicate that lsiten to a set of variables and check with a function."""
+	"""A predicate that listen to a set of variables and check with a function."""
 
 	def __init__(self, vars = None, fun = lambda: True ):
 		AbstractPredicate.__init__(self)
@@ -536,9 +536,7 @@ class MultiPredicate(AbstractPredicate):
 		AbstractPredicate.__init__(self)
 		self.preds = []
 		for pred in preds:
-			if isinstance(pred, Var):
-				pred = not_null(pred)
-			self.preds.append(pred)
+			self.preds.append(to_predicate(pred))
 
 	def collect_vars(self, vars):
 		for pred in self.preds:
@@ -588,6 +586,18 @@ class AbstractAction(Entity):
 		return f"<action {self.label}>"
 
 
+def to_predicate(obj):
+	"""Transform the passed object as a predicate."""
+	if isinstance(obj, Var):
+		res = not_null(obj)
+	elif isinstance(obj, AbstractPredicate):
+		res = obj
+	elif callable(obj):
+		res = pred(obj)
+	else:	# else considerde as a constant
+		res = pred(lambda: bool(obj))
+	return res
+
 class Action(AbstractAction):
 	"""Default implementation of an action. An action basically
 	perform an action (method action()) when it is invoked.
@@ -597,9 +607,8 @@ class Action(AbstractAction):
 
 	def __init__(self, fun, enable=TRUE, **args):
 		AbstractAction.__init__(self, **args)
-		if isinstance(enable, Var):
-			enable = not_null(enable)
-		self.enable_pred = enable
+		self.enable_pred = to_predicate(enable)
+		assert(isinstance(self.enable_pred, AbstractPredicate))
 		self.enable_count = 0
 		self.fun = fun
 
@@ -670,7 +679,7 @@ def and_(*preds):
 		def __init__(self):
 			MultiPredicate.__init__(self, preds)
 		def check(self):
-			for pred in preds:
+			for pred in self.preds:
 				if not pred.check():
 					return False
 			return True
@@ -682,7 +691,7 @@ def or_(*preds):
 		def __init__(self):
 			MultiPredicate.__init__(self, preds)
 		def check(self):
-			return any(pred.check() for pred in preds)
+			return any(pred.check() for pred in self.preds)
 	return OrPredicate()
 
 def is_password(var, size=8, lower=1, upper=1, digit=1, other=1):
@@ -791,3 +800,7 @@ def ne(x, y):
 		[v for v in [x, y] if isinstance(v, Var)],
 		fun=lambda: get_value(x) != get_value(y)
 	)
+
+def pred(fun, vars=None):
+	"""Short to Predicate constructor."""
+	return Predicate(vars, fun)

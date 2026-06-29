@@ -325,6 +325,12 @@ class Canvas(Component):
 			self.call("svg_remove", {"id": shape.get_id()})
 		self.shapes.remove(shape)
 
+	def remove_all(self):
+		"""Remove all the shapes in the canvas."""
+		self.shapes = []
+		if self.online() and self.is_shown():
+			self.call("svg_remove_all", { "id": self.get_id() })
+
 	def image(self, path, x, y, w=None, h=None, **args):
 		"""Draw an image."""
 		return self.record(Image(path, x, y, w, h, **args))

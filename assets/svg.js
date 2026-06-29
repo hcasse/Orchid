@@ -17,3 +17,9 @@ function svg_on_event(id, event) {
 	console.log("event " + id + " " + event);
 	ui_send({id: id, event: event});
 }
+
+function svg_remove_all(args) {
+	let obj = document.getElementById(args["id"]);
+	while(obj.firstChild)
+		obj.removeChild(obj.firstChild);
+}
