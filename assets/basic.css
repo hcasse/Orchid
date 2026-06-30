@@ -92,6 +92,13 @@ body {
 	font-weight: bold;
 }
 
+.text-def .def {
+	font-size: 0.9em;
+	font-style: italic;
+	margin-left: 1em;
+	margin-bottom: 4px;
+}
+
 .select {
 	background: var(--select) !important;
 }

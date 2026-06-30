@@ -19,6 +19,7 @@
 
 from orchid.util import Subject, Observer
 from orchid.mind import Var, Types
+from orchid.displayable import Text
 
 class ListObserver(Observer):
 	"""Observer of a list model."""
@@ -371,4 +372,13 @@ class SetVar(Var, SetModel):
 
 	def contains(self, item):
 		return item in ~self
+
+
+class ItemDisplayer:
+	"""Provides display for an item from a collection."""
+
+	def make(self, x):
+		"""Build the representation of the item of the collection.
+		Default implementation build it a conversion to string."""
+		return Text(str(x))
 

@@ -40,6 +40,21 @@ DISPLAY_NONE = Displayable()
 """Displayable that displays nothing."""
 
 
+class AbstractText(Displayable):
+	"""Base class of displayable texts."""
+
+	def __init__(self, text):
+		self.text = text
+
+	def gen(self, out):
+		out.write(self.get_text())
+
+	def get_text(self):
+		"""Get the current ready for display."""
+		return html.escape(self.text)
+
+
+# simplify it!
 class Text(Displayable):
 	"""Test just containing a string."""
 
@@ -90,3 +105,58 @@ class Text(Displayable):
 
 	def gen(self, out):
 		out.write(self.text)
+
+
+class MarkDown(AbstractText):
+	"""Text supporing mark-down wiki syntax. For fast access, use function
+	mark()."""
+
+	MARKDOWN_RES = [
+		(re.compile(r'\*\*(.*)\*\*'), r'<b>\1</b>'),
+		(re.compile('__(.*)__'), r'<b>\1</b>'),
+		(re.compile(r'\*(.*)\*'), r'<i>\1</i>'),
+		(re.compile(r'_(.*)_'), r'<i>\1</i>'),
+		(re.compile(r'\n\n'), '<br>')
+	]
+
+	def __init__(self, text):
+		AbstractText.__init__(self, text)
+		self.act_text = None
+
+	def get_text(self):
+		if self.act_text is None:
+			self.act = AbstractText.get_text(self)
+			for (re, pat) in res:
+				self.act = re.sub(text, pat)
+		return self.act_text
+
+
+class Definition(Displayable):
+	"""Display a term and below with smaller characters a definiton."""
+
+	def __init__(self, term, defi):
+		self.term = term
+		self.defi = defi
+
+	def gen(self, out):
+		out.write('<div class="text-def">')
+		out.write('<div class="term">')
+		self.term.gen(out)
+		out.write('</div><div class="def">')
+		self.defi.gen(out)
+		out.write('</div>')
+		out.write('</div>')
+
+
+def text(text):
+	"""Build a raw displayable text."""
+	return Text(text)
+
+
+def mark(text):
+	"""Build a text in markdown."""
+	return MarkDown(text)
+
+def definition(term, defi):
+	"""Build a definition display."""
+	return Definition(term, defi)

@@ -10,6 +10,7 @@ html {
 
 div.menu {
 	background-color: #EEEEEE;
+	z-index: 200;
 }
 
 .hidden {

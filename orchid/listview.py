@@ -19,7 +19,7 @@
 
 from orchid.util import buffer
 from orchid.base import Component, Model
-from orchid.models import ListVar, ListObserver
+from orchid.models import ListVar, ListObserver, ItemDisplayer
 from orchid.displayable import Text
 
 SELECT_NONE = 0
@@ -45,7 +45,8 @@ class ListView(Component, ListObserver):
 		selection = None,
 		select_mode = SELECT_SINGLE,
 		context_menu = None,
-		model = MODEL
+		model = MODEL,
+		displayer = ItemDisplayer()
 	):
 		Component.__init__(self, model)
 		ListObserver.__init__(self)
@@ -71,6 +72,7 @@ class ListView(Component, ListObserver):
 		if context_menu is not None:
 			self.set_attr("oncontextmenu",
 				f"list_on_context_menu('{self.get_id()}', event);")
+		self.displayer = displayer
 
 	def finalize(self, page):
 		Component.finalize(self, page)
@@ -97,7 +99,7 @@ class ListView(Component, ListObserver):
 
 	def make(self, value):
 		"""Buid a component for the given value."""
-		return Text(str(value))
+		return self.displayer.make(value)
 
 	def select(self, i):
 		"""Select the item corresponding to index i."""
