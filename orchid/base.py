@@ -542,6 +542,12 @@ class Component(AbstractComponent):
 		return False
 
 	def get_weight(self):
+		"""Get the weight of the component. This may be used for assigning
+		space in collection of component like HGroup or VGroup.
+
+		A simple way to assign weight is to use the component attribute weight.
+
+		Returns a pair (horizontal weight, vertical weight)."""
 		if self.weight is None:
 			self.weight = (0, 0)
 		elif isinstance(self.weight, int):

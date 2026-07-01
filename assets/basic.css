@@ -524,3 +524,29 @@ dialog {
 
 
 /* message container */
+
+
+
+/* split pane */
+.split-div-horiz button,
+.split-div-vert button {
+	opacity: 0;
+	pointer-events: none;
+	transition: opacity 0.2s;
+}
+
+.split-div-horiz button,
+.split-div-vert button {
+	background: rgba(255, 165, 0, 0.25);
+	border: none;
+	color: orange;
+	min-height: 40px;
+}
+
+.split-div-horiz {
+	width: 8px;
+}
+
+.split-div-vert {
+	height: 8px;
+}

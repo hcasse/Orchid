@@ -32,3 +32,8 @@ display: none !important;
 	box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
 	background-color: #EEEEEE;
 }
+
+.editor {
+	resize: none;
+	box-sizing: border-box;
+}

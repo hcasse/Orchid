@@ -20,98 +20,70 @@
 from orchid.base import Model
 from orchid.group import Group
 
+
 MODEL = Model(
 	"""split-pane""",
-
-	script="""
-var split_current = null;
-var split_vert = null;
-
-function split_on_mouse_move(evt) {
-	let parent = split_current.parentElement;
-	let rect = parent.getBoundingClientRect();
-	//console.log("moved: pinter=" + evt.clientX + "," + evt.clientY + "); parent=(" + rect.left + "," + rect.top + "," + rect.width + "," + rect.height + ")" );
-	let ratio;
-	if(!split_vert) {
-		if(evt.clientX < rect.left)
-			ratio = 0;
-		else if(evt.clientX >= rect.left + rect.width)
-			ratio = 100;
-		else
-			ratio = (evt.clientX - rect.left) * 100 / rect.width;
-	}
-	else {
-		if(evt.clientY < rect.top)
-			ratio = 0;
-		else if(evt.clientY >= rect.top + rect.height)
-			ratio = 100;
-		else
-			ratio = (evt.clientY - rect.top) * 100 / rect.height;
-	}
-	//console.log("DEBUG: ratio=" + ratio + ", offset=" + (evt.clientX - rect.left));
-	parent.firstChild.style.flexGrow = ratio;
-	parent.lastChild.style.flexGrow = 100 - ratio;
-}
-
-function split_on_mouse_up(evt) {
-	//console.log("up!")
-	document.onmousemove = null;
-	document.onmouseup = null;
-	let parent = split_current.parentElement;
-	ui_send({id: parent.id, action: "move", pos: parent.firstChild.style.flexGrow });
-}
-
-function split_on_mouse_down(elt, evt, vert) {
-	if(evt.button != 0)
-		return;
-	split_current = elt;
-	split_vert = vert;
-	//console.log("elt=" + elt.id);
-	document.onmousemove = split_on_mouse_move;
-	document.onmouseup = split_on_mouse_up;
-}
-
-""",
+	script_paths=["split.js"],
 
 	style="""
 .split-pane {
 	display: flex;
+	width: 100%;
+	height: 100%;
+	/*overflow: hidden;*/
 }
 
-.split-horz-part {
-	min-width: 0;
-	flex-basis: 0;
-}
-
-.split-horz-part {
-	min-height: 0;
-	flex-basis: 0;
-}
-
-.split-horz {
+.split-part-horiz {
+	overflow: auto;
 	flex-direction: row;
 }
 
-.split-vert {
+.split-part-vert {
 	flex-direction: column;
 }
 
-.split-horz-knob {
+.split-div-horiz {
 	cursor: col-resize;
-	flex-grow: 0;
-	flex-shrink: 0;
-	margin: 0 0 0 auto;
-	wdith: 0.2rem;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	gap: 4px;
+	user-select: none;
+	z-index: 200;
 }
 
-.split-vert-knob {
-	cursor: col-resize;
-	flex-grow: 0;
-	flex-shrink: 0;
-	margin: 0 0 0 auto;
-	wdith: 0.2rem;
+.split-div-vert {
+	cursor: row-resize;
+	display: flex;
+	flex-direction: row;
+	justify-content: center;
+	align-items: center;
+	gap: 4px;
+	user-select: none;
+	z-index: 200;
 }
 
+.split-div-horiz button,
+.split-div-vert button {
+	opacity: 0;
+	pointer-events: none;
+	transition: opacity 0.2s;
+}
+
+.split-div-horiz:hover button,
+.split-div-vert:hover button {
+	opacity: 1;
+	pointer-events: auto;
+}
+
+.split-drag-horiz {
+  cursor: col-resize !important;
+}
+
+.split-drag-vert {
+  cursor: row-resize !important;
+}
 """
 )
 
@@ -138,14 +110,12 @@ class SplitPane(Group):
 				self.pos = v1 * 100 // (v1 + v2)
 		if not vert:
 			self.add_class("split-horz")
-			pane1.add_class("split-horz-part")
-			pane2.add_class("split-horz-part")
+			pane1.add_class("split-part-horiz")
+			pane2.add_class("split-part-horiz")
 		else:
 			self.add_class("split-vert")
-			pane1.add_class("split-vert-part")
-			pane2.add_class("split-vert-part")
-		pane1.set_style("flex-grow", self.pos)
-		pane2.set_style("flex-grow", 100 - self.pos)
+			pane1.add_class("split-part-vert")
+			pane2.add_class("split-part-vert")
 
 	def get_pane1(self):
 		return self.get_children()[0]
@@ -160,16 +130,21 @@ class SplitPane(Group):
 		return self.vert or Group.expands_vertical(self)
 
 	def gen(self, out):
+		if self.vert:
+			axis = "vert"
+			but1 = "▲"
+			but2 = "▼"
+		else:
+			axis = "horiz"
+			but1 = "◀"
+			but2 = "▶"
 		out.write("<div")
 		self.gen_attrs(out)
 		out.write(">")
 		self.get_pane1().gen(out)
-		out.write(f'<div id="{self.get_id()}-knob" \
-			class="split-{"horz" if not self.vert else "vert"}-knob" \
-			onmousedown="split_on_mouse_down(this, event, \
-			{"false" if not self.vert else "true"});">&nbsp;</div>')
+		out.write(f'<div class="split-div-{axis}"><button>{but1}</button><button>{but2}</button></div>')
 		self.get_pane2().gen(out)
-		out.write("</div>")
+		out.write(f"</div><script>split_init('{self.get_id()}', {self.pos}, {"true" if self.vert else "false"})</script>")
 
 	def receive(self, msg, handler):
 		if msg["action"] == "move":
