@@ -37,8 +37,37 @@ MODEL = Model(
 )
 
 
+
 class ListView(Component, ListObserver):
 	"""Vertical list of items."""
+
+	class SelectObserver(ListObserver):
+
+		def __init__(self, list):
+			self.list = list
+			self.enabled = True
+
+		def on_append(self, x):
+			if self.enabled:
+				self.list.mark_select(x)
+
+		def on_clear(self):
+			if self.enabled:
+				for i in self.list.selection:
+					self.list.unmark_select(i)
+
+		def on_insert(self, i, x):
+			if self.enabled:
+				self.list.mark_select(x)
+
+		def on_remove(self, i):
+			if self.enabled:
+				self.list.unmark_select(self.list.selection[i])
+
+		def on_set(self, i, x):
+			if self.enabled:
+				self.list.unmark_select(self.list.selection[i])
+				self.list.mark_select(x)
 
 	def __init__(self,
 		items = None,
@@ -73,6 +102,7 @@ class ListView(Component, ListObserver):
 			self.set_attr("oncontextmenu",
 				f"list_on_context_menu('{self.get_id()}', event);")
 		self.displayer = displayer
+		self.select_observer = ListView.SelectObserver(self)
 
 	def finalize(self, page):
 		Component.finalize(self, page)
@@ -81,13 +111,18 @@ class ListView(Component, ListObserver):
 			page.add_hidden(self.context_menu)
 
 	def on_show(self):
-		self.selection.clear()
 		Component.on_show(self)
 		self.items.add_observer(self)
+		self.selection.add_observer(self.select_observer)
+		if self.online():
+			self.regen()
+			for i in self.selection:
+				self.mark_select(i)
 
 	def on_hide(self):
 		Component.on_hide(self)
 		self.items.remove_observer(self)
+		self.selection.remove_observer(self.select_observer)
 
 	def get_items(self):
 		"""Get the model of items of class orchid.models.ListModel ."""
@@ -104,18 +139,30 @@ class ListView(Component, ListObserver):
 	def select(self, i):
 		"""Select the item corresponding to index i."""
 		self.selection.append(i)
+		#self.mark_select(i)
+
+	def mark_select(self, i):
+		"""Mark an item as selected."""
 		self.call("list_select", { "id": self.get_id(), "index": i })
 
 	def deselect(self, i):
 		"""Deselect the item of index i o all."""
 		self.selection.remove(i)
-		self.call("list_deselect", { "id": self.get_id(), "index": i })
+		#self.unmark_select(i)
 
 	def deselect_all(self):
 		"""Deselect the whole selection."""
-		for i in self.selection:
-			self.call("list_deselect", { "id": self.get_id(), "index": i })
+		#for i in self.selection:
+		#	self.unmark_select(i)
 		self.selection.clear()
+
+	def unmark_select(self, i):
+		"""Unmark a selected item."""
+		self.call("list_deselect", { "id": self.get_id(), "index": i })
+
+	def regen(self):
+		"""Re-generate the content."""
+		self.set_content(buffer(self.gen_content))
 
 	def set_items(self, items):
 		"""Chane the items displayed."""
@@ -127,28 +174,32 @@ class ListView(Component, ListObserver):
 		self.selection.clear()
 		self.children = None
 		if self.online():
-			self.set_content(buffer(self.gen_content))
+			self.regen()
 
 	def on_append(self, x):
-		#print(f"DEBUG: append{x}")
-		self.deselect_all()
 		item = self.make(x)
 		self.get_children().append(item)
 		if self.online():
 			self.append_content(f"<div>{buffer(item.gen)}</div>")
 
 	def on_insert(self, i, x):
+		selection = [j+1 if j >= i else j for j in ~self.selection]
 		self.deselect_all()
 		item = self.make(x)
 		self.get_children().insert(i, item)
 		if self.online():
 			self.insert_content(f"<div>{buffer(item.gen)}</div>", i)
+		for j in selection:
+			self.selection.append(j)
 
 	def on_remove(self, i):
+		selection = [j-1 if j >= i else j for j in ~self.selection if j != i]
 		self.deselect_all()
-		j = self.items.index(i)
+		del self.children[i]
 		if self.online():
-			self.remove_content(j)
+			self.remove_content(i)
+		for j in selection:
+			self.selection.append(j)
 
 	def on_set(self, i, x):
 		children = self.get_children()
@@ -168,13 +219,10 @@ class ListView(Component, ListObserver):
 
 	def get_children(self):
 		if self.children is None:
-			#print("DEBUG: get_children()!")
 			self.children = []
 			for i in range(0, self.items.size()):
 				item = self.items.get_index(i)
-				#print(f"DEBUG: ======> {item}")
 				self.children.append(self.make(item))
-			#print("DEBUG: get_children() end!")
 		return self.children
 
 	def index_of(self, id):

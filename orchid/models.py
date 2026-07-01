@@ -80,10 +80,14 @@ class ListModel(Subject):
 				obs.update(self)
 
 	def remove(self, x):
-		"""Remove the given element."""
+		"""Remove x from the model."""
+		self.remove_at(self.index(x))
+
+	def remove_at(self, i):
+		"""Remove element at position i."""
 		for obs in self.filter_observers(ListObserver):
 			if isinstance(obs, ListObserver):
-				obs.on_remove(x)
+				obs.on_remove(i)
 			else:
 				obs.update(self)
 
@@ -122,7 +126,7 @@ class ListVar(Var, ListModel):
 		return len(~self)
 
 	def index(self, x):
-		return (~self).find(x)
+		return (~self).index(x)
 
 	def get_index(self, i):
 		return (~self)[i]
@@ -135,17 +139,17 @@ class ListVar(Var, ListModel):
 		(~self).insert(i, x)
 		ListModel.insert(self, i, x)
 
-	def remove(self, x):
-		(~self).remove(x)
-		ListModel.remove(self, x)
+	def remove_at(self, i):
+		del (~self)[i]
+		ListModel.remove_at(self, i)
 
 	def set_index(self, i, x):
 		(~self)[i] = x
 		ListModel.set(self, i, x)
 
 	def clear(self):
-		(~self).clear()
 		ListModel.clear(self)
+		(~self).clear()
 
 	def __iter__(self):
 		return iter(~self)

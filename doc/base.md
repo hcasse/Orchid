@@ -88,7 +88,7 @@ The configuration arguments supported by the constructor are:
   * `script_paths` -- paths to Javascript file to insert in HTML,
 
 
-## Working with sessions
+## Working with Sessions
 
 The application presented in [Quickstart](quickstart.md) works very well but is not adapted to work in a server context where several users may have their own session at the same time. In this case, one has to use a `Session` object. Each time a new client connects to the **Orchid** server a session and an index page is created.
 
@@ -213,6 +213,20 @@ On the client-side, the following Javascript functions are available:
 	* `ui_send`(*message*) -- `ui_post` then `ui_complete`.
 
 The send message is a Javascript map containing at least the field `id` with the identifier of the target component.
+
+
+## LifeCycle of Components
+
+In order to design component, it is utterly important to understand the work of the kernel of **Orchid**.
+
+When a component is created, it is not firstly assigned to an **Orchid**'s page and therefore can not use the resources provided by a page. When a complete hierarchy of components is finally assigned to a page, the component function ``finalize``(page) is called. **Orchid** do the same with a component that is dynamically inserted into a page (at display time for example).
+
+In a second and only if the component is visible at startup, the component function``on_show()`` is called.
+
+Finally, a call to component function ``gen()`` is performed for all components. Only after this call, the function ``online()`` returns true. ``online()`` means that the main page has been generated and changes has to be performed by individual call to the remote page.
+
+Notice that component functions ``on_show()``/``on_hide()`` are called, after the initial page generation, depending on the changes on the visibility of the component.
+
 
 
 

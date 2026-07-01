@@ -37,7 +37,8 @@ class MyPage(orc.Page):
 				orc.Button("Menu 2", on_click=self.menu2)
 			])
 
-		self.component = orc.ListView(my_list,
+		self.component = orc.ListView(
+			my_list,
 			selection = self.selection,
 			context_menu = self.menu)
 		self.items = self.component.get_items()
@@ -70,10 +71,12 @@ class MyPage(orc.Page):
 
 	def remove(self):
 		if self.selection:
-			self.items.remove(self.items.get(self.selection[0]))
+			print(f"DEBUG: {self.items}")
+			self.items.remove(self.items[self.selection[0]])
 
 	def set(self):
 		if self.selection:
+			print(f"DEBUG: set @{self.selection[0]}")
 			self.items.set_index(self.selection[0], "???")
 
 	def change(self):
