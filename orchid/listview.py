@@ -132,9 +132,9 @@ class ListView(Component, ListObserver):
 		"""Get the current selection."""
 		return self.selection
 
-	def make(self, value):
+	def make(self, i, val):
 		"""Buid a component for the given value."""
-		return self.displayer.make(value)
+		return self.displayer.make_at(i, val)
 
 	def select(self, i):
 		"""Select the item corresponding to index i."""
@@ -177,7 +177,7 @@ class ListView(Component, ListObserver):
 			self.regen()
 
 	def on_append(self, x):
-		item = self.make(x)
+		item = self.make(self.items.size(), x)
 		self.get_children().append(item)
 		if self.online():
 			self.append_content(f"<div>{buffer(item.gen)}</div>")
@@ -185,7 +185,7 @@ class ListView(Component, ListObserver):
 	def on_insert(self, i, x):
 		selection = [j+1 if j >= i else j for j in ~self.selection]
 		self.deselect_all()
-		item = self.make(x)
+		item = self.make(i, x)
 		self.get_children().insert(i, item)
 		if self.online():
 			self.insert_content(f"<div>{buffer(item.gen)}</div>", i)
@@ -203,7 +203,7 @@ class ListView(Component, ListObserver):
 
 	def on_set(self, i, x):
 		children = self.get_children()
-		item = self.make(x)
+		item = self.make(i, x)
 		children[i] = item
 		item.finalize(self.page)
 		if self.online():
@@ -222,7 +222,7 @@ class ListView(Component, ListObserver):
 			self.children = []
 			for i in range(0, self.items.size()):
 				item = self.items.get_index(i)
-				self.children.append(self.make(item))
+				self.children.append(self.make(i, item))
 		return self.children
 
 	def index_of(self, id):

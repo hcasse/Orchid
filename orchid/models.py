@@ -386,3 +386,7 @@ class ItemDisplayer:
 		Default implementation build it a conversion to string."""
 		return Text(str(x))
 
+	def make_at(self, i, x):
+		"""Build the representation of the item x at index i.
+		Default implementation calls make(x)."""
+		return self.make(x)
