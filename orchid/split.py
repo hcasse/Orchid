@@ -24,71 +24,11 @@ from orchid.group import Group
 MODEL = Model(
 	"""split-pane""",
 	script_paths=["split.js"],
-
-	style="""
-.split-pane {
-	display: flex;
-	width: 100%;
-	height: 100%;
-	/*overflow: hidden;*/
-}
-
-.split-part-horiz {
-	overflow: auto;
-	flex-direction: row;
-}
-
-.split-part-vert {
-	flex-direction: column;
-}
-
-.split-div-horiz {
-	cursor: col-resize;
-	display: flex;
-	flex-direction: column;
-	justify-content: center;
-	align-items: center;
-	gap: 4px;
-	user-select: none;
-	z-index: 200;
-}
-
-.split-div-vert {
-	cursor: row-resize;
-	display: flex;
-	flex-direction: row;
-	justify-content: center;
-	align-items: center;
-	gap: 4px;
-	user-select: none;
-	z-index: 200;
-}
-
-.split-div-horiz button,
-.split-div-vert button {
-	opacity: 0;
-	pointer-events: none;
-	transition: opacity 0.2s;
-}
-
-.split-div-horiz:hover button,
-.split-div-vert:hover button {
-	opacity: 1;
-	pointer-events: auto;
-}
-
-.split-drag-horiz {
-  cursor: col-resize !important;
-}
-
-.split-drag-vert {
-  cursor: row-resize !important;
-}
-"""
+	style_paths=["split.css"]
 )
 
-class SplitPane(Group):
-	"""A double-pane group with a separator that allows to resize
+class Pane(Group):
+	"""A double-side group with a separator that allows to resize
 	the panes. The displyed panes are pane1 and pane2. vert is False
 	for horizontal pane, True for vertical.
 
@@ -105,15 +45,21 @@ class SplitPane(Group):
 			(h1, v1) = self.get_weight()
 			(h2, v2) = self.get_weight()
 			if not vert:
-				self.pos = h1 * 100 // (h1 + h2)
+				if h1 + h2 == 0:
+					self.pos = 50
+				else:
+					self.pos = h1 * 100 // (h1 + h2)
 			else:
-				self.pos = v1 * 100 // (v1 + v2)
+				if v1 + v2 == 0:
+					self.pos = 50
+				else:
+					self.pos = v1 * 100 // (v1 + v2)
 		if not vert:
-			self.add_class("split-horz")
+			self.add_class("split-pane-horiz")
 			pane1.add_class("split-part-horiz")
 			pane2.add_class("split-part-horiz")
 		else:
-			self.add_class("split-vert")
+			self.add_class("split-pane-vert")
 			pane1.add_class("split-part-vert")
 			pane2.add_class("split-part-vert")
 
@@ -142,7 +88,7 @@ class SplitPane(Group):
 		self.gen_attrs(out)
 		out.write(">")
 		self.get_pane1().gen(out)
-		out.write(f'<div class="split-div-{axis}"><button>{but1}</button><button>{but2}</button></div>')
+		out.write(f'<div class="split-div-{axis}"><button>{but1}</button><span></span><button>{but2}</button></div>')
 		self.get_pane2().gen(out)
 		out.write(f"</div><script>split_init('{self.get_id()}', {self.pos}, {"true" if self.vert else "false"})</script>")
 

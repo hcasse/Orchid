@@ -1,15 +1,4 @@
 
-/*
- * container: Node
- * part1: Node
- * part2: Node
- * divider: Node
- * weight1: int
- * weight2: int
- * dragging: bool
- * vertical: bool
- */
-
 function split_init(name, ratio, vertical) {
 
 	// prepare data
@@ -18,15 +7,13 @@ function split_init(name, ratio, vertical) {
 	const divider = container.children[1];
 	const part2 = container.children[2];
 	const but1 = divider.children[0];
-	const but2 = divider.children[1];
+	const but2 = divider.children[2];
 	let dragging = false;
 	let cursor1;
 	let cursor2;
 
 	// set the size of part
-	console.log("DEBUG: screen = " + screen.width + "x" + screen.height);
 	let rect = container.getBoundingClientRect();
-	console.log("DEBUG: " + rect.width + "x" + rect.height);
 	part1.style.flex = 'none';
 	part2.style.flex = 'none';
 	if(vertical) {
@@ -36,6 +23,17 @@ function split_init(name, ratio, vertical) {
 	else {
 		part1.style.width =  `${ratio}%`;
 		part2.style.width = `calc(${100 - ratio}% - ${divider.offsetWidth}px)`;
+	}
+
+	function update() {
+		let cont_rect = container.getBoundingClientRect();
+		let part1_rect = part1.getBoundingClientRect();
+		let ratio;
+		if(vertical)
+			ratio = part1_rect.height * 100 / (cont_rect.height - divider.offsetHeight);
+		else
+			ratio = part1_rect.width * 100 / (cont_rect.width - divider.offsetWidth);
+		ui_send({id: name, action: "move", pos: ratio});
 	}
 
 	// installer listeners
@@ -52,18 +50,20 @@ function split_init(name, ratio, vertical) {
 		part1.style.cursor = 'inherit';
 		part2.style.cursor = 'inherit';
 	});
-	document.addEventListener('mouseup', () => {
+	document.addEventListener('mouseup', e => {
+		if(!dragging)
+			return;
 		dragging = false;
 		document.body.style.cursor = '';
 		part1.style.cursor = cursor1;
 		part2.style.cursor = cursor2;
+		update();
 	});
 
 	document.addEventListener('mousemove', e => {
 		if(!dragging)
 			return;
 		const rect = container.getBoundingClientRect();
-		console.log("DEBUG: " + rect.width + "x" + rect.height);
 
 		// vertical
 		if(vertical) {
@@ -71,8 +71,8 @@ function split_init(name, ratio, vertical) {
 			const min = 50;
 			const max = rect.height - divider.offsetHeight/* - 50*/;
 			y = Math.max(min, Math.min(max, y));
-			part1.style.height = `${x}px`;
-			part2.style.height = `${rect.height - x - divider.offsetHeight}px`;
+			part1.style.height = `${y}px`;
+			part2.style.height = `${rect.height - y - divider.offsetHeight}px`;
 		}
 
 		// horizontal

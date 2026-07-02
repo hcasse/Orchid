@@ -540,7 +540,36 @@ dialog {
 	background: rgba(255, 165, 0, 0.25);
 	border: none;
 	color: orange;
+}
+
+.split-div-horiz button {
 	min-height: 40px;
+}
+
+.split-div-vert button {
+	min-width: 40px;
+}
+
+.split-div-horiz span {
+	min-height: 40px;
+	min-width: 8px;
+}
+
+.split-div-vert span {
+	min-width: 40px;
+	min-height: 8px;
+}
+
+.split-div-horiz span,
+.split-div-vert span {
+	border: 1px solid #c0c0c0;
+	background: repeating-linear-gradient(
+		135deg,
+		#d0d0d0,
+		#d0d0d0 2px,
+		#f0f0f0 2px,
+		#f0f0f0 6px
+	);
 }
 
 .split-div-horiz {

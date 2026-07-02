@@ -41,7 +41,6 @@ from orchid.models import \
 from orchid.popup import Menu, MenuButton
 from orchid.server import run
 from orchid.shift_selector import ShiftSelector
-from orchid.split import SplitPane
 from orchid.struct import Header, ToolBar, MessageContainer, StatusBar, ButtonBar
 from orchid.tabbedpane import TabbedPane, Tab
 from orchid.table import TableView

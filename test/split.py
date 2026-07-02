@@ -3,6 +3,7 @@
 """Split pane test."""
 
 import orchid as orc
+from orchid import split
 
 class MyPage(orc.Page):
 
@@ -11,9 +12,13 @@ class MyPage(orc.Page):
 			self,
 			orc.HGroup([
 				orc.Label("Here!"),
-				orc.SplitPane(
+				split.Pane(
 					orc.Editor(init = "Hello, World!"),
-					orc.Editor(init = "second"),
+					split.Pane(
+						orc.Editor(init = "second"),
+						orc.Editor(init = "third"),
+						vert=True
+					),
 					pos=30
 				)
 			]),
@@ -21,6 +26,6 @@ class MyPage(orc.Page):
 		)
 
 
-orc.Application("SplitPane Test", first=MyPage).run()
+orc.Application("split.Pane Test", first=MyPage).run()
 
 
