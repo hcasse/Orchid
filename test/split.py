@@ -15,8 +15,11 @@ class MyPage(orc.Page):
 				split.Pane(
 					orc.Editor(init = "Hello, World!"),
 					split.Pane(
-						orc.Editor(init = "second"),
-						orc.Editor(init = "third"),
+						split.Pane(
+							orc.Editor(init = "second"),
+							orc.Editor(init = "third")
+						),
+						orc.Console(init = "fourth"),
 						vert=True
 					),
 					pos=30

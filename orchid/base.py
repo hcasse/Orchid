@@ -663,6 +663,7 @@ class Page(AbstractComponent):
 		self.set_attr("onbeforeunload", "ui_close();")
 		self.set_attr("onload", 'ui_hi();')
 		self.set_attr("onfocusin", "ui_on_focus(event);")
+		self.deferred_scripts = None
 
 		# prepare the theme
 		if isinstance(theme, str):
@@ -932,7 +933,12 @@ class Page(AbstractComponent):
 		"""Send a message to the UI."""
 		self.messages.append(msg)
 
+	def defer_script(self, script):
+		"""Add a script to the end of the page."""
+		self.deferred_scripts.append(script)
+
 	def gen(self, out):
+		self.deferred_scripts = []
 		for obs in self.filter_observers(PageObserver):
 			obs.on_open(self)
 		self.main.on_show()
@@ -958,6 +964,10 @@ class Page(AbstractComponent):
 		out.write(">\n")
 		self.gen_content(out)
 		#out.write('<script>console.log("end of body!");</script>')
+		out.write("<script>")
+		for script in self.deferred_scripts:
+			out.write(script + "\n");
+		out.write("</script>")
 		out.write('</body>')
 		out.write('</html>')
 

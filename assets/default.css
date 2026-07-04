@@ -33,6 +33,10 @@ display: none !important;
 	background-color: #EEEEEE;
 }
 
+.console {
+	box-sizing: border-box;
+}
+
 .editor {
 	resize: none;
 	box-sizing: border-box;

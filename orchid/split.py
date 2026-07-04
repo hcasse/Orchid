@@ -42,18 +42,16 @@ class Pane(Group):
 		if pos is not None:
 			self.pos = pos
 		else:
-			(h1, v1) = self.get_weight()
-			(h2, v2) = self.get_weight()
+			(h1, v1) = pane1.get_weight()
+			(h2, v2) = pane2.get_weight()
 			if not vert:
-				if h1 + h2 == 0:
-					self.pos = 50
-				else:
-					self.pos = h1 * 100 // (h1 + h2)
+				h1 = h1 if h1 != 0 else 1
+				h2 = h2 if h2 != 0 else 1
+				self.pos = h1 * 100 // (h1 + h2)
 			else:
-				if v1 + v2 == 0:
-					self.pos = 50
-				else:
-					self.pos = v1 * 100 // (v1 + v2)
+				v1 = v1 if v1 != 0 else 1
+				v2 = v2 if v2 != 0 else 1
+				self.pos = v1 * 100 // (v1 + v2)
 		if not vert:
 			self.add_class("split-pane-horiz")
 			pane1.add_class("split-part-horiz")
@@ -90,7 +88,8 @@ class Pane(Group):
 		self.get_pane1().gen(out)
 		out.write(f'<div class="split-div-{axis}"><button>{but1}</button><span></span><button>{but2}</button></div>')
 		self.get_pane2().gen(out)
-		out.write(f"</div><script>split_init('{self.get_id()}', {self.pos}, {"true" if self.vert else "false"})</script>")
+		out.write("</div>")
+		self.get_page().defer_script(f"split_init('{self.get_id()}', {self.pos}, {'true' if self.vert else 'false'});")
 
 	def receive(self, msg, handler):
 		if msg["action"] == "move":
