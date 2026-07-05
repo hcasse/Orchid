@@ -18,7 +18,7 @@
 
 """Module definint Displayable interface and basic text display with style."""
 
-import html
+import html as htm
 import re
 
 class Displayable:
@@ -51,7 +51,7 @@ class AbstractText(Displayable):
 
 	def get_text(self):
 		"""Get the current ready for display."""
-		return html.escape(self.text)
+		return htm.escape(self.text)
 
 
 # simplify it!
@@ -86,7 +86,7 @@ class Text(Displayable):
 
 	@staticmethod
 	def plain(text):
-		return Text(html.escape(str(text).replace("\n", "<br>")))
+		return Text(htm.escape(str(text).replace("\n", "<br>")))
 
 	@staticmethod
 	def make(content):
@@ -102,6 +102,16 @@ class Text(Displayable):
 			self.text = text
 		else:
 			self.text = f'<span class="{clazz}">{text}</span>'
+
+	def gen(self, out):
+		out.write(self.text)
+
+
+class HTML(AbstractText):
+	"""Displayable showing raw HTML."""
+
+	def __init__(self, text):
+		AbstractText.__init__(self, text)
 
 	def gen(self, out):
 		out.write(self.text)
@@ -148,10 +158,26 @@ class Definition(Displayable):
 		out.write('</div>')
 
 
+class WithIcon(Displayable):
+	"""Displayable prefixed by an icon. It may support a specific class to
+	provide a custom style."""
+
+	def __init__(self, icon, text, cls=None):
+		self.icon = icon
+		self.text = text
+		self.cls = "" if cls is None else f" {cls}"
+
+	def gen(self, out):
+		out.write(f'<div class="display-icon{self.cls}"><div class="icon">')
+		self.icon.gen(out)
+		out.write('</div><div class="text">')
+		self.text.gen(out)
+		out.write('</div></div>')
+
+
 def text(text):
 	"""Build a raw displayable text."""
 	return Text(text)
-
 
 def mark(text):
 	"""Build a text in markdown."""
@@ -160,3 +186,12 @@ def mark(text):
 def definition(term, defi):
 	"""Build a definition display."""
 	return Definition(term, defi)
+
+def html(text):
+	"""Build a displayable from raw HTML."""
+	return HTML(text)
+
+def with_icon(icon, text):
+	"""Build a displayable prefixed by icon."""
+	return WithIcon(icon, text)
+

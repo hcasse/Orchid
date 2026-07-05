@@ -41,3 +41,8 @@ display: none !important;
 	resize: none;
 	box-sizing: border-box;
 }
+
+/* displayable */
+div.display-icon {
+	display: flex;
+}

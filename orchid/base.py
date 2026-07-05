@@ -1122,7 +1122,7 @@ class Application:
 	):
 		"""Build an applications. Parameters encompasses:
 		* version (as a string)
-		* authors (as a string)
+		* authors (as a string or a list of People)
 		* licence (as a string)
 		* description (as a string)
 		* website (URL)
@@ -1136,6 +1136,8 @@ class Application:
 
 		if authors is None:
 			authors = []
+		else:
+			self.authors = authors
 		if style_paths is None:
 			style_paths = []
 		self.name = name
@@ -1312,3 +1314,31 @@ class Theme(Model):
 		"""Get the icon for a dialog. type must be one of MessageType
 		enumeration value. May return None if the type is not supported."""
 		return None
+
+
+class People:
+	"""Simple class to store information about people. Useful to identify authors.
+	The links is a list of pairs (media, url). Typical medias encompasses
+	email, web, x, instagram, etc. Photo is an URL (realtive or absolute).
+
+	If last_name is not provided, first_name is considered as a pseudo.
+
+	Each parameter passed to the constructor can be found as an attribute of
+	the object."""
+
+	def __init__(self,
+		first_name,
+		last_name = None,
+		given_name = None,
+		links = None,
+		photo = None
+	):
+		self.first_name = first_name
+		self.last_name = last_name
+		if given_name is None:
+			if last_name is None:
+				self.given_name = first_name
+			else:
+				self.given_name = f"{first_name} {last_name}"
+		self.links = links
+		self.photo = photo

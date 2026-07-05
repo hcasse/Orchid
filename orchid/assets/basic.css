@@ -148,6 +148,13 @@ body {
 	color: var(--select);
 }
 
+div.display-icon {
+	gap: 8px;
+}
+
+div.display-icon div.icon img {
+	width: 32px;
+}
 
 /* general elements */
 

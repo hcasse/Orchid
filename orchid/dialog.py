@@ -21,6 +21,7 @@
 
 from orchid.base import Model, Component, Plain
 from orchid.button import Button
+from orchid.displayable import text as to_text, with_icon, definition, html
 from orchid.label import Label
 from orchid.group import VGroup, HGroup, Spring
 from orchid.image import AssetImage
@@ -276,9 +277,16 @@ class Message(Base):
 class About(Base):
 	"""Dialog displaying information about the application."""
 
-	def __init__(self, page):
+	def __init__(self, page, comment=None, contribs=None):
+		"""Build a dialog.
+
+			comments: may be any string or displayable.
+			contribs: list of contributions as triples (icon, name, URL).
+		"""
 		app = page.app
 		all = []
+		self.comment = comment
+		self.contribs = contribs
 
 		# prepare the icon if any
 		if app.icon is not None:
@@ -293,12 +301,36 @@ class About(Base):
 			title = f"{title} V{app.version}"
 		if app.description is not None:
 			text.append(Plain(app.description, in_tag="p"))
+		if app.authors:
+			if not isinstance(app.authors, list):
+				authors = app.authors
+			else:
+				authors = []
+				for author in app.authors:
+					if not author.links:
+						authors.append(author.given_name)
+					else:
+						authors.append(f'<a href="{author.links[0][1]}"/>{author.given_name}</a>')
+				authors = ', '.join(authors)
+				text.append(Label(html(f'Authors: {authors}')))
 		if app.website is not None:
 			text.append(Plain(f'<a href="{app.website}">{app.website}</a>', in_tag="p"))
 		if app.license is not None:
 			text.append(Plain(f"<b>License:</b> {app.license}", in_tag="p"))
 		if app.copyright is not None:
 			text.append(Plain(f"<i>{app.copyright}</i>", in_tag="center"))
+		if self.comment:
+			if isinstance(self.comment, str):
+				self.comment = to_text(self.comment)
+			text.append(Label(self.comment))
+			text[-1].add_class("about-comment")
+		if self.contribs:
+			text.append(Label("Powered by:"))
+			for (icon, name, url) in self.contribs:
+				text.append(Label(with_icon(icon, definition(
+					to_text(name),
+					html(f'<a href="{url}">{url}</a>')))))
+
 		text = VGroup(text)
 		text.add_class("dialog-text")
 		all.append(text)

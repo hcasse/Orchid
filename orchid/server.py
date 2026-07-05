@@ -359,7 +359,7 @@ def run(app, **args):
 		config["proxy"] = f"http://{config['host']}:{config['port']}"
 
 	# build the manager
-	my_assets = os.path.realpath(os.path.join(os.path.dirname(__file__), "../assets"))
+	my_assets = os.path.realpath(os.path.join(os.path.dirname(__file__), "assets"))
 	config = dict(config)
 	config["dirs"] = config["dirs"] + [my_assets]
 	manager = Manager(app, config)
