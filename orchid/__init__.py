@@ -66,3 +66,6 @@ def var(val, type=None, **args):
 	else:
 		return mind.Var(val, type=type, **args)
 
+
+# useful constants
+PYTHON_CONTRIB = (AssetImage("images/python-logo-only.png"), "Python", "https://www.python.org")

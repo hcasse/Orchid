@@ -1134,10 +1134,16 @@ class Application:
 		* session (constructor of session taking application, manager as parameter)
 		"""
 
-		if authors is None:
-			authors = []
-		else:
-			self.authors = authors
+		self.authors = []
+		if authors is not None:
+			if not isinstance(authors, list):
+				authors = [authors]
+		if isinstance(authors, list):
+			self.authors = []
+			for author in authors:
+				if not isinstance(author, People):
+					author = People(str(author))
+				self.authors.append(author)
 		if style_paths is None:
 			style_paths = []
 		self.name = name

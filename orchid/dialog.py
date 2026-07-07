@@ -302,17 +302,14 @@ class About(Base):
 		if app.description is not None:
 			text.append(Plain(app.description, in_tag="p"))
 		if app.authors:
-			if not isinstance(app.authors, list):
-				authors = app.authors
-			else:
-				authors = []
-				for author in app.authors:
-					if not author.links:
-						authors.append(author.given_name)
-					else:
-						authors.append(f'<a href="{author.links[0][1]}"/>{author.given_name}</a>')
-				authors = ', '.join(authors)
-				text.append(Label(html(f'Authors: {authors}')))
+			authors = []
+			for author in app.authors:
+				if not author.links:
+					authors.append(author.given_name)
+				else:
+					authors.append(f'<a href="{author.links[0][1]}"/>{author.given_name}</a>')
+			authors = ', '.join(authors)
+			text.append(Label(html(f'<b>Authors:</b> {authors}')))
 		if app.website is not None:
 			text.append(Plain(f'<a href="{app.website}">{app.website}</a>', in_tag="p"))
 		if app.license is not None:
