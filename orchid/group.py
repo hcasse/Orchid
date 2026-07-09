@@ -219,28 +219,27 @@ class Group(ParentComponent):
 			child.grab_focus(**args)
 
 
-# HGroup class
-
-HGROUP_MODEL = Model(
-	"hgroup",
-	parent = GROUP_MODEL,
-	style = """
-.hgroup {
-	display: flex;
-	flex-wrap: nowrap;
-	column-gap: 4px;
-	align-self: stretch;
-	overflow: hidden;
-}
-""")
-
-
 class HGroup(Group):
 	"""Creates an horizontal group.
 	* comps: components in the group.
 	* align: vertival alignment of model (Align enumeration value)."""
 
-	def __init__(self, comps = None, model = HGROUP_MODEL, align = Align.LEFT):
+	MODEL = Model(
+		"hgroup",
+		parent = GROUP_MODEL,
+		style = """
+	.hgroup {
+		display: flex;
+		flex-wrap: nowrap;
+		column-gap: 4px;
+		align-self: stretch;
+		overflow: hidden;
+	}
+	""")
+
+	def __init__(self, comps = None, model = None, align = Align.LEFT):
+		if model is None:
+			model = HGroup.MODEL
 		if comps is None:
 			comps = []
 		Group.__init__(self, model, comps)
@@ -292,6 +291,8 @@ class HGroup(Group):
 				"child": child.get_id(),
 				"dir": 0
 			})
+
+HGROUP_MODEL = HGroup.MODEL
 
 
 # VGroup class
@@ -515,4 +516,9 @@ class HSpace(Component):
 		out.write("<span ")
 		self.gen_attrs(out)
 		out.write("></span>")
+
+
+# new naming schema
+Row = HGroup
+Column = VGroup
 

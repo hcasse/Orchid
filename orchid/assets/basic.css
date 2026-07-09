@@ -586,3 +586,22 @@ dialog {
 .split-div-vert {
 	height: 8px;
 }
+
+
+/* documentation */
+.docs-title {
+	background: linear-gradient(to left, var(--select), white);
+	padding-left: 8px;
+	padding-right: 8px;
+	padding-top: 4px;
+	padding-bottom: 4px;
+	font-size: 2em;
+	border: darkgray solid 1px;
+	text-shadow: 2px 2px 2px #666666;
+}
+
+.docs-body {
+	background: white;
+	padding: 4px;
+	border: darkgray solid 1px;
+}

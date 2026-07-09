@@ -69,3 +69,4 @@ def var(val, type=None, **args):
 
 # useful constants
 PYTHON_CONTRIB = (AssetImage("images/python-logo-only.png"), "Python", "https://www.python.org")
+ORCHID_CONTRIB = (AssetImage("orchid.svg"), "Orchid", "https://github.com/hcasse/Orchid")

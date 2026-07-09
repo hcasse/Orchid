@@ -1,0 +1,65 @@
+.split-pane-horiz {
+	display: flex;
+	width: 100%;
+	height: 100%;
+	flex-direction: row;
+}
+
+.split-pane-vert {
+	display: flex;
+	width: 100%;
+	height: 100%;
+	flex-direction: column;
+}
+
+.split-part-horiz {
+	overflow: auto;
+}
+
+.split-part-vert {
+	overflow: auto;
+}
+
+.split-div-horiz {
+	cursor: col-resize;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	gap: 4px;
+	user-select: none;
+	z-index: 200;
+}
+
+.split-div-vert {
+	cursor: row-resize;
+	display: flex;
+	flex-direction: row;
+	justify-content: center;
+	align-items: center;
+	gap: 4px;
+	user-select: none;
+	z-index: 200;
+}
+
+.split-div-horiz button,
+.split-div-vert button {
+	opacity: 0;
+	pointer-events: none;
+	transition: opacity 0.2s;
+}
+
+.split-div-horiz:hover button,
+.split-div-vert:hover button {
+	opacity: 1;
+	pointer-events: auto;
+}
+
+.split-drag-horiz {
+	cursor: col-resize !important;
+}
+
+.split-drag-vert {
+	cursor: row-resize !important;
+}
+

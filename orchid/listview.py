@@ -139,7 +139,6 @@ class ListView(Component, ListObserver):
 	def select(self, i):
 		"""Select the item corresponding to index i."""
 		self.selection.append(i)
-		#self.mark_select(i)
 
 	def mark_select(self, i):
 		"""Mark an item as selected."""
@@ -148,7 +147,6 @@ class ListView(Component, ListObserver):
 	def deselect(self, i):
 		"""Deselect the item of index i o all."""
 		self.selection.remove(i)
-		#self.unmark_select(i)
 
 	def deselect_all(self):
 		"""Deselect the whole selection."""
