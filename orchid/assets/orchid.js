@@ -242,12 +242,13 @@ function ui_reanswer() {
 ui_http.onreadystatechange = function() {
 	if(this.readyState == 4) {
 		if(this.status != 200) {
-			console.error("HTTP error: " + this.status);
 			if(this.status == 500) {
 				url = this.responseText;
 				if(url)
 					window.open(url, '_self');
 			}
+			else if(this.status != 0)
+				console.error("HTTP error: " + this.status);
 		}
 		else {
 			ui_answers = JSON.parse(this.responseText).answers;
@@ -306,10 +307,8 @@ function ui_hi() {
 // Main actions
 
 function ui_open(addr, target) {
-	//window.open(addr);
-	console.log("DEBUG: ui_open " + addr);
+	//console.log("DEBUG: ui_open " + addr);
 	let link = document.createElement("a");
-	//link.download = "ok.tgz";
 	link.href = addr;
 	link.target = target;
 	link.click();

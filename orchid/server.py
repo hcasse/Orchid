@@ -41,9 +41,28 @@ class Provider:
 		if self.mime is not None:
 			handler.send_header("Content-type", self.mime)
 
+	def get_return_code(self):
+		"""Get the return code. Default return 200."""
+		return 200
+
 	def gen(self, out):
 		"""Called to  generate the content to the given output."""
 		pass
+
+
+class RedirectProvider(Provider):
+	"""Provider redirecting to a new page."""
+
+	def __init__(self, to):
+		Provider.__init__(self)
+		self.to = to
+
+	def get_return_code(self):
+		return 301
+
+	def add_headers(self, handler):
+		Provider.add_headers(self, handler)
+		handler.send_header("Location", self.to)
 
 
 class FileProvider(Provider):
@@ -157,7 +176,9 @@ class Manager:
 		self.check_thread = None
 		self.is_server = config['server']
 		self.super = None
-		self.prefix = urlparse(config['proxy']).path
+		self.proxy = config['proxy']
+		self.prefix = urlparse(self.proxy).path
+		self.paths[""] = RedirectProvider(self.proxy + "/")
 
 	def add_path(self, path, prov):
 		"""Add a path with the given provider. May override an existing one."""
@@ -232,9 +253,10 @@ class Manager:
 	def get(self, path):
 		"""Get the provider matching the page. Return None if no provider
 		can be found."""
+		slashed = path.endswith("/")
 		path = os.path.normpath(path)[len(self.prefix):]
-		if path == '':
-			path = '/'
+		if slashed and not path.endswith("/"):
+			path = path + "/"
 		try:
 			return self.paths[path]
 		except KeyError:
@@ -299,6 +321,8 @@ class Handler(http.server.SimpleHTTPRequestHandler):
 			self.send_header("Content-type", "text/plain")
 			self.end_headers()
 			if url:
+				if not urlparse(url).scheme:
+					url = self.server.manager.prefix + url
 				self.wfile.write(url.encode('utf-8'))
 
 	def do_GET(self):
@@ -311,7 +335,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
 			if debug:
 				print("DEBUG: request processed!")
 		else:
-			self.send_response(200)
+			self.send_response(prov.get_return_code())
 			prov.add_headers(self)
 			self.end_headers()
 			prov.gen(self.wfile)
@@ -350,14 +374,14 @@ def run(app, **args):
 	* server -- if true, run as a server (no stop on last page close),
 	* session_timeout -- time-out (in s) of a session,
 	* session_check_time -- time (in s) to check for end of a session,
-	* proxy: when Orchid is behind a proxy, the address in the proxy.
+	* proxy -- when Orchid is behind a proxy, the address in the proxy.
 
 	If behind a reverse-proxy (like generic HTTP server), the proxy address is
 	used to let Javascript pass message to this address. The link inside inside
 	generated HTML will be relative to this path.
 
 	Any other application parameter can also be passed this way.
-"""
+	"""
 
 	# build the configuration
 	config = dict(DEFAULT_CONFIG)
