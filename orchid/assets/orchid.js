@@ -95,6 +95,14 @@ function ui_process_answers() {
 		a = ui_answers[i];
 		//console.log("executing " + JSON.stringify(a));
 		switch(a.type) {
+
+			case "crash":
+				if(a.url)
+					window.open(url, '_self');
+				else
+					document.body.innerHTML = "Application crashed!";
+				break;
+
 			case "call":
 				var f = window[a.fun];
 				if(f == undefined)
@@ -235,6 +243,11 @@ ui_http.onreadystatechange = function() {
 	if(this.readyState == 4) {
 		if(this.status != 200) {
 			console.error("HTTP error: " + this.status);
+			if(this.status == 500) {
+				url = this.responseText;
+				if(url)
+					window.open(url, '_self');
+			}
 		}
 		else {
 			ui_answers = JSON.parse(this.responseText).answers;

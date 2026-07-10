@@ -53,8 +53,6 @@ class Body(base.Component):
 		out.write(self.content)
 		out.write('</div>')
 
-COUNTER = 0
-
 
 class Pane(group.Row, models.ListObserver):
 	"""Display a document made of a collection of HTML documents."""
@@ -71,39 +69,23 @@ class Pane(group.Row, models.ListObserver):
 			[self.titles, group.Column([self.title, self.body]).set_weight(4)],
 			model=self.MODEL)
 		self.docs = docs
-		self.map = {}
-		global COUNTER
-		self.index = COUNTER
-		COUNTER += 1
-
-	def finalize(self, page):
-		group.Row.finalize(self, page)
 
 	def on_show(self):
 		group.Row.on_show(self)
 		self.titles.get_selection().add_observer(self)
 
 	def on_hide(self):
-		self.titles.get_selection.remove_observer(self)
+		self.titles.get_selection().remove_observer(self)
 		group.Row.on_hide(self)
 
 	def gen(self, out):
 		self.body.content = self.gen_doc(0)
 		group.Row.gen(self, out)
 
-	def make_local_url(self, url):
-		return f"/doc-{self.index}/{url}"
-
 	def gen_doc(self, index):
 		"""Generate documentation content as a string."""
 		(title, url) = self.docs[index]
-		if title not in self.map:
-			if urlparse(url).scheme == "":
-				path = url
-				url = self.make_local_url(url)
-				self.get_page().publish_file(url, path, mime="text/html")
-			self.map[title] = url
-		return f'<iframe src="{self.map[title]}" width="100%" height="100%" style="border: none;"></iframe>'
+		return f'<iframe src="{url}" width="100%" height="100%" style="border: none;"></iframe>'
 
 	def on_append(self, i):
 		self.title.set_text(self.docs[i][0])

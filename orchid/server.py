@@ -284,14 +284,22 @@ class Handler(http.server.SimpleHTTPRequestHandler):
 		except KeyError:
 			self.log_error(f"malformed message: {msg}")
 			return
-		answers = page.receive(msg["messages"], self)
-		self.send_response(200)
-		self.send_header("Content-type", "application/json")
-		self.end_headers()
-		s = json.dumps({"status": "ok", "answers": answers})
-		if debug:
-			print("DEBUG: answer ", s)
-		self.wfile.write(s.encode("utf-8"))
+		try:
+			answers = page.receive(msg["messages"], self)
+			self.send_response(200)
+			self.send_header("Content-type", "application/json")
+			self.end_headers()
+			s = json.dumps({"status": "ok", "answers": answers})
+			if debug:
+				print("DEBUG: answer ", s)
+			self.wfile.write(s.encode("utf-8"))
+		except Exception as exn:
+			url = page.get_session().on_crash(page, exn)
+			self.send_response(500)
+			self.send_header("Content-type", "text/plain")
+			self.end_headers()
+			if url:
+				self.wfile.write(url.encode('utf-8'))
 
 	def do_GET(self):
 		debug = self.server.manager.config['debug']

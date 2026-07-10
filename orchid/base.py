@@ -23,6 +23,7 @@ import os.path
 from threading import Thread
 import time
 from time import sleep
+import traceback
 
 from orchid import server
 from orchid.mind import Action
@@ -645,6 +646,16 @@ class Page(AbstractComponent):
 
 	def __init__(self, main = None, parent = None,
 	app = None, title = None, style = "default.css", theme = "basic", interface=STANDARD_INTERFACE):
+		"""Build a new page.
+
+		Parameters:
+		* app -- current application.
+		* main -- main component to be displayed.
+		* parent -- (deprecated).
+		* style -- path to default CSS.
+		* theme -- theme to use.
+		* title -- title of the page.
+		"""
 		AbstractComponent.__init__(self)
 		self.messages = []
 		self.is_online = False
@@ -1096,12 +1107,17 @@ class Session:
 	def publish_file(self, url, path, mime = None):
 		"""Publish an URL returning the content of the file
 		corresponding to the path. If url is None, one is built
-		and returned."""
+		and returned and display crash page."""
 		return self.app.add_file(url, path, mime)
 
 	def publish(self, url, provider):
 		"""Publish an URL with a custom provider."""
 		self.app.add_provider(url, provider)
+
+	def on_crash(self, page, exn):
+		"""Called when the application crashes. Defaut just display the exception. May return None or an URL for the page displaying the error."""
+		traceback.print_exc()
+		return None
 
 
 class Application:
