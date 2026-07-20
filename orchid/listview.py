@@ -98,16 +98,15 @@ class ListView(Component, ListObserver):
 		if select_mode != SELECT_NONE:
 			self.set_attr('onclick',
 				 f"list_on_click('{self.get_id()}', event);")
-		if context_menu is not None:
-			self.set_attr("oncontextmenu",
-				f"list_on_context_menu('{self.get_id()}', event);")
+		#if context_menu is not None:
+		#	self.set_attr("oncontextmenu",
+		#		f"list_on_context_menu('{self.get_id()}', event);")
 		self.displayer = displayer
 		self.select_observer = ListView.SelectObserver(self)
 
 	def finalize(self, page):
 		Component.finalize(self, page)
 		if self.context_menu is not None:
-			self.context_menu.finalize(page)
 			page.add_hidden(self.context_menu)
 
 	def on_show(self):
@@ -249,7 +248,7 @@ class ListView(Component, ListObserver):
 			if self.selection != [msg["item"]]:
 				self.deselect_all()
 				self.select(i)
-			self.context_menu.show(self, i)
+			self.context_menu.show()
 		else:
 			Component.receive(self, msg, handler)
 

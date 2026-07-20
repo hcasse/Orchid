@@ -123,16 +123,18 @@ class MenuButton(Button):
 			on_click=self.on_click)
 		self.menu = menu
 		menu.parent = self
+		self.add_class("dropdown")
 
 	def finalize(self, page):
 		Button.finalize(self, page)
-		self.menu.finalize(page)
+		#self.menu.finalize(page)
+		page.add_hidden(self.menu)
 
 	def gen(self, out):
-		out.write("<div class='dropdown'>")
+		#out.write("<div class='dropdown'>")
 		Button.gen(self, out)
-		self.menu.gen(out)
-		out.write("</div>")
+		#self.menu.gen(out)
+		#out.write("</div>")
 
 	def on_click(self):
 		if not self.menu.is_shown():

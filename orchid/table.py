@@ -102,6 +102,8 @@ div.table:hover div.dropdown {
 		if self.context_toolbar is not None:
 			self.context_toolbar.parent = self
 			self.set_attr("onmouseover", "table_over(this, event);")
+			self.set_attr("onmouseleave", "table_leave(this, event);")
+			self.context_toolbar.add_class("floatting-bar")
 		self.context_row = -1
 		self.set_attr("onclick", f"table_on_click('{self.get_id()}', event);")
 

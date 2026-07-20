@@ -116,9 +116,15 @@ function table_over(element, event) {
 		target = target.parentNode;
 	if(target.tagName == "TR") {
 		const i = ui_index(target);
-		const popup = element.getElementsByTagName("DIV")[0];
-		const y = target.getBoundingClientRect().top - element.getBoundingClientRect().top;
-		popup.style.top = y + "px";
+		const popup = element.getElementsByTagName("BUTTON")[0];
+		popup.style.display = "block";
+		popup.style.left = target.offsetLeft + target.offsetWidth - popup.offsetWidth + "px";
+		popup.style.top = target.offsetTop + "px";
 		ui_replace({id: element.id, action: "select", idx: i});
 	}
+}
+
+function table_leave(element, event) {
+	const popup = element.getElementsByTagName("BUTTON")[0];
+	popup.style.display = "none";
 }
