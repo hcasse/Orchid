@@ -1036,15 +1036,21 @@ class Session:
 		self.app = app
 		self.man = man
 		self.pages = []
-		self.creation = time.time()
-		self.last = self.creation
-		self.timeout = man.config['session_timeout']
 		man.add_session(self)
+
+		# generate session number
 		if Session.FREE:
 			self.number = Session.FREE.pop()
 		else:
 			self.number = Session.COUNT
 			Session.COUNT += 1
+
+		# timeout management
+		self.creation = time.time()
+		self.last = self.creation
+		self.timeout = man.config['session_timeout']
+		if self.timeout:
+			man.schedule(self.timeout, self.check_timeout)
 
 	def get_number(self):
 		"""Get the session number."""
@@ -1118,6 +1124,17 @@ class Session:
 		"""Called when the application crashes. Defaut just display the exception. May return None or an URL for the page displaying the error."""
 		traceback.print_exc()
 		return None
+
+	def check_timeout(self):
+		"""Check for timeouted session."""
+		now = time.time()
+		if now - self.last >= self.timeout:
+			self.release()
+		else:
+			self.man.schedule(
+				self.timeout - (now - self.last),
+				self.check_timeout
+			)
 
 
 class Application:

@@ -19,10 +19,12 @@
 
 from functools import partial
 import http.server
+import heapq
 import json
 import mimetypes
 import os.path
 import re
+import time
 import threading
 import time
 from urllib.parse import urlparse
@@ -179,6 +181,34 @@ class Manager:
 		self.proxy = config['proxy']
 		self.prefix = urlparse(self.proxy).path
 		self.paths[""] = RedirectProvider(self.proxy + "/")
+		self.sched_cond = threading.Condition()
+		self.sched_queue = []
+		self.sched_thread = threading.Thread(
+				target = self.sched_main,
+				daemon = True
+			)
+		self.sched_thread.start()
+
+	def sched_main(self):
+		while True:
+			with self.sched_cond:
+				while not self.sched_queue:
+					self.sched_cond.wait()
+				(when, fun) = self.sched_queue[0]
+				delay = when - time.time()
+				if delay > 0:
+					self.sched_cond.wait(timeout=delay)
+				heapq.heappop(self.sched_queue)
+				fun()
+
+	def schedule(self, delay, fun):
+		"""Schedule a call to fun in delay seconds."""
+		with self.sched_cond:
+			heapq.heappush(
+				self.sched_queue,
+				(time.time() + delay, fun)
+			)
+			self.sched_cond.notify()
 
 	def add_path(self, path, prov):
 		"""Add a path with the given provider. May override an existing one."""
