@@ -15,7 +15,15 @@
 #	License along with Orchid. If not, see <https://www.gnu.org/licenses/>.
 #
 
-"""Orchid base classes and definitions. """
+"""Orchid base classes and definitions.
+
+The following globals are available:
+* CLOSE_TIMEOUT: time-out waiting for closing from the remote page
+	when closing is issued by the server.
+* CLOSE_DELAY: delay before closing when close operation is issued by the
+	remote page to support reload case (closure immediatelly followed
+	by a GET).
+"""
 
 import html
 import importlib
@@ -24,13 +32,15 @@ from threading import Thread
 import time
 from time import sleep
 import traceback
+import uuid
 
 from orchid import server
 from orchid.mind import Action
 from orchid.util import Buffer, STANDARD_INTERFACE, Subject, Context
 from orchid.displayable import Displayable
 
-CLOSE_TIMEOUT=0.250
+CLOSE_TIMEOUT = 0.250
+CLOSE_DELAY = 2
 
 
 def write_nothing(page, out):
@@ -671,10 +681,11 @@ class Page(AbstractComponent):
 		self.manager = None
 		self.style_paths = []
 		self.focus_id = None
-		self.set_attr("onbeforeunload", "ui_close();")
-		self.set_attr("onload", 'ui_hi();')
+		#self.set_attr("onbeforeunload", "ui_close();")
+		#self.set_attr("onload", 'ui_hi();')
 		self.set_attr("onfocusin", "ui_on_focus(event);")
 		self.deferred_scripts = None
+		self.uuid = str(uuid.uuid4())
 
 		# prepare the theme
 		if isinstance(theme, str):
@@ -689,6 +700,10 @@ class Page(AbstractComponent):
 			self.models = {}
 			self.components = {}
 		self.add_model(theme)
+
+	def get_uuid(self):
+		"""Get unique identifier for the page."""
+		return self.uuid
 
 	def get_focus(self):
 		"""Get the element that gets the focus. None if no one has the focus."""
@@ -856,19 +871,16 @@ class Page(AbstractComponent):
 	def close(self):
 		"""Called to close the page."""
 		self.send({"type": "quit"})
-		self.timeout_thread = Thread(target=self.close_timeout)
-		self.timeout_thread.start()
+		self.session.schedule(CLOSE_TIMEOUT, self.close_timeout)
 
 	def close_timeout(self):
 		"""Manage timeout in case the browser does not answer the quit command."""
 		sleep(CLOSE_TIMEOUT)
 		print("Close timeout!")
-		if self.timeout_thread is not None:
-			self.on_close()
+		self.on_close()
 
 	def on_close(self):
 		"""Called when a closure message is received from the client."""
-		self.timeout_thread = None
 		for obs in self.filter_observers(PageObserver):
 			obs.on_close(self)
 		self.session.remove_page(self)
@@ -892,13 +904,21 @@ class Page(AbstractComponent):
 		# default actions
 		a = msg["action"]
 		if a == "close":
-			self.on_close()
+			# delayed close to support reload
+			self.session.schedule(CLOSE_DELAY, self._delayed_close)
+			#self.on_close()
 		elif a == "hi":
 			pass
 		elif a == "focus":
 			self.focus_id = msg["target"]
 		else:
 			handler.log_error(f"unknown action: {a}")
+
+	def _delayed_close(self):
+		"""Called to manage a delayed to support reload."""
+		now = time.time()
+		if now - self.session.last > CLOSE_DELAY:
+			self.on_close()
 
 	def gen_script_paths(self, out):
 		"""Called to generate linked scripts."""
@@ -924,7 +944,7 @@ class Page(AbstractComponent):
 
 	def open(self, page):
 		"""Change page to the given page."""
-		self.manager.add_page(page)
+		self.session.add_page(page)
 		self.page.messages.append({
 			"type": "call",
 			"fun": "ui_open",
@@ -949,6 +969,7 @@ class Page(AbstractComponent):
 		self.deferred_scripts.append(script)
 
 	def gen(self, out):
+		self.session.update()
 		self.deferred_scripts = []
 		for obs in self.filter_observers(PageObserver):
 			obs.on_open(self)
@@ -978,6 +999,12 @@ class Page(AbstractComponent):
 		out.write("<script>")
 		for script in self.deferred_scripts:
 			out.write(script + "\n");
+		out.write(f"""
+document.cookie = "orchid={self.get_uuid()}";
+window.addEventListener("beforeunload", (event) =>  {{ ui_close(); }});
+ui_hi();
+""")
+
 		out.write("</script>")
 		out.write('</body>')
 		out.write('</html>')
@@ -1037,6 +1064,7 @@ class Session:
 		self.man = man
 		self.pages = []
 		man.add_session(self)
+		self.timeout_task = None
 
 		# generate session number
 		if Session.FREE:
@@ -1050,7 +1078,11 @@ class Session:
 		self.last = self.creation
 		self.timeout = man.config['session_timeout']
 		if self.timeout:
-			man.schedule(self.timeout, self.check_timeout)
+			self.timeout_task = man.schedule(self.timeout, self.check_timeout)
+
+	def schedule(self, delay, fun):
+		"""Schedule to call fun in delay seconds."""
+		self.man.schedule(delay, fun)
 
 	def get_number(self):
 		"""Get the session number."""
@@ -1068,6 +1100,7 @@ class Session:
 		"""Record a page to belong to the session."""
 		self.pages.append(page)
 		page.session = self
+		self.man.add_page(page)
 
 	def remove_page(self, page):
 		"""Remove a page from the session. If there is no more page in the session, it is cleaned."""
@@ -1089,6 +1122,7 @@ class Session:
 	def release(self):
 		"""Called to relase the resources of the session
 		(basically pages)."""
+		self.timeout_task.cancel()
 		if self.number == Session.COUNT - 1:
 			Session.COUNT -= 1
 		else:
@@ -1103,7 +1137,9 @@ class Session:
 
 	def get_index(self):
 		"""Get the index page for this session."""
-		return self.app.first()
+		page = self.app.first()
+		self.add_page(page)
+		return page
 
 	def publish_text_file(self, url, text, mime = None):
 		"""Publish an URL returning the given text
@@ -1127,14 +1163,26 @@ class Session:
 
 	def check_timeout(self):
 		"""Check for timeouted session."""
-		now = time.time()
-		if now - self.last >= self.timeout:
-			self.release()
-		else:
-			self.man.schedule(
-				self.timeout - (now - self.last),
-				self.check_timeout
-			)
+		if self.creation is not None:
+			now = time.time()
+			if now - self.last >= self.timeout:
+				self.release()
+			else:
+				self.timeout_task = self.man.schedule(
+						self.timeout - (now - self.last),
+						self.check_timeout
+					)
+
+	#def wait_for_closure(self):
+	#	"""Start a timer to check if it is really a closure."""
+	#	self.man.schedule(3, self.check_closure)
+
+	#def check_closure(self):
+	#	"""Check if the sessionn is really closed after an UI close signal
+	#	(and is not a reload)."""
+	#	now = time.time()
+	#	if now - self.last > 3:
+	#		self.release()
 
 
 class Application:

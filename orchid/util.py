@@ -18,7 +18,10 @@
 """Utilty classes for Orchid."""
 
 from enum import Enum, IntEnum
+import heapq
 import sys
+import threading
+import time
 
 class Buffer:
 	"""Text buffer supporting write function."""
@@ -253,4 +256,65 @@ class MessageType(Enum):
 		return self.value
 
 
+class Scheduler:
+	"""Allows to program tasks in time. The activation of the tasks is
+	performed in a daemon thread running in background."""
 
+	class Task:
+		"""A task in the scheduler."""
+
+		def __init__(self, time, fun):
+			self.time = time
+			self.fun = fun
+			self.valid = True
+
+		def cancel(self):
+			self.valid = False
+
+		def __lt__(self, task):
+			return self.time < task.time
+
+		def run(self):
+			if self.valid:
+				self.fun()
+
+		def __str__(self):
+			return f"at {self.time}: {self.fun}"
+
+	def __init__(self):
+		self.queue = []
+		self.cond = threading.Condition()
+		self.thread = threading.Thread(target=self._run, daemon=True)
+		self.thread.start()
+
+	def schedule(self, delay, fun):
+		"""Run the function fun in delay seconds.
+		Returns the corresponding task."""
+		with self.cond:
+			task = Scheduler.Task(time.time() + delay, fun)
+			heapq.heappush(self.queue, task)
+			self.cond.notify()
+			#print(f"DEBUG: schedule {task}")
+			return task
+
+	def cancel(self, task):
+		"""Remove a task from the schedule."""
+		task.cancel()
+
+	def _run(self):
+		"""Function running the daemon thread."""
+
+		while True:
+			with self.cond:
+				while not self.queue:
+					self.cond.wait()
+				task = self.queue[0]
+				delay = task.time - time.time()
+				#print(f"DEBUG: prepare {task}")
+				if delay > 0:
+					self.cond.wait(timeout=delay)
+					if task != self.queue[0]:
+						continue
+				heapq.heappop(self.queue)
+				#print(f"DEBUG: run {task}")
+				task.run()

@@ -298,7 +298,7 @@ function ui_send(obj) {
 }
 
 function ui_hi() {
-	console.log("hi!");
+	console.log("hi at " + new Date() + "!");
 	ui_busy = false;
 	ui_send({ id: "0", action: "hi" });
 }
@@ -315,7 +315,8 @@ function ui_open(addr, target) {
 }
 
 function ui_close() {
-	ui_send({id: "0", action: "close"});
+	//console.log("DEBUG: losing!");
+	ui_send({id: "0", action: "close" });
 	now = (new Date()).getTime();
 	while(((new Date()).getTime() - now) < 250);
 }

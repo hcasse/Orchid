@@ -18,6 +18,7 @@
 """Classes in charge of HTTP communication."""
 
 from functools import partial
+from http.cookies import SimpleCookie
 import http.server
 import heapq
 import json
@@ -30,12 +31,20 @@ import time
 from urllib.parse import urlparse
 import webbrowser
 
+from orchid.util import Scheduler
+
+
 class Provider:
 	"""Interface of objects providing content. Each provider is
 	associated with one or zero paths on the server."""
 
 	def __init__(self, mime = None):
 		self.mime = mime
+
+	def prepare(self, handler):
+		"""Called to let the provider to prepare and returns the
+		prepared provider."""
+		return self
 
 	def add_headers(self, handler):
 		"""Called to let the provider to add headers on the given
@@ -63,7 +72,7 @@ class RedirectProvider(Provider):
 		return 301
 
 	def add_headers(self, handler):
-		Provider.add_headers(self, handler)
+		Provider.add_headers(self)
 		handler.send_header("Location", self.to)
 
 
@@ -115,6 +124,7 @@ class PageProvider(Provider):
 		self.out.write(text.encode('utf-8'))
 
 
+
 class AppProvider(Provider):
 	"""Provided for an application generating a new session and its
 	index page."""
@@ -125,12 +135,29 @@ class AppProvider(Provider):
 		self.man = man
 		self.out = None
 
+	def prepare(self, handler):
+
+		# look for the cookie
+		if "Cookie" not in handler.headers:
+			return self
+		cookie = SimpleCookie()
+		cookie.load(handler.headers["Cookie"])
+		if "orchid" not in cookie:
+			return self
+		uuid = cookie["orchid"].value
+
+		# look for reloading page
+		prov = self.man.get_by_uuid(uuid)
+		if prov is None:
+			return self
+		else:
+			return prov
+
 	def gen(self, out):
 		self.out = out
+		page = None
 		session = self.app.new_session(self.man)
 		page = session.get_index()
-		session.add_page(page)
-		self.man.record_page(page, PageProvider(page))
 		page.gen(self)
 		self.out = None
 
@@ -171,6 +198,7 @@ class Manager:
 		self.config = config
 		self.dirs = config['dirs']
 		self.pages = {}
+		self.uuid_map = {}
 		self.paths = {}
 		self.paths["/"] = self.add_app(app)
 		self.sessions = []
@@ -181,34 +209,13 @@ class Manager:
 		self.proxy = config['proxy']
 		self.prefix = urlparse(self.proxy).path
 		self.paths[""] = RedirectProvider(self.proxy + "/")
-		self.sched_cond = threading.Condition()
-		self.sched_queue = []
-		self.sched_thread = threading.Thread(
-				target = self.sched_main,
-				daemon = True
-			)
-		self.sched_thread.start()
-
-	def sched_main(self):
-		while True:
-			with self.sched_cond:
-				while not self.sched_queue:
-					self.sched_cond.wait()
-				(when, fun) = self.sched_queue[0]
-				delay = when - time.time()
-				if delay > 0:
-					self.sched_cond.wait(timeout=delay)
-				heapq.heappop(self.sched_queue)
-				fun()
+		self.scheduler = Scheduler()
+		self.session_task = None
 
 	def schedule(self, delay, fun):
-		"""Schedule a call to fun in delay seconds."""
-		with self.sched_cond:
-			heapq.heappush(
-				self.sched_queue,
-				(time.time() + delay, fun)
-			)
-			self.sched_cond.notify()
+		"""Schedule a call to fun in delay seconds.
+		Return the scheduler task."""
+		return self.scheduler.schedule(delay, fun)
 
 	def add_path(self, path, prov):
 		"""Add a path with the given provider. May override an existing one."""
@@ -250,6 +257,7 @@ class Manager:
 		"""Add a page to be served."""
 		prov = PageProvider(page)
 		self.record_page(page, prov)
+		self.uuid_map[page.get_uuid()] = prov
 		return prov
 
 	def add_app(self, app):
@@ -263,6 +271,7 @@ class Manager:
 		page.manager = None
 		del self.pages[page.get_id()]
 		del self.paths[self.page_path(page)]
+		del self.uuid_map[page.get_uuid()]
 
 	def get_page(self, id):
 		"""Get the page the provided ID."""
@@ -298,6 +307,13 @@ class Manager:
 					if self.config['debug']:
 						print(f"DEBUG: {path} resolved to {rpath}!")
 					return prov
+			return None
+
+	def get_by_uuid(self, uuid):
+		"""Get a page by its UUID."""
+		try:
+			return self.uuid_map[uuid]
+		except KeyError:
 			return None
 
 	def add_session(self, session):
@@ -356,6 +372,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
 				self.wfile.write(url.encode('utf-8'))
 
 	def do_GET(self):
+		#print("DEBUG: headers =", self.headers)
 		debug = self.server.manager.config['debug']
 		prov = self.server.manager.get(self.path)
 		if prov is None:
@@ -365,6 +382,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
 			if debug:
 				print("DEBUG: request processed!")
 		else:
+			prov = prov.prepare(self)
 			self.send_response(prov.get_return_code())
 			prov.add_headers(self)
 			self.end_headers()

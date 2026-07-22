@@ -40,6 +40,6 @@ class MyPage(orc.Page):
 		print("DEBUG: menu2!")
 
 
-orc.Application("Menu Test", first=MyPage).run()
+orc.Application("Menu Test", first=MyPage).run(debug = True)
 
 
