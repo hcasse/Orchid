@@ -20,7 +20,6 @@
 from orchid.util import buffer
 from orchid.base import Component, Model
 from orchid.models import ListVar, ListObserver, ItemDisplayer
-from orchid.displayable import Text
 
 SELECT_NONE = 0
 SELECT_SINGLE = 1

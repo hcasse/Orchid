@@ -104,7 +104,7 @@ class Shape:
 	def __init__(self, **args):
 		self.parent = None
 		self.num = 0
-		self.attrs = dict(**args)
+		self.attrs = {**args}
 		self.trans = None
 
 	def get_id(self):
@@ -173,6 +173,14 @@ class Shape:
 		"""Scale the shape."""
 		return self.add_transformation(Translate(dx, dy))
 
+	def get_width(self):
+		"""Get the width of the shape."""
+		return 1
+
+	def get_height(self):
+		"""Get the height of the shape."""
+		return 1
+
 
 class Circle(Shape):
 	"""A circle."""
@@ -186,6 +194,12 @@ class Circle(Shape):
 	def gen(self, out):
 		out.write(f"<circle id='{self.get_id()}' cx='{self.x}' cy='{self.y}' \
 			r='{self.r}' {self.get_attrs()}/>")
+
+	def get_width(self):
+		return self.r * self.r
+
+	def get_height(self):
+		return self.r * self.r
 
 
 class Line(Shape):
@@ -201,6 +215,12 @@ class Line(Shape):
 	def gen(self, out):
 		out.write(f"<line id='{self.get_id()}' x1='{self.x1}' y1='{self.y1}' \
 			x2='{self.x2}' y2='{self.y2}' {self.get_attrs()}/>")
+
+	def get_width(self):
+		return abs(self.x1 - self.x2)
+
+	def get_height(self):
+		return abs(self.y1 - self.y2)
 
 
 class Image(Shape):
@@ -227,12 +247,20 @@ class Image(Shape):
 		Shape.finalize(self)
 		self.url = self.parent.publish(self.path)
 
+	def get_width(self):
+		return self.w
+
+	def get_height(self):
+		return self.h
+
 
 class Content(Shape):
 
-	def __init__(self, content, **args):
+	def __init__(self, content, width=1, height=1, **args):
 		Shape.__init__(self, **args)
 		self.content = content
+		self.width = width
+		self.height = height
 
 	def finalize(self):
 		Shape.finalize(self)
@@ -245,6 +273,12 @@ class Content(Shape):
 
 	def set_direct_attr(self, id, att, val):
 		self.parent.get_page().set_direct_attr(id, att, val)
+
+	def get_width(self):
+		return self.width
+
+	def get_height(self):
+		return self.height
 
 
 class Canvas(Component):

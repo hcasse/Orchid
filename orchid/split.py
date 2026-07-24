@@ -86,10 +86,12 @@ class Pane(Group):
 		self.gen_attrs(out)
 		out.write(">")
 		self.get_pane1().gen(out)
-		out.write(f'<div class="split-div-{axis}"><button>{but1}</button><span></span><button>{but2}</button></div>')
+		out.write(f'<div class="split-div-{axis}"><button>{but1}</button><span>' +
+			f'</span><button>{but2}</button></div>')
 		self.get_pane2().gen(out)
 		out.write("</div>")
-		self.get_page().defer_script(f"split_init('{self.get_id()}', {self.pos}, {'true' if self.vert else 'false'});")
+		self.get_page().defer_script(f"split_init('{self.get_id()}', {self.pos},"
+			+ f" {'true' if self.vert else 'false'});")
 
 	def receive(self, msg, handler):
 		if msg["action"] == "move":

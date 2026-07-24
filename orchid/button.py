@@ -291,7 +291,7 @@ class CheckBox(Component, LabelledField):
 		return f"{self.get_id()}-input"
 
 	def gen_field(self, out, with_label=True):
-		out.write(f'<div')
+		out.write('<div')
 		Component.gen_attrs(self, out)
 		out.write(f'><input type="checkbox" \
 			name="{self.get_id()}" id="{self.get_input_id()}"')

@@ -20,12 +20,10 @@
 from functools import partial
 from http.cookies import SimpleCookie
 import http.server
-import heapq
 import json
 import mimetypes
 import os.path
 import re
-import time
 import threading
 import time
 from urllib.parse import urlparse
@@ -72,7 +70,7 @@ class RedirectProvider(Provider):
 		return 301
 
 	def add_headers(self, handler):
-		Provider.add_headers(self)
+		Provider.add_headers(self, handler)
 		handler.send_header("Location", self.to)
 
 

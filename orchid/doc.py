@@ -18,8 +18,6 @@
 """Module proposing a pane to display and navigate in the documentation
 of an application."""
 
-from urllib.parse import urlparse
-
 import orchid as orc
 from orchid import base
 from orchid import group
@@ -36,7 +34,7 @@ class Body(base.Component):
 		self.add_class("docs-body")
 		self.content = ""
 
-	def show(self, url):
+	def display(self, url):
 		"""Display the URL in the component."""
 		pass
 
@@ -84,9 +82,9 @@ class Pane(group.Row, models.ListObserver):
 
 	def gen_doc(self, index):
 		"""Generate documentation content as a string."""
-		(title, url) = self.docs[index]
+		(_, url) = self.docs[index]
 		return f'<iframe src="{url}" width="100%" height="100%" style="border: none;"></iframe>'
 
-	def on_append(self, i):
-		self.title.set_text(self.docs[i][0])
-		self.body.set_content(self.gen_doc(i))
+	def on_append(self, x):
+		self.title.set_text(self.docs[x][0])
+		self.body.set_content(self.gen_doc(x))

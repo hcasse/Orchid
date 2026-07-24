@@ -28,7 +28,6 @@ The following globals are available:
 import html
 import importlib
 import os.path
-from threading import Thread
 import time
 from time import sleep
 import traceback
@@ -998,7 +997,7 @@ class Page(AbstractComponent):
 		#out.write('<script>console.log("end of body!");</script>')
 		out.write("<script>")
 		for script in self.deferred_scripts:
-			out.write(script + "\n");
+			out.write(script + "\n")
 		out.write(f"""
 document.cookie = "orchid={self.get_uuid()}";
 window.addEventListener("beforeunload", (event) =>  {{ ui_close(); }});
@@ -1157,9 +1156,9 @@ class Session:
 		self.app.add_provider(url, provider)
 
 	def on_crash(self, page, exn):
-		"""Called when the application crashes. Defaut just display the exception. May return None or an URL for the page displaying the error."""
+		"""Called when the application crashes. Defaut just display the exception.
+		May return None or an URL for the page displaying the error."""
 		traceback.print_exc()
-		return None
 
 	def check_timeout(self):
 		"""Check for timeouted session."""

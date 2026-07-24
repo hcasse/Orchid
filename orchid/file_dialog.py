@@ -49,4 +49,4 @@ class Dialog(Base):
 		patterns=None,
 		sources=None
 	):
-		pass
+		Base.__init__(self)

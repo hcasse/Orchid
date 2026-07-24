@@ -135,9 +135,9 @@ class MarkDown(AbstractText):
 
 	def get_text(self):
 		if self.act_text is None:
-			self.act = AbstractText.get_text(self)
-			for (re, pat) in res:
-				self.act = re.sub(text, pat)
+			self.act_text = AbstractText.get_text(self)
+			for (re, pat) in self.MARKDOWN_RES:
+				self.act_text = re.sub(text, pat)
 		return self.act_text
 
 

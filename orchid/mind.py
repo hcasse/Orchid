@@ -608,7 +608,7 @@ class Action(AbstractAction):
 	def __init__(self, fun, enable=TRUE, **args):
 		AbstractAction.__init__(self, **args)
 		self.enable_pred = to_predicate(enable)
-		assert(isinstance(self.enable_pred, AbstractPredicate))
+		assert isinstance(self.enable_pred, AbstractPredicate)
 		self.enable_count = 0
 		self.fun = fun
 
