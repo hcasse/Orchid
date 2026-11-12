@@ -21,6 +21,7 @@ useful constants.
 * for stroke-dash-array: DASHED, DOTTED.
 """
 
+import html
 import os.path
 
 from orchid import Model, Component
@@ -99,7 +100,19 @@ class Translate(Transform):
 
 
 class Shape:
-	"""Represents a shape in the canvas."""
+	"""Represents a shape in the canvas.
+	All shapes supports a default set of attributes:
+	* `stroke` -- color
+	* `stroke_width` -- size
+	* `stroke_opacity` -- [0, 1]
+	* `stroke_linecap` -- { butt, round, square }
+	* `stroke-linejoin` -- { round, bevel, miter }
+	* `font-family` -- font name
+    * `font-size` -- size
+	* `font-style` -- { normal, italic }
+    * `font-weight` -- { normal, bold, 100-900}
+    * `fill` -- color
+	"""
 
 	def __init__(self, **args):
 		self.parent = None
@@ -202,6 +215,19 @@ class Circle(Shape):
 		return self.r * self.r
 
 
+class Text(Shape):
+	"""A text."""
+
+	def __init__(self, x, y, text, **args):
+		Shape.__init__(self, **args)
+		self.x = x
+		self.y = y
+		self.text = text
+
+	def gen(self, out):
+		out.write(f'<text x="{self.x}" y="{self.y}" {self.get_attrs()}">{html.escape(self.text)}</text>')
+
+
 class Line(Shape):
 	"""A line."""
 
@@ -221,6 +247,27 @@ class Line(Shape):
 
 	def get_height(self):
 		return abs(self.y1 - self.y2)
+
+
+class Rect(Shape):
+	"""A rectangle."""
+
+	def __init__(self, x, y, w, h, **args):
+		Shape.__init__(self, **args)
+		self.x = x
+		self.y = y
+		self.w = w
+		self.h = h
+
+	def gen(self, out):
+		out.write(f"<rect id='{self.get_id()}' x='{self.x}' y='{self.y}' \
+			width='{self.w}' height='{self.h}' {self.get_attrs()}/>")
+
+	def get_width(self):
+		return self.w
+
+	def get_height(self):
+		return self.h
 
 
 class Image(Shape):
@@ -352,6 +399,14 @@ class Canvas(Component):
 	def line(self, x1, y1, x2, y2, **args):
 		"""Draw a line."""
 		return self.record(Line(x1, y1, x2, y2, **args))
+
+	def rect(self, x, y, w, h, **args):
+		"""Draw a rectangle."""
+		return self.record(Rect(x, y, w, h, **args))
+
+	def text(self, x, y, text, **args):
+		"""Draw a text."""
+		return self.record(Text(x, y, text, **args))
 
 	def remove(self, shape):
 		"""Remove an object."""
