@@ -394,9 +394,12 @@ class Handler(http.server.SimpleHTTPRequestHandler):
 			http.server.SimpleHTTPRequestHandler.log_message(self, format, *args)
 
 
-def open_browser(host, port):
+def open_browser(host, port, standlone):
 	time.sleep(.5)
-	webbrowser.open(f"http://{host}:{port}")
+	if standlone:
+		webbrowser.open_new(f"http://{host}:{port}")
+	else:
+		webbrowser.open(f"http://{host}:{port}")
 
 DEFAULT_CONFIG = {
 	'host': '0.0.0.0', #'localhost',
@@ -407,7 +410,8 @@ DEFAULT_CONFIG = {
 	'session_timeout': 120 * 60,
 	'session_check_time': 10 * 60,
 	'debug': False,
-	'proxy': None
+	'proxy': None,
+	'standalone': False
 }
 
 def run(app, **args):
@@ -420,6 +424,7 @@ def run(app, **args):
 	* server -- if true, run as a server (no stop on last page close),
 	* session_timeout -- time-out (in s) of a session,
 	* session_check_time -- time (in s) to check for end of a session,
+	* standalone -- if True, open the application in its own browser,
 	* proxy -- when Orchid is behind a proxy, the address in the proxy.
 
 	If behind a reverse-proxy (like generic HTTP server), the proxy address is
@@ -453,7 +458,7 @@ def run(app, **args):
 
 	# launch browser if required
 	if config['browser']:
-		threading.Thread(target=partial(open_browser, sname[0], sname[1])) \
+		threading.Thread(target=partial(open_browser, sname[0], sname[1], config['standalone'])) \
 			.start()
 
 	# launch supervisor

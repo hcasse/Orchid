@@ -22,6 +22,7 @@ import heapq
 import sys
 import threading
 import time
+from typing import IO
 
 class Buffer:
 	"""Text buffer supporting write function."""
@@ -34,6 +35,8 @@ class Buffer:
 
 	def __str__(self):
 		return self.text
+
+type Out = IO|Buffer
 
 def buffer(fun):
 	"""Call function with a buffer to generate a text content and return
