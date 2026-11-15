@@ -2,6 +2,8 @@
 
 // https://developer.mozilla.org/fr/docs/Web/API/Window/requestIdleCallback
 
+const svg_ns = "http://www.w3.org/2000/svg";
+
 var ui_messages = [];
 var ui_answers = null;
 var ui_http = new XMLHttpRequest();
@@ -315,7 +317,7 @@ function ui_open(addr, target) {
 }
 
 function ui_close() {
-	//console.log("DEBUG: losing!");
+	//console.log("DEBUG: closing!");
 	ui_send({id: "0", action: "close" });
 	now = (new Date()).getTime();
 	while(((new Date()).getTime() - now) < 250);
@@ -323,6 +325,19 @@ function ui_close() {
 
 function ui_onclick(id) {
 	ui_send({id: id, action: "click"});
+}
+
+function ui_size(id) {
+	const element = document.getElementById(id);
+	let rect;
+	if(element.parentNode.namespaceURI == svg_ns)
+		rect = element.getBBox();
+	else
+		rect = element.getBoundingClientRect();
+	console.log("size of " + id + ": " + rect.width + " x " + rect.height + ": " + element);
+	ui_send({id: "0", target: id, action: "size",
+		width: Math.round(rect.width),
+		height: Math.round(rect.height)});
 }
 
 

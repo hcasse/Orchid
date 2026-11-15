@@ -27,6 +27,11 @@ class MyPage(orc.Page):
 			app = app)
 		self.timer = orc.Timer(self, self.step, period=250, started = False)
 
+		def show_size(width: int, height: int) -> None:
+			print(f"size = {width} x {height}")
+
+		self.canvas.get_size(show_size)
+
 	def reset(self):
 		self.x1 = 0
 		self.x2 = 400

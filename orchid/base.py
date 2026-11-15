@@ -31,6 +31,7 @@ import os.path
 import time
 from time import sleep
 import traceback
+from typing import Callable
 import uuid
 
 from orchid import server
@@ -41,6 +42,7 @@ from orchid.displayable import Displayable
 CLOSE_TIMEOUT = 0.250
 CLOSE_DELAY = 2
 
+type SizeFun = Callable[[int, int], None]
 
 def write_nothing(page, out):
 	"""Funcion writing nothing to out."""
@@ -191,6 +193,14 @@ class AbstractComponent(Displayable, Subject):
 		self.page = None
 		self.shown = False
 		self.keys = []
+
+	def get_size(self, fun: SizeFun, id: str = "") -> None:
+		"""Get size in asynchronous way. fun is called with (width, height)
+		as soon as size is obtained. If id is "", get size of the component.
+		Else get size from the XML lement with provided id."""
+		if not id:
+			id = self.get_id()
+		self.page.get_size(id, fun)
 
 	def key(self, key, action, mask=0):
 		"""Add a key to the component. action may a mind.Action or a function
@@ -653,6 +663,32 @@ class PageObserver:
 class Page(AbstractComponent):
 	"""Implements a page ready to be displayed."""
 
+	class SizeMan:
+		"""Management of asynchronous to get sizes."""
+
+		def __init__(self, page: "Page", id: str):
+			self.page = page
+			self.id = id
+			self.width = -1
+			self.height = -1
+			self.pending: list[SizeFun] = []
+
+		def get_size(self, fun: SizeFun) -> None:
+			if self.width >= 0:
+				fun(self.width, self.height)
+			elif self.pending:
+				self.pending.append(fun)
+			else:
+				self.pending = [fun]
+				self.page.send({"type": "call", "fun": "ui_size", "args": self.id})
+
+		def solve(self, width: int, height: int) -> None:
+			self.width = width
+			self.height = height
+			for fun in self.pending:
+				fun(width, height)
+			self.pending = []
+
 	def __init__(self, main = None, parent = None,
 	app = None, title = None, style = "default.css", theme = "basic", interface=STANDARD_INTERFACE):
 		"""Build a new page.
@@ -685,6 +721,7 @@ class Page(AbstractComponent):
 		self.set_attr("onfocusin", "ui_on_focus(event);")
 		self.deferred_scripts = None
 		self.uuid = str(uuid.uuid4())
+		self.size_map: dict[str, SizeMan] = {}
 
 		# prepare the theme
 		if isinstance(theme, str):
@@ -699,6 +736,16 @@ class Page(AbstractComponent):
 			self.models = {}
 			self.components = {}
 		self.add_model(theme)
+
+	def get_size(self, id: str, fun: SizeFun) -> None:
+		"""In asynchronous way, ask for size of the component with provided ID.
+		As soon as size is available, fun(width, height) is called."""
+		try:
+			man = self.size_map[id]
+		except KeyError:
+			man = self.SizeMan(self, id)
+			self.size_map[id] = man
+		man.get_size(fun)
 
 	def get_uuid(self):
 		"""Get unique identifier for the page."""
@@ -910,6 +957,8 @@ class Page(AbstractComponent):
 			pass
 		elif a == "focus":
 			self.focus_id = msg["target"]
+		elif a == "size":
+			self.size_map[msg["target"]].solve(msg["width"], msg["height"])
 		else:
 			handler.log_error(f"unknown action: {a}")
 

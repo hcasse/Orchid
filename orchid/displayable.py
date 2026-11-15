@@ -71,9 +71,10 @@ class Text(Displayable):
 	]
 
 	@staticmethod
-	def wiki_to_html(text, res):
-		for (re, pat) in res:
-			text = re.sub(re, pat)
+	def wiki_to_html(text: str, res) -> str:
+		orig = text
+		for (r, pat) in res:
+			text = re.sub(r, pat)
 		return text
 
 	@staticmethod
@@ -86,7 +87,7 @@ class Text(Displayable):
 
 	@staticmethod
 	def plain(text):
-		return Text(htm.escape(str(text).replace("\n", "<br>")))
+		return Text(htm.escape(str(text)).replace("\n", "<br>"))
 
 	@staticmethod
 	def make(content):

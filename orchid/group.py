@@ -411,23 +411,25 @@ def vspring():
 LAYERED_PANE_MODEL = Model(
 	style = """
 .layered-parent {
-	display: flex;
-	align-items: stretch;
-	overflow: auto;
+	display: grid;
+	width: 100%;
 }
 
 .layered-child {
-	display: flex;
-	box-sizing: border-box;
+	grid-area: 1 / 1;
+	min-width: 0;
+	min-height: 0;
+	width: 100%;
+	height: 100%;
+	display: block;
 }
 
 .layered-inactive {
-	position: absolute;
-	left: -10000px;
-	top: -10000px;
+    visibility: hidden;
 }
 
 .layered-active {
+    visibility: visible;
 }
 """
 )

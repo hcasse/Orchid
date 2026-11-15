@@ -23,16 +23,23 @@ useful constants.
 
 import html
 import os.path
+from typing import Callable
+import xml.etree.ElementTree as ET
 
 from orchid import Model, Component
-from orchid.util import Buffer
+from orchid.util import Buffer, Out
 
-MODEL = Model(
-	"svg-canvas",
-	script_paths=["svg.js"]
-)
 
 XMLNS = "http://www.w3.org/2000/svg"
+
+class Error(Exception):
+	"""SVG error."""
+
+	def __init__(self, msg: str):
+		self.msg = msg
+
+	def __str__(self):
+		return self.msg
 
 
 # standard dash arrays
@@ -328,12 +335,54 @@ class Content(Shape):
 		return self.height
 
 
+class SVGImage(Shape):
+
+	def __init__(self, **args):
+		Shape.__init__(self, **args)
+		self.content = ""
+		self.width = -1
+		self.height = -1
+
+	def gen(self, out: Out) -> None:
+		out.write(f"<g id='{self.get_id()}' {self.get_attrs()}>")
+		out.write(self.content)
+		out.write("</g>")
+
+	def get_width(self) -> int:
+		return self.width
+
+	def get_height(self) -> int:
+		return self.height
+
+	@staticmethod
+	def from_buffer(buffer: str, **args) -> "SVGImage":
+		"""Build an SVGImage from a buffer."""
+		image = SVGImage(**args)
+		try:
+			root = ET.fromstring(buffer)
+		except ET.ParseError as exn:
+			raise Error(f"bad content: {exn}")
+		if root.tag != "{http://www.w3.org/2000/svg}svg":
+			raise Error("Not SVG file")
+		box = root.get("viewBox")
+		image.content = buffer
+		if box is not None:
+			comps = box.split(" ")
+			image.width = int(float(comps[2]))
+			image.height = int(float(comps[3]))
+		return image
+
+
 class Canvas(Component):
 	"""A canvas that support CFG primitives."""
 	SVG_NUM = 0
+	MODEL = Model(
+		"svg-canvas",
+		script_paths=["svg.js"]
+	)
 
 	def __init__(self):
-		Component.__init__(self, MODEL)
+		Component.__init__(self, self.MODEL)
 		self.set_attr("xmlns", XMLNS)
 		self.add_class("svg-canvas")
 		self.num = Canvas.SVG_NUM
@@ -424,7 +473,12 @@ class Canvas(Component):
 		"""Draw an image."""
 		return self.record(Image(path, x, y, w, h, **args))
 
+	def svg_from_buffer(self, buffer: str, **args) -> Shape:
+		"""Draw an SVG image from a string buffer."""
+		return self.record(SVGImage.from_buffer(buffer, **args))
+
 	def content(self, content, **args):
+		"""Build an image from a straight content."""
 		return self.record(Content(content, **args))
 
 	def add_event(self, id, event, fun):
@@ -445,6 +499,14 @@ class Canvas(Component):
 
 	def receive(self, msg, handler):
 		try:
-			self.events[msg["event"]]()
+			action = msg["action"]
+			if action == "event":
+				self.events[msg["event"]]()
+			elif action == "size":
+				width = msg["width"]
+				height = msg["height"]
+				for fun in self.size_funs:
+					fun(width, height)
+				self.size_funs = []
 		except KeyError:
 			Component.receive(self, msg, handler)

@@ -12,6 +12,8 @@ Use one of the test script in `test` directory.
 
 ## Future development
 
-* Split Pane: https://htmldom.dev/create-resizable-split-views/
+[x] Split Pane: https://htmldom.dev/create-resizable-split-views/
 
-* Support for theme: https://github.com/SebastJava/mint-yz-theme/tree/master
+[ ] Support for theme: https://github.com/SebastJava/mint-yz-theme/tree/master
+
+[ ] Use only mechanism of type="call" for Orchid function calls (faster, simpler).

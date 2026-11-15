@@ -98,6 +98,10 @@ class MyPage(orc.Page):
 			]),
 			app = app)
 
+		def show_size(width: int, height: int) -> None:
+			print(f"size = {width} x {height}")
+
+		self.canvas.get_size(show_size)
+
 
 orc.Application("SVG Inject Test", first=MyPage).run()
-
