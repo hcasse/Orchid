@@ -123,6 +123,7 @@ class StatusBar(HGroup):
 		if model is None:
 			model = self.MODEL
 		HGroup.__init__(self, content, model=model)
+		self.add_class("status-bar")
 
 	def get_context(self) -> Context:
 		return Context.STATUSBAR

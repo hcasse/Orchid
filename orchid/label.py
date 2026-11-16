@@ -1,6 +1,6 @@
 """Label component."""
 
-from orchid.base import Component, Model, Displayable
+from orchid.base import Component, Model, Displayable, Timer
 from orchid.displayable import Text
 from orchid.util import ProxyInterface, STANDARD_INTERFACE, Buffer
 
@@ -67,9 +67,13 @@ class Banner(Component):
 
 class MessageLabel(Label, ProxyInterface):
 	"""This label is dedicated to display user messages. It implements Interface
-	and can also display errors from a list of predicates."""
+	and can also display errors from a list of predicates.
 
-	def __init__(self, preds=None, content="", interface=STANDARD_INTERFACE):
+	If time is non-zero, the info messages are displayed during the provided time
+	in ms.
+	"""
+
+	def __init__(self, preds=None, content="", interface=STANDARD_INTERFACE, time=0):
 		Label.__init__(self, content)
 		ProxyInterface.__init__(self, interface)
 		self.add_class("message-label")
@@ -78,6 +82,15 @@ class MessageLabel(Label, ProxyInterface):
 			self.preds = []
 		else:
 			self.preds = preds
+		self.time = time
+		self.timer: None|Timer = None
+
+	def finalize(self, page):
+		Label.finalize(self, page)
+		if self.time:
+			self.timer = Timer(page, self.clear_message)
+			if self.text != "":
+				self.timer.start(self.time)
 
 	def on_show(self):
 		Label.on_show(self)
@@ -105,9 +118,13 @@ class MessageLabel(Label, ProxyInterface):
 			self.set_text("")
 
 	def set_message(self, style, message):
+		if self.timer is not None:
+			self.timer.stop()
 		if self.text != message:
 			self.set_text(message)
 			self.replace_class(style)
+			if self.timer is not None and style == "info-text":
+				self.timer.start(self.time)
 
 	def show_error(self, message):
 		self.set_message("error-text", message)

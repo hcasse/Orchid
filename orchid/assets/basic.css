@@ -302,6 +302,9 @@ div.field label {
 	box-sizing: content-box;
 }
 
+.status-bar {
+	align-items: center;
+}
 
 /* editor */
 .editor {

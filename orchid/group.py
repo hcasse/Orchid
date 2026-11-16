@@ -237,7 +237,7 @@ class HGroup(Group):
 	}
 	""")
 
-	def __init__(self, comps = None, model = None, align = Align.LEFT):
+	def __init__(self, comps = None, model = None, align = Align.NONE):
 		if model is None:
 			model = HGroup.MODEL
 		if comps is None:
@@ -245,7 +245,7 @@ class HGroup(Group):
 		Group.__init__(self, model, comps)
 		self.add_class(self.COMP_CLASS)
 		align = Group.ALIGNS[align]
-		if align is not None:
+		if align != Align.NONE:
 			self.set_style("align-items", align)
 
 	def map_child(self, child):

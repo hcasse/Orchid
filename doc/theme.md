@@ -89,4 +89,7 @@ Other components:
 * `.interactive-view`: lookup of interactive view.
 * `.editor`: editor lookup.
 * `.svg-canvas`: SVG canvas lookup.
+* `.status-bar`: status bar lookup.
+* `.statusbar-icon`: icons inside status bar.
+
 
