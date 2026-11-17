@@ -3,13 +3,16 @@
 """SVG canvas test."""
 
 import orchid as orc
+from orchid.control import ClickNMove
 from orchid.svg import Canvas
+
 
 class MyPage(orc.Page):
 
 	def __init__(self, app):
 		self.canvas = Canvas()
-		self.canvas.circle(50, 50, 30,
+		self.canvas.add_control(ClickNMove(on_move = self.on_move))
+		self.circle = self.canvas.circle(50, 50, 30,
 			stroke="green", fill="yellow", stroke_width=4)
 		self.objects = []
 		self.reset()
@@ -31,6 +34,10 @@ class MyPage(orc.Page):
 			print(f"size = {width} x {height}")
 
 		self.canvas.get_size(show_size)
+
+	def on_move(self, dx: int, dy: int) -> None:
+		print(f"DEBUG: move {dx}, {dy}")
+		self.circle.translate(dx, dy)
 
 	def reset(self):
 		self.x1 = 0

@@ -19,6 +19,7 @@
 
 from enum import Enum, IntEnum
 import heapq
+import xml.sax.saxutils
 import sys
 import threading
 import time
@@ -321,3 +322,8 @@ class Scheduler:
 				heapq.heappop(self.queue)
 				#print(f"DEBUG: run {task}")
 				task.run()
+
+
+def escape_attr(text: str) -> str:
+	"""Escape text to be put in HTML attribute."""
+	return xml.sax.saxutils.quoteattr(text)

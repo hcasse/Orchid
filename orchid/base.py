@@ -31,7 +31,7 @@ import os.path
 import time
 from time import sleep
 import traceback
-from typing import Callable
+from typing import Callable, Any
 import uuid
 
 from orchid import server
@@ -174,6 +174,21 @@ class Model:
 
 class Handler:
 	"""Interface providing access to the HTTP server handler."""
+
+
+type Message = dict[str, Any]
+
+
+class Receiver:
+	"""Class implemented by objects supporting messages from HTTP client."""
+
+	def get_id(self) -> str:
+		"""Get the identifier of the receiver."""
+		return ""
+
+	def receive(self, msg: Message, handler: Handler) -> None:
+		"""Called to process the provided message."""
+		pass
 
 
 class AbstractComponent(Displayable, Subject):
@@ -513,7 +528,7 @@ class AbstractComponent(Displayable, Subject):
 			next.grab_focus()
 
 
-class Component(AbstractComponent):
+class Component(AbstractComponent, Receiver):
 	"""Component to build a user-interface. A component may be displayed
 	but is also interactive requiring to have a link with the page."""
 
@@ -585,6 +600,7 @@ class Component(AbstractComponent):
 		"""Called to let component declare additional resources when
 		added to a page."""
 		page.on_add(self)
+		page.register_receiver(self)
 
 	def on_show(self):
 		"""Called when the component is shown. The default implementation does nothing."""
@@ -722,6 +738,7 @@ class Page(AbstractComponent):
 		self.deferred_scripts = None
 		self.uuid = str(uuid.uuid4())
 		self.size_map: dict[str, SizeMan] = {}
+		self.receiver_map: dict[str, Receiver] = {}
 
 		# prepare the theme
 		if isinstance(theme, str):
@@ -736,6 +753,14 @@ class Page(AbstractComponent):
 			self.models = {}
 			self.components = {}
 		self.add_model(theme)
+
+	def register_receiver(self, receiver: Receiver) -> None:
+		"""Register a new receiver."""
+		self.receiver_map[receiver.get_id()] = receiver
+
+	def unregister_receiver(self, receiver: Receiver) -> None:
+		"""Register a new receiver."""
+		del self.receiver_map[receiver.get_id()]
 
 	def get_size(self, id: str, fun: SizeFun) -> None:
 		"""In asynchronous way, ask for size of the component with provided ID.
@@ -902,7 +927,7 @@ class Page(AbstractComponent):
 				self.manage(m, handler)
 			else:
 				try:
-					comp = self.components[id]
+					comp = self.receiver_map[id]
 				except KeyError:
 					handler.log_error(f"unknown component in {m}")
 					comp = None

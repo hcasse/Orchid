@@ -26,8 +26,9 @@ import os.path
 from typing import Callable
 import xml.etree.ElementTree as ET
 
-from orchid import Model, Component
-from orchid.util import Buffer, Out
+from orchid.base import Model, Component, PLAIN_MODEL, Page
+from orchid.control import Harness, ClickNMove
+from orchid.util import Buffer, Out, escape_attr
 
 
 XMLNS = "http://www.w3.org/2000/svg"
@@ -54,6 +55,8 @@ def make_event_id(id, event):
 		id = str(id.num)
 	return f"{id}-{event}"
 
+
+
 class Transform:
 	"""A transformation in SVG."""
 
@@ -65,6 +68,7 @@ class Transform:
 		"""Generate the text for the transformation."""
 		if self.next is not None:
 			self.next.gen(out)
+
 
 class Scale(Transform):
 	"""Scale transformation."""
@@ -373,7 +377,7 @@ class SVGImage(Shape):
 		return image
 
 
-class Canvas(Component):
+class Canvas(Component, Harness):
 	"""A canvas that support CFG primitives."""
 	SVG_NUM = 0
 	MODEL = Model(
@@ -383,6 +387,7 @@ class Canvas(Component):
 
 	def __init__(self):
 		Component.__init__(self, self.MODEL)
+		Harness.__init__(self)
 		self.set_attr("xmlns", XMLNS)
 		self.add_class("svg-canvas")
 		self.num = Canvas.SVG_NUM
@@ -409,6 +414,7 @@ class Canvas(Component):
 	def gen(self, out):
 		out.write("<svg ")
 		self.gen_attrs(out)
+		self.gen_harness_attrs(out)
 		out.write(f'><template id="svg-{self.num}-temp"></template>')
 		for shape in self.shapes:
 			shape.gen(out)
@@ -434,6 +440,7 @@ class Canvas(Component):
 		Component.finalize(self, page)
 		for shape in self.shapes:
 			shape.finalize()
+		self.finalize_harness(page)
 
 	def expands_horizontal(self):
 		return True
