@@ -29,7 +29,7 @@ class Control(Receiver):
 
 	def __init__(self):
 		self.id = f"ctrl{self.CONTROL_CNT}"
-		self.CONTROL_CNT += 1
+		Control.CONTROL_CNT += 1
 
 	def get_id(self) -> str:
 		return self.id
@@ -88,7 +88,7 @@ class Harness:
 
 class ClickNMove(Control, Receiver):
 	"""Control that capture a mouse click, move and then release."""
-	MODEL = Model("clicknmove-control", script_paths=["cnm.js"])
+	MODEL = Model("clicknmove-control-model", script_paths=["cnm.js"])
 
 	def __init__(self,
 		on_move: Callable[[int, int], None]
@@ -101,14 +101,41 @@ class ClickNMove(Control, Receiver):
 
 	def get_event_map(self, comp: Component) -> dict[str, str]:
 		return {
-				"onpointerdown": "orc_cnm_push(this, event);",
-				"onpointermove": f"orc_cnm_move(this, event, '{self.get_id()}');",
-				"onpointerup": "orc_cnm_release(this, event);",
-				"onpointercancel": "orc_nm_cancel(this, event);",
-			}
+			"onpointerdown": "orc_cnm_push(this, event);",
+			"onpointermove": f"orc_cnm_move(this, event, '{self.get_id()}');",
+			"onpointerup": "orc_cnm_release(this, event);",
+			"onpointercancel": "orc_nm_cancel(this, event);",
+		}
 
 	def receive(self, msg: Message, handler: Handler) -> None:
 		if msg["action"] == "move":
 			self.on_move(msg["dx"], msg["dy"])
 
 
+class MouseWheel(Control, Receiver):
+	"""Control that capture wheel move."""
+	MODEL = Model("mousewheel-control-model", script="""
+function orc_mw_change(event, id) {
+	event.preventDefault();
+	//console.log("DEBUG: wheel: " + event.deltaX + ", " + event.deltaY);
+	ui_send({id: id, action: "change", delta: event.deltaY});
+}
+	""")
+
+	def __init__(self,
+		on_change: Callable[[int], None]
+	):
+		Control.__init__(self)
+		self.on_change = on_change
+
+	def get_model(self) -> Model:
+		return self.MODEL
+
+	def get_event_map(self, comp: Component) -> dict[str, str]:
+		return {
+			"onwheel": f"orc_mw_change(event, '{self.get_id()}');",
+		}
+
+	def receive(self, msg: Message, handler: Handler) -> None:
+		if msg["action"] == "change":
+			self.on_change(msg["delta"])

@@ -61,8 +61,8 @@ class Transform:
 	"""A transformation in SVG."""
 
 	def __init__(self):
-		self.parent = None
-		self.next = None
+		self.parent: "Shape|None" = None
+		self.next: "Transform|None" = None
 
 	def gen(self, out):
 		"""Generate the text for the transformation."""
@@ -73,41 +73,62 @@ class Transform:
 class Scale(Transform):
 	"""Scale transformation."""
 
-	def __init__(self, sx, sy = None):
+	def __init__(self, sx: float, sy: float|None = None):
 		Transform.__init__(self)
 		self.sx = sx
 		self.sy = sy if sy is not None else sx
 
-	def gen(self, out):
+	def gen(self, out: Out) -> None:
 		out.write(f"scale({self.sx}, {self.sy})")
 		Transform.gen(self, out)
 
-	def set(self, sx, sy = None):
+	def set(self, sx: float, sy: float|None = None) -> None:
 		self.sx = sx
 		self.sy = sy if sy is not None else sx
 		self.parent.update_transform()
+
+	def get(self) -> tuple[float, float]:
+		return (self.sx, self.sy)
+
+	def zoom(self, sx: float, sy: float|None = None) -> None:
+		if sy is None:
+			sy = sx
+		self.sx += sx
+		self.sy += sy
+		self.parent.update_transform()
+
+	def unzoom(self, sx: float, sy: float|None = None) -> None:
+		if sy is None:
+			sy = sx
+		self.sx -= sx
+		self.sy -= sy
+		self.parent.update_transform()
+
 
 class Translate(Transform):
 	"""Translation."""
 
-	def __init__(self, dx, dy):
+	def __init__(self, dx: float, dy: float):
 		Transform.__init__(self)
 		self.dx = dx
 		self.dy = dy
 
-	def gen(self, out):
+	def gen(self, out: Out) -> None:
 		out.write(f"translate({self.dx}, {self.dy})")
 		Transform.gen(self, out)
 
-	def move(self, dx, dy):
+	def move(self, dx: float, dy: float) -> None:
 		self.dx += dx
 		self.dy += dy
 		self.parent.update_transform()
 
-	def moveAt(self, dx, dy):
+	def moveAt(self, dx: float, dy: float) -> None:
 		self.dx = dx
 		self.dy = dy
 		self.parent.update_transform()
+
+	def get(self) -> tuple[float, float]:
+		return (self.dx, self.dy)
 
 
 class Shape:
@@ -130,6 +151,13 @@ class Shape:
 		self.num = 0
 		self.attrs = {**args}
 		self.trans = None
+
+	def release(self):
+		"""Called to release resources."""
+		trans = self.trans
+		while trans is not None:
+			trans.parent = None
+			trans = trans.next
 
 	def get_id(self):
 		return f"svg-{self.parent.num}-{self.num}"
@@ -182,12 +210,13 @@ class Shape:
 		"""Remove the gien event on the current shape."""
 		self.parent.remove_event(self, event)
 
-	def add_transformation(self, t):
+	def add_transformation(self, trans: Transform) -> None:
 		"""Add a transformation."""
-		t.next = self.trans
-		self.trans = t
+		trans.next = self.trans
+		trans.parent = self
+		self.trans = trans
 		self.update_transform()
-		return t
+		return trans
 
 	def scale(self, sx, sy = None):
 		"""Scale the shape."""
@@ -396,6 +425,11 @@ class Canvas(Component, Harness):
 		self.image_map = {}
 		self.shapes = []
 		self.events = {}
+
+	def release(self) -> None:
+		Component.release(self)
+		for shape in self.shapes:
+			shape.release()
 
 	def record(self, shape):
 		shape.parent = self

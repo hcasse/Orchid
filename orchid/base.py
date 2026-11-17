@@ -538,6 +538,11 @@ class Component(AbstractComponent, Receiver):
 		self.weight = None
 		self.shown = False
 
+	def release(self):
+		"""Called to inform the component that it is no more used.
+		Default implementation does nothing."""
+		pass
+
 	def get_model(self):
 		"""Get the model of the component."""
 		return self.model
@@ -876,11 +881,23 @@ class Page(AbstractComponent):
 
 	def set_main(self, main):
 		"""Set the main component."""
+
+		# clean old main
+		if self.main is not None:
+			self.main.release()
+			self.main.parent = None
+
+		# install new main
 		self.main = main
 		main.parent = self
+
+		# finalize installation
 		self.components = {}
+		self.receiver_map = {}
 		self.models = {}
 		main.finalize(self)
+
+		# set additional style
 		main.set_style("flex", "1")
 		main.set_top_class("top-content")
 
