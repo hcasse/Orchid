@@ -34,7 +34,7 @@ BOOTSTRAP_ICONS = {
 	IconType.ADD: "plus-lg",
 	IconType.ALIGN_LEFT: "text-left",
 	IconType.ALIGN_RIGHT: "text-right",
-	IconType.CENTER: "text-center",
+	IconType.ALIGN_CENTER: "text-center",
 	IconType.CHAT: "chat-dots",
 	IconType.CHECK: "check",
 	IconType.CHECK_ALL: "check-all",

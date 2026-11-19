@@ -30,7 +30,7 @@ class IconType(IntEnum):
 	ADD = auto()
 	ALIGN_LEFT = auto()
 	ALIGN_RIGHT = auto()
-	CENTER = auto()
+	ALIGN_CENTER = auto()
 	CHAT = auto()
 	CHECK = auto()
 	CHECK_ALL = auto()
