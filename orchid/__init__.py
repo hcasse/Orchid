@@ -45,7 +45,7 @@ from orchid.struct import Header, ToolBar, MessageContainer, StatusBar, ButtonBa
 from orchid.tabbedpane import TabbedPane, Tab
 from orchid.table import TableView
 from orchid.util import Interface, buffer, Pos, Dir, Align, Context, \
-	MessageType, Observer, Subject, Buffer
+	MessageType, Observer, Subject, Buffer, STANDARD_INTERFACE
 from orchid.view import InteractiveView
 
 # deprecated
@@ -70,3 +70,4 @@ def var(val, type=None, **args):
 # useful constants
 PYTHON_CONTRIB = (AssetImage("images/python-logo-only.png"), "Python", "https://www.python.org")
 ORCHID_CONTRIB = (AssetImage("orchid.svg"), "Orchid", "https://github.com/hcasse/Orchid")
+STD = STANDARD_INTERFACE

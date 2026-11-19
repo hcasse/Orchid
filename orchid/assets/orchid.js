@@ -330,14 +330,18 @@ function ui_onclick(id) {
 function ui_size(id) {
 	const element = document.getElementById(id);
 	let rect;
-	if(element.parentNode.namespaceURI == svg_ns)
+	/*if(element.parentNode.namespaceURI == svg_ns)
 		rect = element.getBBox();
-	else
+	else*/
 		rect = element.getBoundingClientRect();
 	console.log("size of " + id + ": " + rect.width + " x " + rect.height + ": " + element);
 	ui_send({id: "0", target: id, action: "size",
 		width: Math.round(rect.width),
 		height: Math.round(rect.height)});
+}
+
+function ui_resize() {
+	ui_send({id: "0", action: "resize"});
 }
 
 

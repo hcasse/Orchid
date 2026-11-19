@@ -119,7 +119,7 @@ class StatusBar(HGroup):
 		parent = HGROUP_MODEL
 	)
 
-	def __init__(self, content: Component, model: Model = MODEL):
+	def __init__(self, content: list[Component], model: Model = MODEL):
 		if model is None:
 			model = self.MODEL
 		HGroup.__init__(self, content, model=model)

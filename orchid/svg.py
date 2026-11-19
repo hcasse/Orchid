@@ -90,14 +90,14 @@ class Scale(Transform):
 	def get(self) -> tuple[float, float]:
 		return (self.sx, self.sy)
 
-	def zoom(self, sx: float, sy: float|None = None) -> None:
+	def zoom_in(self, sx: float, sy: float|None = None) -> None:
 		if sy is None:
 			sy = sx
 		self.sx += sx
 		self.sy += sy
 		self.parent.update_transform()
 
-	def unzoom(self, sx: float, sy: float|None = None) -> None:
+	def zoom_out(self, sx: float, sy: float|None = None) -> None:
 		if sy is None:
 			sy = sx
 		self.sx -= sx
@@ -122,7 +122,7 @@ class Translate(Transform):
 		self.dy += dy
 		self.parent.update_transform()
 
-	def moveAt(self, dx: float, dy: float) -> None:
+	def move_at(self, dx: float, dy: float) -> None:
 		self.dx = dx
 		self.dy = dy
 		self.parent.update_transform()

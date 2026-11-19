@@ -4,6 +4,8 @@
 
 import orchid as orc
 from orchid import svg
+from orchid.button import Button
+from orchid.group import VGroup
 
 class MyPage(orc.Page):
 
@@ -11,11 +13,14 @@ class MyPage(orc.Page):
 
 		self.canvas = svg.Canvas()
 		self.circle = self.canvas.circle(50, 50, 100)
+		self.canvas2 = svg.Canvas()
+		self.canvas2.circle(200, 200, 50)
 		self.layer = orc.LayeredPane([
 			orc.Editor(init = "Layer 0!"),
 			orc.Editor(init = "Layer 1!"),
 			orc.Console(init = "coucou!"),
-			self.canvas
+			self.canvas,
+			VGroup([Button("Test"), self.canvas2])
 		])
 
 		orc.Page.__init__(
@@ -26,6 +31,7 @@ class MyPage(orc.Page):
 					orc.Button("Layer 1", on_click=self.set_one),
 					orc.Button("Layer 2", on_click=self.set_two),
 					orc.Button("SVG", on_click=lambda: self.layer.set_layer(3)),
+					orc.Button("SVG2", on_click=lambda: self.layer.set_layer(4)),
 					orc.Button("SVG size", on_click=self.show_svg_size),
 					orc.Button("circle size", on_click=self.show_circle_size)
 				]),

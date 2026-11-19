@@ -710,8 +710,15 @@ class Page(AbstractComponent):
 				fun(width, height)
 			self.pending = []
 
-	def __init__(self, main = None, parent = None,
-	app = None, title = None, style = "default.css", theme = "basic", interface=STANDARD_INTERFACE):
+	def __init__(self,
+		main = None,
+		parent = None,
+		app = None,
+		title = None,
+		style = "default.css",
+		theme = "basic",
+		interface=STANDARD_INTERFACE
+	):
 		"""Build a new page.
 
 		Parameters:
@@ -740,10 +747,24 @@ class Page(AbstractComponent):
 		#self.set_attr("onbeforeunload", "ui_close();")
 		#self.set_attr("onload", 'ui_hi();')
 		self.set_attr("onfocusin", "ui_on_focus(event);")
+		self.set_attr("onresize", "ui_resize();")
 		self.deferred_scripts = None
 		self.uuid = str(uuid.uuid4())
 		self.size_map: dict[str, SizeMan] = {}
 		self.receiver_map: dict[str, Receiver] = {}
+
+		# set up manage functions
+		def set_focus(msg: Message) -> None:
+			self.focus_id = msg["target"]
+		def resize(msg: Message) -> None:
+			self.size_map = { }
+		self.manage_map: dict[str, Callable[[Message], None]] = {
+			"close": lambda msg: self.session.schedule(CLOSE_DELAY, self._delayed_close),
+			"focus": set_focus,
+			"hi": lambda msg: None,
+			"resize": resize,
+			"size": lambda msg: self.size_map[msg["target"]].solve(msg["width"], msg["height"])
+		}
 
 		# prepare the theme
 		if isinstance(theme, str):
@@ -990,19 +1011,13 @@ class Page(AbstractComponent):
 				return
 
 		# default actions
-		a = msg["action"]
-		if a == "close":
-			# delayed close to support reload
-			self.session.schedule(CLOSE_DELAY, self._delayed_close)
-			#self.on_close()
-		elif a == "hi":
-			pass
-		elif a == "focus":
-			self.focus_id = msg["target"]
-		elif a == "size":
-			self.size_map[msg["target"]].solve(msg["width"], msg["height"])
-		else:
-			handler.log_error(f"unknown action: {a}")
+		action = msg["action"]
+		try:
+			fun = self.manage_map[action]
+		except KeyError:
+			handler.log_error(f"unknown action: {action}")
+			return
+		fun(msg)
 
 	def _delayed_close(self):
 		"""Called to manage a delayed to support reload."""
